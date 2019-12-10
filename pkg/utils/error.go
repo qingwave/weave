@@ -5,6 +5,14 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
+	"qinng.io/weave/pkg/utils/log"
+)
+
+var (
+	InvalidIDError      = NewHttpError(http.StatusBadRequest, "InvalidID", "请在URL中提供合法的ID")
+	NotMatchError       = NewHttpError(http.StatusBadRequest, "NotMatch", "请求ID不匹配")
+	NotFoundError       = NewHttpError(http.StatusNotFound, "NotFound", "没有找到相应记录")
+	InternalServerError = NewHttpError(http.StatusInternalServerError, "ServerError", "")
 )
 
 type HttpError struct {
@@ -27,45 +35,36 @@ func (e *HttpError) Error() string {
 }
 
 func HttpErrorHandler(err error, c echo.Context) {
-	var (
-		code = http.StatusInternalServerError
-		key  = "ServerError"
-		msg  string
-	)
+	var httpError *HttpError
 	// 二话不说先打日志
-	Logger.Error(err.Error())
+	log.Logger.Error(err.Error())
 
 	if he, ok := err.(*HttpError); ok {
 		// 我们自定的错误
-		code = he.Code
-		key = he.Key
-		msg = he.Message
+		httpError = he
 	} else if ee, ok := err.(*echo.HTTPError); ok {
 		// echo 框架的错误
-		code = ee.Code
-		key = http.StatusText(code)
-		msg = key
+		httpError = NewHttpError(ee.Code, http.StatusText(ee.Code), err.Error())
 	} else if err == gorm.ErrRecordNotFound {
 		// 我们将 gorm 的没有找到直接返回 404
-		code = http.StatusNotFound
-		key = "NotFound"
-		msg = "没有找到相应记录"
+		httpError = NotFoundError
 	} else {
 		// 剩下的都是500 开了debug显示详细错误
-		msg = err.Error()
+		httpError = InternalServerError
+		httpError.Message = err.Error()
 	}
 
 	// 判断 context 是否已经返回了
 	if !c.Response().Committed {
 		if c.Request().Method == echo.HEAD {
-			err := c.NoContent(code)
+			err := c.NoContent(httpError.Code)
 			if err != nil {
-				Logger.Error(err.Error())
+				log.Logger.Error(err.Error())
 			}
 		} else {
-			err := c.JSON(code, NewHttpError(code, key, msg))
+			err := c.JSON(httpError.Code, httpError)
 			if err != nil {
-				Logger.Error(err.Error())
+				log.Logger.Error(err.Error())
 			}
 		}
 	}
