@@ -1,0 +1,176 @@
+basePath: /
+definitions:
+  controller.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      msg:
+        type: string
+    type: object
+  model.BaseUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  model.User:
+    properties:
+      create_time:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      update_time:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a weave server api doc.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Weave Server API
+  version: "2.0"
+paths:
+  /:
+    get:
+      produces:
+      - text/plain
+      responses: {}
+      summary: Healthz
+      tags:
+      - index
+  /api/v1/users:
+    get:
+      description: List user and storage
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.User'
+                  type: array
+              type: object
+      summary: List user
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Create user and storage
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.BaseUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+      summary: Create user
+      tags:
+      - user
+  /api/v1/users/{id}:
+    delete:
+      description: Delete user and storage
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: Delete user
+      tags:
+      - user
+    get:
+      description: Get user and storage
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+      summary: Get user
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update user and storage
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.BaseUser'
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/controller.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+      summary: Update user
+      tags:
+      - user
+  /healthz:
+    get:
+      produces:
+      - application/json
+      responses: {}
+      summary: Healthz
+      tags:
+      - healthz
+swagger: "2.0"
