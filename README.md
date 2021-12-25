@@ -1,6 +1,6 @@
 
 # Weave
-Simple golang webserver write by gin and gorm.
+Simple but functional golang webserver example write by gin and gorm.
 
 ## Features
 Support features:
@@ -13,6 +13,10 @@ Support features:
 - PProf debug
 - Graceful shutdown
 
+TODO
+- [ ] Redis cache
+- [ ] Request rate limit
+- [ ] Authentication
 ## Run
 Run locally
 ```bash

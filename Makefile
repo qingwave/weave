@@ -10,6 +10,8 @@ test:
 
 clean:
 	@rm -rf bin/
+	go mod tidy
+	go mod vendor
 
 swagger:
 	swag init
