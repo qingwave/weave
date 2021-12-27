@@ -11,7 +11,7 @@
         "version": "2.0"
     },
     "host": "localhost:8080",
-    "basePath": "/",
+    "basePath": "/api/v1",
     "paths": {
         "/": {
             "get": {
@@ -21,7 +21,7 @@
                 "tags": [
                     "index"
                 ],
-                "summary": "Healthz",
+                "summary": "Index",
                 "responses": {}
             }
         },
@@ -41,7 +41,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -78,7 +78,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.BaseUser"
+                            "$ref": "#/definitions/model.CreatedUser"
                         }
                     }
                 ],
@@ -88,7 +88,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -129,7 +129,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -163,7 +163,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.BaseUser"
+                            "$ref": "#/definitions/model.UpdatedUser"
                         }
                     },
                     {
@@ -180,7 +180,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -217,7 +217,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.Response"
+                            "$ref": "#/definitions/model.Response"
                         }
                     }
                 }
@@ -237,7 +237,18 @@
         }
     },
     "definitions": {
-        "controller.Response": {
+        "model.CreatedUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -249,7 +260,7 @@
                 }
             }
         },
-        "model.BaseUser": {
+        "model.UpdatedUser": {
             "type": "object",
             "properties": {
                 "email": {

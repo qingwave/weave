@@ -4,17 +4,37 @@ import (
 	"time"
 )
 
-type BaseUser struct {
-	Name  string `json:"name" gorm:"type:varchar(256)"`
-	Email string `json:"email"`
-}
-
 type User struct {
-	BaseUser
 	ID        int        `json:"id" gorm:"AUTO_INCREMENT;primary_key"`
+	Name      string     `json:"name" gorm:"type:varchar(256)"`
+	Email     string     `json:"email"`
 	CreatedAt time.Time  `json:"create_time"`
 	UpdatedAt time.Time  `json:"update_time"`
 	DeletedAt *time.Time `json:"-"` // soft delete
+}
+
+type CreatedUser struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (u *CreatedUser) GetUser() *User {
+	return &User{
+		Name:  u.Name,
+		Email: u.Email,
+	}
+}
+
+type UpdatedUser struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (u *UpdatedUser) GetUser() *User {
+	return &User{
+		Name:  u.Name,
+		Email: u.Email,
+	}
 }
 
 type Users []User

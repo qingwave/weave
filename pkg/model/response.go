@@ -1,14 +1,9 @@
-package controller
+package model
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-)
-
-const (
-	success = 200
-	failed  = 500
 )
 
 type Response struct {
@@ -18,7 +13,7 @@ type Response struct {
 }
 
 func NewResponse(c *gin.Context, code int, data interface{}, msg string) {
-	c.JSON(http.StatusOK, Response{
+	c.JSON(code, Response{
 		Code: code,
 		Msg:  msg,
 		Data: data,
@@ -26,12 +21,12 @@ func NewResponse(c *gin.Context, code int, data interface{}, msg string) {
 }
 
 func ResponseSuccess(c *gin.Context, data interface{}) {
-	NewResponse(c, success, data, "success")
+	NewResponse(c, http.StatusOK, data, "success")
 }
 
 func ResponseFailed(c *gin.Context, code int, err error) {
 	if code == 0 {
-		code = failed
+		code = http.StatusInternalServerError
 	}
 	NewResponse(c, code, nil, err.Error())
 }

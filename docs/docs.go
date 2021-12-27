@@ -35,7 +35,7 @@ var doc = `{
                 "tags": [
                     "index"
                 ],
-                "summary": "Healthz",
+                "summary": "Index",
                 "responses": {}
             }
         },
@@ -55,7 +55,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -92,7 +92,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.BaseUser"
+                            "$ref": "#/definitions/model.CreatedUser"
                         }
                     }
                 ],
@@ -102,7 +102,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -143,7 +143,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -177,7 +177,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.BaseUser"
+                            "$ref": "#/definitions/model.UpdatedUser"
                         }
                     },
                     {
@@ -194,7 +194,7 @@ var doc = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/controller.Response"
+                                    "$ref": "#/definitions/model.Response"
                                 },
                                 {
                                     "type": "object",
@@ -231,7 +231,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.Response"
+                            "$ref": "#/definitions/model.Response"
                         }
                     }
                 }
@@ -251,7 +251,18 @@ var doc = `{
         }
     },
     "definitions": {
-        "controller.Response": {
+        "model.CreatedUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -263,7 +274,7 @@ var doc = `{
                 }
             }
         },
-        "model.BaseUser": {
+        "model.UpdatedUser": {
             "type": "object",
             "properties": {
                 "email": {
@@ -310,7 +321,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "2.0",
 	Host:        "localhost:8080",
-	BasePath:    "/",
+	BasePath:    "/api/v1",
 	Schemes:     []string{},
 	Title:       "Weave Server API",
 	Description: "This is a weave server api doc.",

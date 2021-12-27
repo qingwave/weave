@@ -1,6 +1,13 @@
-basePath: /
+basePath: /api/v1
 definitions:
-  controller.Response:
+  model.CreatedUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  model.Response:
     properties:
       code:
         type: integer
@@ -8,7 +15,7 @@ definitions:
       msg:
         type: string
     type: object
-  model.BaseUser:
+  model.UpdatedUser:
     properties:
       email:
         type: string
@@ -43,7 +50,7 @@ paths:
       produces:
       - text/plain
       responses: {}
-      summary: Healthz
+      summary: Index
       tags:
       - index
   /api/v1/users:
@@ -56,7 +63,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controller.Response'
+            - $ref: '#/definitions/model.Response'
             - properties:
                 data:
                   items:
@@ -76,7 +83,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.BaseUser'
+          $ref: '#/definitions/model.CreatedUser'
       produces:
       - application/json
       responses:
@@ -84,7 +91,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controller.Response'
+            - $ref: '#/definitions/model.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'
@@ -107,7 +114,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.Response'
+            $ref: '#/definitions/model.Response'
       summary: Delete user
       tags:
       - user
@@ -126,7 +133,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controller.Response'
+            - $ref: '#/definitions/model.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'
@@ -144,7 +151,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.BaseUser'
+          $ref: '#/definitions/model.UpdatedUser'
       - description: user id
         in: path
         name: id
@@ -157,7 +164,7 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/controller.Response'
+            - $ref: '#/definitions/model.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'

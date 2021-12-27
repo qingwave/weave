@@ -52,16 +52,17 @@ func (u *UserController) Get(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Tags user
-// @Param user body model.BaseUser true "user info"
+// @Param user body model.CreatedUser true "user info"
 // @Success 200 {object} Response{data=model.User}
 // @Router /api/v1/users [post]
 func (u *UserController) Create(c *gin.Context) {
-	user := new(model.User)
-	if err := c.BindJSON(user); err != nil {
+	createdUser := new(model.CreatedUser)
+	if err := c.BindJSON(createdUser); err != nil {
 		ResponseFailed(c, failed, err)
 		return
 	}
 
+	user := createdUser.GetUser()
 	if err := u.userService.Validate(user); err != nil {
 		ResponseFailed(c, failed, err)
 		return
@@ -81,18 +82,18 @@ func (u *UserController) Create(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Tags user
-// @Param user body model.BaseUser true "user info"
+// @Param user body model.UpdatedUser true "user info"
 // @Param id   path      int  true  "user id"
 // @Success 200 {object} Response{data=model.User}
 // @Router /api/v1/users/{id} [put]
 func (u *UserController) Update(c *gin.Context) {
-	new := new(model.User)
+	new := new(model.UpdatedUser)
 	if err := c.Bind(new); err != nil {
 		ResponseFailed(c, failed, err)
 		return
 	}
 
-	user, err := u.userService.Update(c.Param("id"), new)
+	user, err := u.userService.Update(c.Param("id"), new.GetUser())
 	if err != nil {
 		ResponseFailed(c, failed, err)
 		return
