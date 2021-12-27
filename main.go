@@ -20,12 +20,15 @@ import (
 // @BasePath  /api/v1
 
 func main() {
-	conf := config.New()
-	config.AddFlags(conf)
 	flag.Parse()
 
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
+
+	conf, err := config.Parse()
+	if err != nil {
+		logger.Fatalf("Failed to parse config: %v", err)
+	}
 
 	s, err := server.New(conf, logger)
 	if err != nil {

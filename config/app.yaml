@@ -1,0 +1,21 @@
+server:
+  env: "debug"
+  address: "127.0.0.1"
+  port: 8080
+  gracefulShutdownPeriod: 30
+  rateLimits:
+    - limitType: "server"
+      burst: 500
+      qps: 100
+      cacheSize: 1
+    - limitType: "ip"
+      burst: 50
+      qps: 10
+      cacheSize: 2048
+
+db:
+  dbPort: 5432 
+  dbHost: "localhost"
+  dbName: "weave"
+  user: "postgres"
+  password: "123456"

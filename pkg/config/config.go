@@ -2,33 +2,47 @@ package config
 
 import (
 	"flag"
-	"time"
+	"os"
+	"weave/pkg/middleware/ratelimit"
+
+	"gopkg.in/yaml.v2"
 )
 
+var appConfig = flag.String("config", "config/app.yaml", "application config path")
+
 type Config struct {
-	Port                 int
-	GracefulShutdownTime time.Duration
-	DBConfig
+	Server ServerConfig `yaml:"server"`
+	DB     DBConfig     `yaml:"db"`
+}
+
+type ServerConfig struct {
+	ENV                    string                  `yaml:"env"`
+	Address                string                  `yaml:"address"`
+	Port                   int                     `yaml:"port"`
+	GracefulShutdownPeriod int                     `yaml:"gracefulShutdownPeriod"`
+	LimitConfigs           []ratelimit.LimitConfig `yaml:"rateLimits"`
 }
 
 type DBConfig struct {
-	DBHost   string
-	DBPort   int
-	DBName   string
-	User     string
-	Password string
+	DBHost   string `yaml:"dbHost"`
+	DBPort   int    `yaml:"dbPort"`
+	DBName   string `yaml:"dbName"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
 }
 
-func AddFlags(c *Config) {
-	flag.IntVar(&c.Port, "port", 8080, "server port")
-	flag.DurationVar(&c.GracefulShutdownTime, "gracefulShutdownTime", 30*time.Second, "graceful shutdown time")
-	flag.StringVar(&c.DBHost, "dbHost", "localhost", "db host")
-	flag.IntVar(&c.DBPort, "dbPort", 5432, "db port")
-	flag.StringVar(&c.DBName, "dbName", "weave", "db name")
-	flag.StringVar(&c.User, "user", "postgres", "db user")
-	flag.StringVar(&c.Password, "password", "123456", "db password")
-}
+func Parse() (*Config, error) {
+	config := &Config{}
 
-func New() *Config {
-	return &Config{}
+	file, err := os.Open(*appConfig)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	if err := yaml.NewDecoder(file).Decode(&config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

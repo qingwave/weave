@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	_ "weave/docs"
 	"weave/pkg/config"
@@ -25,13 +26,21 @@ import (
 )
 
 func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
+	rateLimitMiddleware, err := middleware.RateLimitMiddleware(conf.Server.LimitConfigs)
+	if err != nil {
+		return nil, err
+	}
+
+	gin.SetMode(conf.Server.ENV)
+
 	e := gin.New()
 	e.Use(
+		rateLimitMiddleware,
 		middleware.LogMiddleware(logger, "/api/v1"),
 		gin.Recovery(),
 	)
 
-	db, err := database.InitDB(&conf.DBConfig)
+	db, err := database.InitDB(&conf.DB)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +69,7 @@ type Server struct {
 func (s *Server) Run() {
 	s.Routers()
 
-	addr := fmt.Sprintf("127.0.0.1:%d", s.config.Port)
+	addr := fmt.Sprintf("%s:%d", s.config.Server.Address, s.config.Server.Port)
 	s.logger.Infof("Start server on: %s", addr)
 
 	server := &http.Server{
@@ -77,7 +86,7 @@ func (s *Server) Run() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.config.GracefulShutdownTime)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(s.config.Server.GracefulShutdownPeriod)*time.Second)
 	defer cancel()
 
 	ch := <-sig

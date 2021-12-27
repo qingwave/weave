@@ -17,6 +17,7 @@ var (
 
 func LogMiddleware(logger *logrus.Logger, pathPrefix ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("start log")
 		path := c.Request.URL.Path
 		logged := len(pathPrefix) == 0
 		for _, prefix := range pathPrefix {
