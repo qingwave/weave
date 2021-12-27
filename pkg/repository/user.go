@@ -7,8 +7,7 @@ import (
 )
 
 var (
-	userCreateField = []string{"name", "email"}
-	userUpdateField = []string{"name", "email"}
+	userCreateField = []string{"name", "email", "password"}
 )
 
 type userRepository struct {
@@ -37,7 +36,7 @@ func (u *userRepository) Create(user *model.User) (*model.User, error) {
 }
 
 func (u *userRepository) Update(user *model.User) (*model.User, error) {
-	if err := u.db.Model(&model.User{}).Select(userUpdateField).Updates(user).Error; err != nil {
+	if err := u.db.Model(&model.User{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
 		return nil, err
 	}
 

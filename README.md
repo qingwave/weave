@@ -15,7 +15,7 @@ Support features:
 
 TODO
 - [ ] Redis cache
-- [ ] Request rate limit
+- [x] Request rate limit
 - [ ] Authentication
 ## Run
 Run locally

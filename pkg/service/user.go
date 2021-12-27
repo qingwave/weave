@@ -6,6 +6,12 @@ import (
 	"strconv"
 
 	"weave/pkg/model"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	MinPasswordLength = 6
 )
 
 type userService struct {
@@ -23,6 +29,11 @@ func (u *userService) List() (model.Users, error) {
 }
 
 func (u *userService) Create(user *model.User) (*model.User, error) {
+	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = string(password)
 	return u.userRepository.Create(user)
 }
 
@@ -38,6 +49,15 @@ func (u *userService) Update(id string, new *model.User) (*model.User, error) {
 
 	if new.ID != 0 && old.ID != new.ID {
 		return nil, fmt.Errorf("update user %s not match", id)
+	}
+	new.ID = old.ID
+
+	if len(new.Password) > 0 {
+		password, err := bcrypt.GenerateFromPassword([]byte(new.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		new.Password = string(password)
 	}
 
 	return u.userRepository.Update(new)
@@ -57,6 +77,9 @@ func (u *userService) Validate(user *model.User) error {
 	}
 	if user.Name == "" {
 		return errors.New("user name is empty")
+	}
+	if len(user.Password) < MinPasswordLength {
+		return fmt.Errorf("password length must great than %d", MinPasswordLength)
 	}
 	return nil
 }

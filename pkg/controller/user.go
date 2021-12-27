@@ -5,6 +5,7 @@ import (
 	"weave/pkg/model"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type UserController struct {
@@ -89,10 +90,11 @@ func (u *UserController) Create(c *gin.Context) {
 // @Router /api/v1/users/{id} [put]
 func (u *UserController) Update(c *gin.Context) {
 	new := new(model.UpdatedUser)
-	if err := c.Bind(new); err != nil {
+	if err := c.BindJSON(new); err != nil {
 		model.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
+	logrus.Infof("get update user: %#v, user: %#v", new, new.GetUser())
 
 	user, err := u.userService.Update(c.Param("id"), new.GetUser())
 	if err != nil {

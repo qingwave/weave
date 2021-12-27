@@ -47,6 +47,9 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	}
 
 	userRepository := repository.NewUserRepository(db)
+	if err := userRepository.Migrate(); err != nil {
+		return nil, err
+	}
 	userService := service.NewUserService(userRepository)
 	userController := controller.NewUserController(userService)
 
