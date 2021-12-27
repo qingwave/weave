@@ -37,6 +37,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	e.Use(
 		rateLimitMiddleware,
 		middleware.LogMiddleware(logger, "/api/v1"),
+		middleware.MonitorMiddleware(),
 		gin.Recovery(),
 	)
 

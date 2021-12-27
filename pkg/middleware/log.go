@@ -17,7 +17,6 @@ var (
 
 func LogMiddleware(logger *logrus.Logger, pathPrefix ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("start log")
 		path := c.Request.URL.Path
 		logged := len(pathPrefix) == 0
 		for _, prefix := range pathPrefix {
@@ -31,7 +30,6 @@ func LogMiddleware(logger *logrus.Logger, pathPrefix ...string) gin.HandlerFunc 
 		}
 
 		start := time.Now()
-		c.Next()
 
 		defer func() {
 			latency := time.Since(start)
@@ -61,5 +59,7 @@ func LogMiddleware(logger *logrus.Logger, pathPrefix ...string) gin.HandlerFunc 
 				}
 			}
 		}()
+
+		c.Next()
 	}
 }
