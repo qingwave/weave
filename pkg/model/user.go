@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -12,6 +13,22 @@ type User struct {
 	CreatedAt time.Time  `json:"create_time"`
 	UpdatedAt time.Time  `json:"update_time"`
 	DeletedAt *time.Time `json:"-"` // soft delete
+}
+
+func (*User) TableName() string {
+	return "users"
+}
+
+func (u *User) CacheKey() string {
+	return u.TableName() + ":id"
+}
+
+func (u *User) MarshalBinary() ([]byte, error) {
+	return json.Marshal(u)
+}
+
+func (u *User) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, u)
 }
 
 type CreatedUser struct {

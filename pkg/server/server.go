@@ -23,6 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 )
 
 func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
@@ -31,12 +32,17 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, err
 	}
 
-	db, err := database.InitDB(&conf.DB)
+	db, err := database.NewPostgres(&conf.DB)
 	if err != nil {
 		return nil, err
 	}
 
-	userRepository := repository.NewUserRepository(db)
+	rdb, err := database.NewRedisClient(&conf.Redis)
+	if err != nil {
+		return nil, err
+	}
+
+	userRepository := repository.NewUserRepository(db, rdb)
 	if err := userRepository.Migrate(); err != nil {
 		return nil, err
 	}
@@ -64,6 +70,8 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		userController: userController,
 		authContoller:  authContoller,
 		authMiddleware: middleware.AuthMiddleware(jwtService),
+		db:             db,
+		rdb:            rdb,
 	}, nil
 }
 
@@ -76,10 +84,15 @@ type Server struct {
 	authContoller  *controller.AuthController
 
 	authMiddleware gin.HandlerFunc
+
+	db  *gorm.DB
+	rdb *database.RedisDB
 }
 
 // graceful shutdown
 func (s *Server) Run() {
+	defer s.Close()
+
 	s.Routers()
 
 	addr := fmt.Sprintf("%s:%d", s.config.Server.Address, s.config.Server.Port)
@@ -105,6 +118,14 @@ func (s *Server) Run() {
 	ch := <-sig
 	s.logger.Infof("Receive signal: %s", ch)
 	server.Shutdown(ctx)
+}
+
+func (s *Server) Close() {
+	s.rdb.Close()
+	db, _ := s.db.DB()
+	if db != nil {
+		db.Close()
+	}
 }
 
 func (s *Server) Routers() {

@@ -13,6 +13,7 @@ var appConfig = flag.String("config", "config/app.yaml", "application config pat
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	DB     DBConfig     `yaml:"db"`
+	Redis  RedisConfig  `yaml:"redis"`
 }
 
 type ServerConfig struct {
@@ -24,10 +25,17 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
-	DBHost   string `yaml:"dbHost"`
-	DBPort   int    `yaml:"dbPort"`
-	DBName   string `yaml:"dbName"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Name     string `yaml:"name"`
 	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+}
+
+type RedisConfig struct {
+	Enable   bool   `yaml:"enable"`
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
 }
 

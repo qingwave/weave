@@ -9,7 +9,6 @@ import (
 	"weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
 func AuthMiddleware(jwtService *service.JWTService) gin.HandlerFunc {
@@ -34,7 +33,7 @@ func AuthMiddleware(jwtService *service.JWTService) gin.HandlerFunc {
 			return
 		}
 
-		logrus.Infof("auth user %#v", user)
+		c.Set(common.UserContextKey, user)
 
 		c.Next()
 	}

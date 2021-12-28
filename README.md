@@ -12,11 +12,14 @@ Support features:
 - Prometheus monitor
 - PProf debug
 - Graceful shutdown
+- Authentication, support jwt
+- Request rate limit, server level or user ip
+- Redis cache
 
 TODO
-- [ ] Redis cache
+- [x] Redis cache
 - [x] Request rate limit
-- [ ] Authentication
+- [x] Authentication
 ## Run
 ### Run locally
 ```bash

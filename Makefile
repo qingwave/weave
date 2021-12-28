@@ -24,3 +24,6 @@ postgres:
 	
 exec-db:
 	docker exec -it mypostgres psql -d weave -U postgres
+
+redis:
+	docker run --name myredis -d -p 6379:6379 redis --appendonly yes --requirepass 123456

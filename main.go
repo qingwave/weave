@@ -25,7 +25,7 @@ import (
 func main() {
 	flag.Parse()
 
-	logger := logrus.New()
+	logger := logrus.StandardLogger()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 
 	conf, err := config.Parse()

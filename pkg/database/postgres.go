@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func InitDB(conf *config.DBConfig) (*gorm.DB, error) {
+func NewPostgres(conf *config.DBConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Shanghai",
-		conf.DBHost, conf.User, conf.Password, conf.DBName, conf.DBPort)
+		conf.Host, conf.User, conf.Password, conf.Name, conf.Port)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }

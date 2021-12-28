@@ -14,8 +14,14 @@ server:
       cacheSize: 2048
 
 db:
-  dbPort: 5432 
-  dbHost: "localhost"
-  dbName: "weave"
+  port: 5432 
+  host: "localhost"
+  name: "weave"
   user: "postgres"
+  password: "123456"
+
+redis:
+  enable: true
+  port: 6379 
+  host: "localhost"
   password: "123456"
