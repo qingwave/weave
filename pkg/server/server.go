@@ -31,6 +31,22 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, err
 	}
 
+	db, err := database.InitDB(&conf.DB)
+	if err != nil {
+		return nil, err
+	}
+
+	userRepository := repository.NewUserRepository(db)
+	if err := userRepository.Migrate(); err != nil {
+		return nil, err
+	}
+
+	userService := service.NewUserService(userRepository)
+	jwtService := service.NewJWTService()
+
+	userController := controller.NewUserController(userService)
+	authContoller := controller.NewAuthController(userService, jwtService)
+
 	gin.SetMode(conf.Server.ENV)
 
 	e := gin.New()
@@ -41,23 +57,13 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		gin.Recovery(),
 	)
 
-	db, err := database.InitDB(&conf.DB)
-	if err != nil {
-		return nil, err
-	}
-
-	userRepository := repository.NewUserRepository(db)
-	if err := userRepository.Migrate(); err != nil {
-		return nil, err
-	}
-	userService := service.NewUserService(userRepository)
-	userController := controller.NewUserController(userService)
-
 	return &Server{
 		engine:         e,
 		config:         conf,
 		logger:         logger,
 		userController: userController,
+		authContoller:  authContoller,
+		authMiddleware: middleware.AuthMiddleware(jwtService),
 	}, nil
 }
 
@@ -67,6 +73,9 @@ type Server struct {
 	logger *logrus.Logger
 
 	userController *controller.UserController
+	authContoller  *controller.AuthController
+
+	authMiddleware gin.HandlerFunc
 }
 
 // graceful shutdown
@@ -106,7 +115,11 @@ func (s *Server) Routers() {
 	root.Any("/debug/pprof/*any")
 	root.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	root.POST("/login", s.authContoller.Login)
+	root.POST("/register", s.authContoller.Register)
+
 	api := root.Group("/api/v1")
+	api.Use(s.authMiddleware)
 	api.GET("/users", s.userController.List)
 	api.POST("/users", s.userController.Create)
 	api.GET("/users/:id", s.userController.Get)
@@ -115,9 +128,10 @@ func (s *Server) Routers() {
 }
 
 // @Summary Index
-// @Produce plain
+// @Produce html
 // @Tags index
 // @Router / [get]
+// @Success 200 {string}  string    ""
 func (s *Server) Index(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(
 		`<html>
@@ -140,6 +154,7 @@ func (s *Server) Index(c *gin.Context) {
 // @Summary Healthz
 // @Produce json
 // @Tags healthz
+// @Success 200 {string}  string    "ok"
 // @Router /healthz [get]
 func (s *Server) Healthz(c *gin.Context) {
 	c.JSON(http.StatusOK, "ok")

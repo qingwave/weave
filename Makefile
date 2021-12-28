@@ -1,4 +1,4 @@
-base: clean
+base: clean swagger
 	go build -o bin/weave main.go
 
 run: 
@@ -23,4 +23,4 @@ postgres:
 	docker run --name mypostgres -d -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres
 	
 exec-db:
-	docker exec -it mypostgres psql -U postgres
+	docker exec -it mypostgres psql -d weave -U postgres

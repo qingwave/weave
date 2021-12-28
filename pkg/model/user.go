@@ -5,10 +5,10 @@ import (
 )
 
 type User struct {
-	ID        int        `json:"id" gorm:"AUTO_INCREMENT;primary_key"`
-	Name      string     `json:"name" gorm:"type:varchar(50)"`
-	Password  string     `json:"-" gorm:"type:varchar(256)"`
-	Email     string     `json:"email" gorm:"type:varchar(256)"`
+	ID        int        `json:"id" gorm:"autoIncrement;primaryKey"`
+	Name      string     `json:"name" gorm:"type:varchar(50);unique;not null"`
+	Password  string     `json:"-" gorm:"type:varchar(256);not null"`
+	Email     string     `json:"email" gorm:"type:varchar(256);unique;not null"`
 	CreatedAt time.Time  `json:"create_time"`
 	UpdatedAt time.Time  `json:"update_time"`
 	DeletedAt *time.Time `json:"-"` // soft delete
@@ -42,6 +42,11 @@ func (u *UpdatedUser) GetUser() *User {
 	}
 }
 
+type AuthUser struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 type Users []User
 
 type UserService interface {
@@ -51,11 +56,13 @@ type UserService interface {
 	Update(string, *User) (*User, error)
 	Delete(string) error
 	Validate(*User) error
+	Auth(*AuthUser) (*User, error)
 	Default(*User)
 }
 
 type UserRepository interface {
-	GetUserByID(id int) (*User, error)
+	GetUserByID(int) (*User, error)
+	GetUserByName(string) (*User, error)
 	List() (Users, error)
 	Create(user *User) (*User, error)
 	Update(user *User) (*User, error)

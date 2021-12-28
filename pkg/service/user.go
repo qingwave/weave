@@ -93,6 +93,23 @@ func (u *userService) Default(user *model.User) {
 	}
 }
 
+func (u *userService) Auth(auser *model.AuthUser) (*model.User, error) {
+	if auser == nil || auser.Name == "" || auser.Password == "" {
+		return nil, fmt.Errorf("name or password is empty")
+	}
+
+	user, err := u.userRepository.GetUserByName(auser.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(auser.Password)); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (u *userService) getUserByID(id string) (*model.User, error) {
 	uid, err := strconv.Atoi(id)
 	if err != nil {

@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"net/http"
+
+	"weave/pkg/common"
 	"weave/pkg/middleware/ratelimit"
-	"weave/pkg/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,7 @@ func RateLimitMiddleware(configs []ratelimit.LimitConfig) (gin.HandlerFunc, erro
 	return func(c *gin.Context) {
 		for _, limiter := range limiters {
 			if err := limiter.Accept(c); err != nil {
-				model.ResponseFailed(c, http.StatusTooManyRequests, err)
+				common.ResponseFailed(c, http.StatusTooManyRequests, err)
 				return
 			}
 		}

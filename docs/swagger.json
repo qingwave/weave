@@ -11,22 +11,34 @@
         "version": "2.0"
     },
     "host": "localhost:8080",
-    "basePath": "/api/v1",
+    "basePath": "/",
     "paths": {
         "/": {
             "get": {
                 "produces": [
-                    "text/plain"
+                    "text/html"
                 ],
                 "tags": [
                     "index"
                 ],
                 "summary": "Index",
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
             }
         },
         "/api/v1/users": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "List user and storage",
                 "produces": [
                     "application/json"
@@ -41,7 +53,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.Response"
+                                    "$ref": "#/definitions/common.Response"
                                 },
                                 {
                                     "type": "object",
@@ -60,6 +72,11 @@
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Create user and storage",
                 "consumes": [
                     "application/json"
@@ -88,7 +105,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.Response"
+                                    "$ref": "#/definitions/common.Response"
                                 },
                                 {
                                     "type": "object",
@@ -106,6 +123,11 @@
         },
         "/api/v1/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Get user and storage",
                 "produces": [
                     "application/json"
@@ -129,7 +151,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.Response"
+                                    "$ref": "#/definitions/common.Response"
                                 },
                                 {
                                     "type": "object",
@@ -145,6 +167,11 @@
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Update user and storage",
                 "consumes": [
                     "application/json"
@@ -180,7 +207,7 @@
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/model.Response"
+                                    "$ref": "#/definitions/common.Response"
                                 },
                                 {
                                     "type": "object",
@@ -196,6 +223,11 @@
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
                 "description": "Delete user and storage",
                 "produces": [
                     "application/json"
@@ -217,7 +249,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Response"
+                            "$ref": "#/definitions/common.Response"
                         }
                     }
                 }
@@ -232,23 +264,111 @@
                     "healthz"
                 ],
                 "summary": "Healthz",
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "description": "Create user and storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "auth user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.AuthUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.JWTToken"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "description": "Create user and storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register user",
+                "parameters": [
+                    {
+                        "description": "user info",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreatedUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/model.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
             }
         }
     },
     "definitions": {
-        "model.CreatedUser": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Response": {
+        "common.Response": {
             "type": "object",
             "properties": {
                 "code": {
@@ -260,6 +380,42 @@
                 }
             }
         },
+        "model.AuthUser": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.CreatedUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.JWTToken": {
+            "type": "object",
+            "properties": {
+                "describe": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "model.UpdatedUser": {
             "type": "object",
             "properties": {
@@ -267,6 +423,9 @@
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -290,6 +449,13 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "JWT": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

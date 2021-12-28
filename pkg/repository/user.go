@@ -55,6 +55,14 @@ func (u *userRepository) GetUserByID(id int) (*model.User, error) {
 	return user, nil
 }
 
+func (u *userRepository) GetUserByName(name string) (*model.User, error) {
+	user := new(model.User)
+	if err := u.db.Where("name = ?", name).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (u *userRepository) Migrate() error {
 	return u.db.AutoMigrate(&model.User{})
 }

@@ -1,13 +1,6 @@
-basePath: /api/v1
+basePath: /
 definitions:
-  model.CreatedUser:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    type: object
-  model.Response:
+  common.Response:
     properties:
       code:
         type: integer
@@ -15,11 +8,36 @@ definitions:
       msg:
         type: string
     type: object
+  model.AuthUser:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  model.CreatedUser:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  model.JWTToken:
+    properties:
+      describe:
+        type: string
+      token:
+        type: string
+    type: object
   model.UpdatedUser:
     properties:
       email:
         type: string
       name:
+        type: string
+      password:
         type: string
     type: object
   model.User:
@@ -48,8 +66,12 @@ paths:
   /:
     get:
       produces:
-      - text/plain
-      responses: {}
+      - text/html
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
       summary: Index
       tags:
       - index
@@ -63,13 +85,15 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/model.Response'
+            - $ref: '#/definitions/common.Response'
             - properties:
                 data:
                   items:
                     $ref: '#/definitions/model.User'
                   type: array
               type: object
+      security:
+      - JWT: []
       summary: List user
       tags:
       - user
@@ -91,11 +115,13 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/model.Response'
+            - $ref: '#/definitions/common.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'
               type: object
+      security:
+      - JWT: []
       summary: Create user
       tags:
       - user
@@ -114,7 +140,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Response'
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
       summary: Delete user
       tags:
       - user
@@ -133,11 +161,13 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/model.Response'
+            - $ref: '#/definitions/common.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'
               type: object
+      security:
+      - JWT: []
       summary: Get user
       tags:
       - user
@@ -164,11 +194,13 @@ paths:
           description: OK
           schema:
             allOf:
-            - $ref: '#/definitions/model.Response'
+            - $ref: '#/definitions/common.Response'
             - properties:
                 data:
                   $ref: '#/definitions/model.User'
               type: object
+      security:
+      - JWT: []
       summary: Update user
       tags:
       - user
@@ -176,8 +208,71 @@ paths:
     get:
       produces:
       - application/json
-      responses: {}
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
       summary: Healthz
       tags:
       - healthz
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Create user and storage
+      parameters:
+      - description: auth user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuthUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.JWTToken'
+              type: object
+      summary: Login
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Create user and storage
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatedUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+      summary: Register user
+      tags:
+      - auth
+securityDefinitions:
+  JWT:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
