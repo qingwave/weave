@@ -3,8 +3,8 @@ module weave
 go 1.17
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.7.7
+	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.6.0
