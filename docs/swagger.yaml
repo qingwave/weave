@@ -15,6 +15,34 @@ definitions:
       password:
         type: string
     type: object
+  model.Container:
+    properties:
+      cmd:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      image:
+        type: string
+      name:
+        type: string
+      startAt:
+        type: string
+      status:
+        type: string
+    type: object
+  model.CreatedContainer:
+    properties:
+      cmd:
+        items:
+          type: string
+        type: array
+      image:
+        type: string
+      name:
+        type: string
+    type: object
   model.CreatedUser:
     properties:
       email:
@@ -75,6 +103,213 @@ paths:
       summary: Index
       tags:
       - index
+  /api/v1/containers:
+    get:
+      description: List container
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Container'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List container
+      tags:
+      - container
+    post:
+      consumes:
+      - application/json
+      description: Create container
+      parameters:
+      - description: container info
+        in: body
+        name: container
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatedContainer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Container'
+              type: object
+      security:
+      - JWT: []
+      summary: Create container
+      tags:
+      - container
+  /api/v1/containers/:id:
+    put:
+      consumes:
+      - application/json
+      description: Update container
+      parameters:
+      - description: container info
+        in: body
+        name: container
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatedContainer'
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Container'
+              type: object
+      security:
+      - JWT: []
+      summary: Update container
+      tags:
+      - container
+  /api/v1/containers/{id}:
+    delete:
+      description: Delete container
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete container
+      tags:
+      - container
+    get:
+      description: Get container
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Container'
+              type: object
+      security:
+      - JWT: []
+      summary: Get container
+      tags:
+      - container
+    post:
+      description: Operate container
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'verb: start/stop/restart'
+        in: query
+        name: verb
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Operate container
+      tags:
+      - container
+  /api/v1/containers/{id}/exec:
+    get:
+      description: exec container
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: shell, sh or bash
+        in: query
+        name: shell
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Exec container
+      tags:
+      - container
+  /api/v1/containers/{id}/log:
+    get:
+      description: Get container log
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: follow log
+        in: query
+        name: follow
+        type: boolean
+      - description: tail log all or number
+        in: query
+        name: tail
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Get container log
+      tags:
+      - container
   /api/v1/users:
     get:
       description: List user and storage
@@ -220,7 +455,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create user and storage
+      description: User login
       parameters:
       - description: auth user info
         in: body
@@ -241,6 +476,19 @@ paths:
                   $ref: '#/definitions/model.JWTToken'
               type: object
       summary: Login
+      tags:
+      - auth
+  /logout:
+    get:
+      description: User logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      summary: Logout
       tags:
       - auth
   /register:

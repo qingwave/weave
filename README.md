@@ -20,6 +20,10 @@ TODO
 - [x] Redis cache
 - [x] Request rate limit
 - [x] Authentication
+- [x] WebSocket
+- [x] WebShell
+- [ ] Trace
+- [ ] UI
 ## Run
 ### Run locally
 ```bash

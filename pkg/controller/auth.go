@@ -23,7 +23,7 @@ func NewAuthController(userService model.UserService, jwtService *service.JWTSer
 }
 
 // @Summary Login
-// @Description Create user and storage
+// @Description User login
 // @Accept json
 // @Produce json
 // @Tags auth
@@ -49,10 +49,23 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", true, true)
+
 	common.ResponseSuccess(c, model.JWTToken{
 		Token:    token,
 		Describe: "set token in Authorization Header, [Authorization: Bearer {token}]",
 	})
+}
+
+// @Summary Logout
+// @Description User logout
+// @Produce json
+// @Tags auth
+// @Success 200 {object} common.Response
+// @Router /logout [get]
+func (ac *AuthController) Logout(c *gin.Context) {
+	c.SetCookie(common.CookieTokenName, "", -1, "/", "", true, true)
+	common.ResponseSuccess(c, nil)
 }
 
 // @Summary Register user

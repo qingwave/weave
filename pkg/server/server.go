@@ -12,6 +12,7 @@ import (
 
 	_ "weave/docs"
 	"weave/pkg/config"
+	"weave/pkg/container"
 	"weave/pkg/controller"
 	"weave/pkg/database"
 	"weave/pkg/middleware"
@@ -42,6 +43,11 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, err
 	}
 
+	conClient, err := container.NewClient()
+	if err != nil {
+		logrus.Warningf("failed to create docker client, container api disabled: %v", err)
+	}
+
 	userRepository := repository.NewUserRepository(db, rdb)
 	if err := userRepository.Migrate(); err != nil {
 		return nil, err
@@ -52,6 +58,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 
 	userController := controller.NewUserController(userService)
 	authContoller := controller.NewAuthController(userService, jwtService)
+	containerController := controller.NewContainerController(conClient)
 
 	gin.SetMode(conf.Server.ENV)
 
@@ -63,15 +70,19 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		gin.Recovery(),
 	)
 
+	e.LoadHTMLFiles("web/terminal.html")
+
 	return &Server{
-		engine:         e,
-		config:         conf,
-		logger:         logger,
-		userController: userController,
-		authContoller:  authContoller,
-		authMiddleware: middleware.AuthMiddleware(jwtService),
-		db:             db,
-		rdb:            rdb,
+		engine:              e,
+		config:              conf,
+		logger:              logger,
+		userController:      userController,
+		authContoller:       authContoller,
+		containerController: containerController,
+		authMiddleware:      middleware.AuthMiddleware(jwtService),
+		db:                  db,
+		rdb:                 rdb,
+		containerClient:     conClient,
 	}, nil
 }
 
@@ -80,13 +91,15 @@ type Server struct {
 	config *config.Config
 	logger *logrus.Logger
 
-	userController *controller.UserController
-	authContoller  *controller.AuthController
+	userController      *controller.UserController
+	authContoller       *controller.AuthController
+	containerController *controller.ContainerController
 
 	authMiddleware gin.HandlerFunc
 
-	db  *gorm.DB
-	rdb *database.RedisDB
+	db              *gorm.DB
+	rdb             *database.RedisDB
+	containerClient *container.Client
 }
 
 // graceful shutdown
@@ -117,6 +130,7 @@ func (s *Server) Run() {
 
 	ch := <-sig
 	s.logger.Infof("Receive signal: %s", ch)
+
 	server.Shutdown(ctx)
 }
 
@@ -125,6 +139,9 @@ func (s *Server) Close() {
 	db, _ := s.db.DB()
 	if db != nil {
 		db.Close()
+	}
+	if s.containerClient != nil {
+		s.containerClient.Close()
 	}
 }
 
@@ -137,6 +154,7 @@ func (s *Server) Routers() {
 	root.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	root.POST("/login", s.authContoller.Login)
+	root.GET("/logout", s.authContoller.Logout)
 	root.POST("/register", s.authContoller.Register)
 
 	api := root.Group("/api/v1")
@@ -146,6 +164,20 @@ func (s *Server) Routers() {
 	api.GET("/users/:id", s.userController.Get)
 	api.PUT("/users/:id", s.userController.Update)
 	api.DELETE("/users/:id", s.userController.Delete)
+
+	if s.containerClient != nil {
+		api.GET("/containers", s.containerController.List)
+		api.POST("/containers", s.containerController.Create)
+		api.GET("/containers/:id", s.containerController.Get)
+		api.PUT("/containers/:id", s.containerController.Update)
+		api.POST("/containers/:id", s.containerController.Operate)
+		api.DELETE("/containers/:id", s.containerController.Delete)
+		api.GET("/containers/:id/log", s.containerController.Log)
+		api.GET("/containers/:id/exec", s.containerController.Exec)
+		api.GET("/containers/:id/terminal", func(c *gin.Context) {
+			c.HTML(200, "terminal.html", nil)
+		})
+	}
 }
 
 // @Summary Index

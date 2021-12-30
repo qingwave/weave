@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Cloudshell</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.16.0/css/xterm.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.16.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-attach@0.6.0/lib/xterm-addon-attach.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-serialize@0.6.1/lib/xterm-addon-serialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-unicode11@0.3.0/lib/xterm-addon-unicode11.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.5.0/lib/xterm-addon-web-links.min.js"></script>
+    <style>
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        div::-webkit-scrollbar {
+            display: none;
+            width: 0;
+        }
+
+        html,
+        body {
+            margin: 0;
+            overflow: hidden;
+            padding: 0;
+            background-color: black;
+        }
+
+        .text {
+            color: white;
+            font-size: xx-large;
+            text-align: center;
+            height: 100%;
+            width: 100%;
+        }
+
+        div#terminal {
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
+        div#terminal div {
+            height: 100%;
+        }
+
+        .xterm-viewport,
+        .xterm-screen {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="terminal"></div>
+
+    <script type="text/javascript">
+        function getContainerID() {
+            const path = window.location.pathname;
+            const paths = path.split('/')
+            const id = paths[paths.indexOf("containers") + 1]
+            return id;
+        }
+
+        var containerId = getContainerID();
+        var ws = new WebSocket(
+            "ws://"
+            + window.location.hostname + ":"
+            + window.location.port
+            + "/api/v1/containers/"
+            + containerId
+            + "/exec"
+        );
+
+        var terminal = new Terminal({
+            screenKeys: true,
+            useStyle: true,
+            cursorBlink: true,
+            fontFamily: 'monospace',
+            fullscreenWin: true,
+            maximizeWin: true,
+            screenReaderMode: true,
+            cols: 128,
+        });
+
+        terminal.open(document.getElementById("terminal"));
+
+        var attachAddon = new AttachAddon.AttachAddon(ws);
+
+        var fitAddon = new FitAddon.FitAddon();
+        terminal.loadAddon(fitAddon);
+
+        var webLinksAddon = new WebLinksAddon.WebLinksAddon();
+        terminal.loadAddon(webLinksAddon);
+
+        var unicode11Addon = new Unicode11Addon.Unicode11Addon();
+        terminal.loadAddon(unicode11Addon);
+
+        var serializeAddon = new SerializeAddon.SerializeAddon();
+        terminal.loadAddon(serializeAddon);
+
+        ws.onclose = function (event) {
+            console.log("closed");
+            terminal.dispose();
+            document.getElementById("terminal")
+                .innerHTML = '<p class="text">connection terminated</p>';
+        };
+
+        ws.onerror = function (e) {
+            console.log(e);
+        };
+
+        ws.onopen = function () {
+            terminal.loadAddon(attachAddon);
+            terminal._initialized = true;
+            terminal.focus();
+            setTimeout(function () { fitAddon.fit() });
+
+            terminal.onTitleChange(function (event) {
+                console.log(event);
+            });
+
+            window.onresize = function () {
+                fitAddon.fit();
+            };
+        };
+
+    </script>
+</body>
+
+</html>

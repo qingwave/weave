@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -13,22 +14,20 @@ import (
 
 func AuthMiddleware(jwtService *service.JWTService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		auth := c.Request.Header.Get("Authorization")
-		if auth == "" {
-			common.ResponseFailed(c, http.StatusForbidden, errors.New("No Authorization header provided"))
-			c.Abort()
-			return
+		token, _ := getTokenFromAuthorizationHeader(c)
+		if token == "" {
+			token, _ = getTokenFromCookie(c)
 		}
-		token := strings.Fields(auth)
-		if len(token) != 2 || token[0] != "Bearer" || token[1] == "" {
-			common.ResponseFailed(c, http.StatusForbidden, errors.New("Authorization header invaild"))
+
+		if token == "" {
+			common.ResponseFailed(c, http.StatusUnauthorized, errors.New("Authorization info invaild"))
 			c.Abort()
 			return
 		}
 
-		user, err := jwtService.ParseToken(token[1])
+		user, err := jwtService.ParseToken(token)
 		if err != nil {
-			common.ResponseFailed(c, http.StatusForbidden, errors.New("Authorization header invaild"))
+			common.ResponseFailed(c, http.StatusForbidden, errors.New("Authorization failed"))
 			c.Abort()
 			return
 		}
@@ -37,4 +36,22 @@ func AuthMiddleware(jwtService *service.JWTService) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func getTokenFromCookie(c *gin.Context) (string, error) {
+	return c.Cookie("token")
+}
+
+func getTokenFromAuthorizationHeader(c *gin.Context) (string, error) {
+	auth := c.Request.Header.Get("Authorization")
+	if auth == "" {
+		return "", nil
+	}
+
+	token := strings.Fields(auth)
+	if len(token) != 2 || strings.ToLower(token[0]) != "bearer" || token[1] == "" {
+		return "", fmt.Errorf("Authorization header invaild")
+	}
+
+	return token[1], nil
 }
