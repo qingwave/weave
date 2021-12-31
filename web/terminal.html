@@ -30,6 +30,7 @@
             color: white;
             font-size: xx-large;
             text-align: center;
+            padding-top: 15%;
             height: 100%;
             width: 100%;
         }
@@ -107,7 +108,7 @@
             console.log("closed");
             terminal.dispose();
             document.getElementById("terminal")
-                .innerHTML = '<p class="text">connection terminated</p>';
+                .innerHTML = '<p class="text">Connection Terminated</p>';
         };
 
         ws.onerror = function (e) {

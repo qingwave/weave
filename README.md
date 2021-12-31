@@ -59,3 +59,17 @@ Get users
 token=xxx
 curl -X 'GET' 'http://localhost:8080/api/v1/users' -H "Authorization: Bearer $token"
 ```
+
+Container web shell
+1. login in swagger `http://localhost:8080/swagger/index.html#/auth/post_login`
+2. create container `http://localhost:8080/swagger/index.html#/user/post_api_v1_users`
+```json
+{
+  "cmd": [
+    "top"
+  ],
+  "image": "alpine",
+  "name": "myapp"
+}
+```
+3. open cloudshell `http://localhost:8080/api/v1/containers/{:containerid}/terminal`
