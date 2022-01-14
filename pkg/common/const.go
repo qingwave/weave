@@ -5,4 +5,5 @@ const (
 	UserContextKey = `user`
 
 	CookieTokenName = `token`
+	CookieLoginUser = `loginUser`
 )

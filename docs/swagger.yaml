@@ -14,9 +14,13 @@ definitions:
         type: string
       password:
         type: string
+      setCookie:
+        type: boolean
     type: object
   model.Container:
     properties:
+      address:
+        type: string
       cmd:
         items:
           type: string
@@ -27,6 +31,8 @@ definitions:
         type: string
       name:
         type: string
+      port:
+        type: integer
       startAt:
         type: string
       status:
@@ -42,6 +48,8 @@ definitions:
         type: string
       name:
         type: string
+      port:
+        type: integer
     type: object
   model.CreatedUser:
     properties:
@@ -103,6 +111,72 @@ paths:
       summary: Index
       tags:
       - index
+  /api/auth/token:
+    delete:
+      description: User logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      summary: Logout
+      tags:
+      - auth
+    post:
+      consumes:
+      - application/json
+      description: User login
+      parameters:
+      - description: auth user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.AuthUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.JWTToken'
+              type: object
+      summary: Login
+      tags:
+      - auth
+  /api/auth/user:
+    post:
+      consumes:
+      - application/json
+      description: Create user and storage
+      parameters:
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatedUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.User'
+              type: object
+      summary: Register user
+      tags:
+      - auth
   /api/v1/containers:
     get:
       description: List container
@@ -310,6 +384,29 @@ paths:
       summary: Get container log
       tags:
       - container
+  /api/v1/containers/{id}/proxy:
+    get:
+      description: proxy container
+      parameters:
+      - description: container id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: shell, sh or bash
+        in: query
+        name: shell
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - JWT: []
+      summary: Proxy container
+      tags:
+      - container
   /api/v1/users:
     get:
       description: List user and storage
@@ -451,73 +548,6 @@ paths:
       summary: Healthz
       tags:
       - healthz
-  /login:
-    post:
-      consumes:
-      - application/json
-      description: User login
-      parameters:
-      - description: auth user info
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/model.AuthUser'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/common.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.JWTToken'
-              type: object
-      summary: Login
-      tags:
-      - auth
-  /logout:
-    get:
-      description: User logout
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/common.Response'
-      summary: Logout
-      tags:
-      - auth
-  /register:
-    post:
-      consumes:
-      - application/json
-      description: Create user and storage
-      parameters:
-      - description: user info
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/model.CreatedUser'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/common.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/model.User'
-              type: object
-      summary: Register user
-      tags:
-      - auth
 securityDefinitions:
   JWT:
     in: header

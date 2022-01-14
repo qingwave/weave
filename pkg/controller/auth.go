@@ -29,7 +29,7 @@ func NewAuthController(userService model.UserService, jwtService *service.JWTSer
 // @Tags auth
 // @Param user body model.AuthUser true "auth user info"
 // @Success 200 {object} common.Response{data=model.JWTToken}
-// @Router /login [post]
+// @Router /api/auth/token [post]
 func (ac *AuthController) Login(c *gin.Context) {
 	auser := new(model.AuthUser)
 	if err := c.BindJSON(auser); err != nil {
@@ -49,7 +49,10 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", true, true)
+	if auser.SetCookie {
+		c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", true, true)
+		c.SetCookie(common.CookieLoginUser, user.Name, 3600*24, "/", "", true, false)
+	}
 
 	common.ResponseSuccess(c, model.JWTToken{
 		Token:    token,
@@ -62,9 +65,10 @@ func (ac *AuthController) Login(c *gin.Context) {
 // @Produce json
 // @Tags auth
 // @Success 200 {object} common.Response
-// @Router /logout [get]
+// @Router /api/auth/token [delete]
 func (ac *AuthController) Logout(c *gin.Context) {
 	c.SetCookie(common.CookieTokenName, "", -1, "/", "", true, true)
+	c.SetCookie(common.CookieLoginUser, "", -1, "/", "", true, false)
 	common.ResponseSuccess(c, nil)
 }
 
@@ -75,7 +79,7 @@ func (ac *AuthController) Logout(c *gin.Context) {
 // @Tags auth
 // @Param user body model.CreatedUser true "user info"
 // @Success 200 {object} common.Response{data=model.User}
-// @Router /register [post]
+// @Router /api/auth/user [post]
 func (ac *AuthController) Register(c *gin.Context) {
 	createdUser := new(model.CreatedUser)
 	if err := c.BindJSON(createdUser); err != nil {

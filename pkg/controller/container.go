@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
+	"strings"
 	"time"
 
 	"weave/pkg/common"
@@ -14,7 +16,6 @@ import (
 	"weave/pkg/model"
 
 	"github.com/docker/docker/api/types"
-	containerapi "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -52,11 +53,8 @@ func (con *ContainerController) Create(c *gin.Context) {
 	}
 
 	resp, err := con.client.ContainerCreate(context.TODO(),
-		model.ContainerConfig(ccon.Name, ccon.Image, ccon.Cmd),
-		&containerapi.HostConfig{RestartPolicy: containerapi.RestartPolicy{
-			Name:              "on-failure",
-			MaximumRetryCount: 5,
-		}},
+		model.ContainerConfig(ccon),
+		model.ContainerHostConfig(ccon),
 		nil, nil, ccon.Name)
 
 	if err != nil {
@@ -194,11 +192,8 @@ func (con *ContainerController) Update(c *gin.Context) {
 	}
 
 	resp, err := con.client.ContainerCreate(context.TODO(),
-		model.ContainerConfig(ccon.Name, ccon.Image, ccon.Cmd),
-		&containerapi.HostConfig{RestartPolicy: containerapi.RestartPolicy{
-			Name:              "on-failure",
-			MaximumRetryCount: 5,
-		}},
+		model.ContainerConfig(ccon),
+		model.ContainerHostConfig(ccon),
 		nil, nil, ccon.Name)
 
 	if err != nil {
@@ -280,6 +275,52 @@ func (con *ContainerController) Log(c *gin.Context) {
 			return
 		}
 	}
+}
+
+// @Summary Proxy container
+// @Description proxy container
+// @Tags container
+// @Security JWT
+// @Param id path string true "container id"
+// @Param shell query string  false  "shell, sh or bash"
+// @Success 200 {string}  string    ""
+// @Router /api/v1/containers/{id}/proxy [get]
+func (con *ContainerController) Proxy(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		common.ResponseFailed(c, http.StatusBadRequest, errors.New("empty container id"))
+		return
+	}
+
+	resp, err := con.client.ContainerInspect(context.TODO(), id)
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	container := model.DockerContainerJSONToContainer(resp)
+
+	getPath := func(raw string) string {
+		paths := strings.SplitAfterN(raw, "proxy", 2)
+		if len(paths) != 2 {
+			return ""
+		}
+		return paths[1]
+	}
+
+	target := c.Request.URL
+	proxy := httputil.ReverseProxy{
+		Director: func(req *http.Request) {
+			req.Header = c.Request.Header
+			req.Host = container.Address
+			req.URL.Host = container.Address
+			req.URL.Scheme = "http"
+			req.URL.Path = getPath(target.Path)
+			req.URL.RawPath = getPath(target.RawPath)
+		},
+	}
+
+	proxy.ServeHTTP(c.Writer, c.Request)
 }
 
 // @Summary Exec container

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
@@ -11,11 +12,13 @@ import (
 	"time"
 
 	_ "weave/docs"
+	"weave/pkg/common"
 	"weave/pkg/config"
 	"weave/pkg/container"
 	"weave/pkg/controller"
 	"weave/pkg/database"
 	"weave/pkg/middleware"
+	"weave/pkg/model"
 	"weave/pkg/repository"
 	"weave/pkg/service"
 
@@ -65,12 +68,13 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	e := gin.New()
 	e.Use(
 		rateLimitMiddleware,
-		middleware.LogMiddleware(logger, "/api/v1"),
 		middleware.MonitorMiddleware(),
+		middleware.CORSMiddleware(),
+		middleware.LogMiddleware(logger, "/"),
 		gin.Recovery(),
 	)
 
-	e.LoadHTMLFiles("web/terminal.html")
+	e.LoadHTMLFiles("static/terminal.html")
 
 	return &Server{
 		engine:              e,
@@ -153,12 +157,23 @@ func (s *Server) Routers() {
 	root.Any("/debug/pprof/*any")
 	root.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	root.POST("/login", s.authContoller.Login)
-	root.GET("/logout", s.authContoller.Logout)
-	root.POST("/register", s.authContoller.Register)
+	root.POST("/api/auth/token", s.authContoller.Login)
+	root.DELETE("/api/auth/token", s.authContoller.Logout)
+	root.POST("/api/auth/user", s.authContoller.Register)
 
 	api := root.Group("/api/v1")
 	api.Use(s.authMiddleware)
+
+	api.GET("/token", func(c *gin.Context) {
+		val, _ := c.Get(common.UserContextKey)
+		user, ok := val.(*model.User)
+		if ok {
+			common.ResponseSuccess(c, user)
+			return
+		}
+		common.ResponseFailed(c, http.StatusBadRequest, errors.New("failed to get user"))
+	})
+
 	api.GET("/users", s.userController.List)
 	api.POST("/users", s.userController.Create)
 	api.GET("/users/:id", s.userController.Get)
@@ -174,6 +189,7 @@ func (s *Server) Routers() {
 		api.DELETE("/containers/:id", s.containerController.Delete)
 		api.GET("/containers/:id/log", s.containerController.Log)
 		api.GET("/containers/:id/exec", s.containerController.Exec)
+		api.Any("/containers/:id/proxy/*any", s.containerController.Proxy)
 		api.GET("/containers/:id/terminal", func(c *gin.Context) {
 			c.HTML(200, "terminal.html", nil)
 		})
