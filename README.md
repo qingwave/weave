@@ -1,9 +1,8 @@
-
 # Weave
-Simple but functional golang webserver example write by gin and gorm.
+Simple but functional Go+Vue application starter, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
 ## Features
-Support features:
+Server support features:
 - Restful api, write by gin
 - MVC structure
 - Postgres storage, via gorm
@@ -16,16 +15,34 @@ Support features:
 - Request rate limit, server level or user ip
 - Redis cache
 
-TODO
+Frontend support features:
+- Vue3 supported
+- UI with element-plus
+- Build with vite
+- Charts integration, support by echarts
+- WebShell supported
+- Windi CSS
+- 
+
+TODOs
 - [x] Redis cache
 - [x] Request rate limit
 - [x] Authentication
 - [x] WebSocket
-- [x] WebShell
 - [ ] Trace
-- [ ] UI
+- [x] UI
+- [x] WebShell
+- [ ] Dark theme
+- [ ] Mobile UI 
 ## Run
-### Run locally
+### Run server
+install dependencies
+```bash
+make postgres
+make redis
+```
+
+run locally
 ```bash
 make run
 ```
@@ -35,12 +52,12 @@ See http://localhost:8080
 ### Test api
 Register user
 ```bash
-curl -XPOST http://localhost:8080/register -d '{"name": "zhang3", "email": "zhang3@t.com","password": "123456"}'
+curl -XPOST http://localhost:8080/api/auth/user -d '{"name": "zhang3", "email": "zhang3@t.com","password": "123456"}'
 ```
 
 Login, get jwt token
 ```bash
-curl -XPOST http://localhost:8080/login -d '{"name": "zhang3", "password": "123456"}'
+curl -XPOST http://localhost:8080/api/auth/token -d '{"name": "zhang3", "password": "123456"}'
 ```
 Response as follows, set token in `Authorization Header`
 ```json
@@ -73,3 +90,12 @@ Container web shell
 }
 ```
 3. open cloudshell `http://localhost:8080/api/v1/containers/{:containerid}/terminal`
+
+### Run UI
+```bash
+cd web
+npm i
+npm run dev 
+```
+
+Explore in http://127.0.0.1:8081

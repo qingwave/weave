@@ -27,3 +27,6 @@ exec-db:
 
 redis:
 	docker run --name myredis -d -p 6379:6379 redis --appendonly yes --requirepass 123456
+
+ui:
+	cd web && npm run dev
