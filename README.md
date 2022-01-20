@@ -99,3 +99,15 @@ npm run dev
 ```
 
 Explore in http://127.0.0.1:8081
+
+Login page
+![login](./document/img/login.png)
+
+Dashboard page
+![dashboard](./document/img/dashboard.png)
+
+App page
+![app](./document/img/app.png)
+
+Webshell page
+![webshell](./document/img/webshell.png)
