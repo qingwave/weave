@@ -30,6 +30,6 @@
     "vite": "^2.7.2",
     "vite-plugin-style-import": "^1.4.1",
     "vite-plugin-windicss": "^1.6.1",
-    "windicss": "^3.4.2"
+    "windicss": "^3.4.3"
   }
 }

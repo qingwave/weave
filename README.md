@@ -22,7 +22,6 @@ Frontend support features:
 - Charts integration, support by echarts
 - WebShell supported
 - Windi CSS
-- 
 
 TODOs
 - [x] Redis cache
