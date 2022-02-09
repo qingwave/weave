@@ -66,8 +66,7 @@ const initSocket = () => {
   if (containerId == 0) {
     return
   }
-  const uri = "ws://127.0.0.1:8080/api/v1/containers/" +
-    containerId + "/exec"
+  const uri =  `ws://${window.location.hostname}:${window.location.port}/api/v1/containers/${containerId}/exec`
 
   ws = new WebSocket(uri);
   ws.onopen = () => {
