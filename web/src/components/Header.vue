@@ -19,7 +19,7 @@
           </a>
         </el-button>
         <el-dropdown placement="bottom" class="mx-1rem">
-          <el-avatar :size="30" :src="avatar"/>
+          <me theme="two-tone" size="18" :fill="['#333' ,'#50e3c2']"/>
           <template #dropdown>
             <div class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
                <sun theme="two-tone" size="24" :fill="['#333' ,'#f8e71c']"/>
@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { Info, SettingOne, Logout, Sun, Search, GithubOne, Success } from '@icon-park/vue-next';
+import { Info, SettingOne, Logout, Sun, Search, GithubOne, Success, Me } from '@icon-park/vue-next';
 import { getUser } from '@/utils';
 import request from '@/axios'
 import { ElMessage, ElNotification } from "element-plus";
@@ -57,7 +57,6 @@ import { useRouter } from 'vue-router';
 
 const username = getUser();
 const githuburl = 'https://github.com/qingwave/weave';
-const avatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png';
 const router = useRouter();
 
 function logout() {

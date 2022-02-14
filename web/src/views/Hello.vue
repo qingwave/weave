@@ -1,5 +1,5 @@
 <template>
-  <div class="container h-full flex justify-center align-center text-center">
+  <div class="w-full h-full flex justify-center align-center text-center">
     <div class="pt-2rem px-6rem">
       <h1 class="font-bold text-2xl mb-1rem">Hello Weave</h1>
       <h2 class="text-lg text-gray-500">Powerful server template with golang and vue</h2>

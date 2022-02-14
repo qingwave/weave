@@ -1,12 +1,12 @@
 <template>
-  <div class="container h-full flex justify-center">
-    <el-card class="mx-4rem my-2rem w-4/5" shadow="never">
+  <div class="w-full h-full flex justify-center">
+    <el-card class="mx-4rem my-2rem w-4/5 h-max" shadow="never">
       <template #header>
         <div class="flex justify-between">
           <span>Users</span>
         </div>
       </template>
-      <el-table :data="users" height="320" class="w-full max-h-full">
+      <el-table :data="users" height="360" class="w-full max-h-full">
         <el-table-column prop="name" label="Name" />
         <el-table-column prop="email" label="Email" />
         <el-table-column prop="create_time" label="CreateAt" min-width="120px" />

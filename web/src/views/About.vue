@@ -1,5 +1,5 @@
 <template>
-  <div class="container h-full">
+  <div class="container h-full w-full">
     <div class="pt-2rem px-6rem">
       <h1 class="font-bold text-2xl mb-2rem">#About</h1>
       <p class="text-l mb-2rem" v-html="msg" />

@@ -1,6 +1,6 @@
 <template>
-  <div class="container h-full flex justify-center">
-    <el-card class="mx-4rem my-2rem w-4/5" shadow="never">
+  <div class="w-full h-full flex justify-center">
+    <el-card class="mx-4rem my-2rem w-4/5 h-max" shadow="never">
       <template #header>
         <div class="flex justify-between">
           <span>Applications</span>
@@ -26,7 +26,7 @@
           </template>
         </el-dialog>
       </template>
-      <el-table :data="apps" height="320" class="w-full max-h-full">
+      <el-table :data="apps" height="360" class="w-full max-h-full">
         <el-table-column prop="name" label="Name" />
         <el-table-column prop="image" label="Image" />
         <el-table-column prop="status" label="Status" />

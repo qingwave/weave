@@ -12,7 +12,7 @@
           </div>
         </div>
         <div class="w-4/10  text-center">
-          <icon-park :type="item.icon" theme="outline" size="48" :fill="item.iconColor" />
+          <component :is="item.icon" theme="outline" size="48" :fill="item.iconColor" />
         </div>
       </div>
     </div>

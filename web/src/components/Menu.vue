@@ -18,7 +18,7 @@
 
       <el-menu-item :index="menu.name" v-for="menu in menuList" :key="menu.title">
         <el-icon size="14">
-          <icon-park :type="menu.icon" />
+          <component :is="menu.icon"/>
         </el-icon>
         <span class>{{ menu.title }}</span>
       </el-menu-item>
@@ -26,7 +26,7 @@
       <el-sub-menu :index="menu.name" v-for="menu in subMenuList" :key="menu.title">
         <template #title>
           <el-icon size="14">
-            <icon-park :type="menu.icon" />
+            <component :is="menu.icon"/>
           </el-icon>
           <span class>{{ menu.title }}</span>
         </template>
@@ -41,10 +41,10 @@
 
       <div class="absolute h-8 w-full bottom-0 text-gray-400 pl-20px my-2">
         <div v-if="isCollapse">
-          <icon-park type="menu-fold-one" v-model="isCollapse" @click="collapseMenu" />
+          <menu-fold-one v-model="isCollapse" @click="collapseMenu" />
         </div>
         <div v-else>
-          <icon-park type="menu-unfold-one" v-model="isCollapse" @click="collapseMenu" />
+          <menu-unfold-one v-model="isCollapse" @click="collapseMenu" />
         </div>
       </div>
     </el-menu>
@@ -53,29 +53,29 @@
 
 <script setup>
 import { ref } from 'vue';
-import { IconPark } from '@icon-park/vue-next/es/all';
+import { DashboardCar, ApplicationTwo, User, Like, MoreFour, MenuFoldOne, MenuUnfoldOne } from '@icon-park/vue-next';
 
 const isCollapse = ref(false);
 
 const menuList = [
   {
     name: '/dashboard',
-    icon: 'dashboard-car',
+    icon: DashboardCar,
     title: 'Dashboard',
   },
   {
     name: '/apps',
-    icon: 'application-two',
+    icon: ApplicationTwo,
     title: 'Applications',
   },
   {
     name: '/users',
-    icon: 'user',
+    icon: User,
     title: 'Users',
   },
   {
     name: '/about',
-    icon: 'like',
+    icon: Like,
     title: 'About',
   }
 ]
@@ -83,7 +83,7 @@ const menuList = [
 const subMenuList = [
   {
     name: '/others',
-    icon: 'more-four',
+    icon: MoreFour,
     title: 'Others',
     children: [
       {
