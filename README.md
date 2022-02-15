@@ -28,7 +28,7 @@ TODOs
 - [x] Request rate limit
 - [x] Authentication
 - [x] WebSocket
-- [ ] Trace
+- [x] Trace
 - [x] UI
 - [x] WebShell
 - [ ] Dark theme

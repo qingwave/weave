@@ -14,6 +14,7 @@ import (
 	"weave/pkg/common"
 	"weave/pkg/container"
 	"weave/pkg/model"
+	"weave/pkg/utils/trace"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -51,6 +52,9 @@ func (con *ContainerController) Create(c *gin.Context) {
 	if ccon.Image == "" {
 		common.ResponseFailed(c, http.StatusBadRequest, errors.New("image cannot be empty"))
 	}
+
+	common.TraceStep(c, "start create container", trace.Field{"name", ccon.Name})
+	defer common.TraceStep(c, "create container done", trace.Field{"name", ccon.Name})
 
 	resp, err := con.client.ContainerCreate(context.TODO(),
 		model.ContainerConfig(ccon),
@@ -103,6 +107,7 @@ func (con *ContainerController) Get(c *gin.Context) {
 // @Success 200 {object} common.Response{data=[]model.Container}
 // @Router /api/v1/containers [get]
 func (con *ContainerController) List(c *gin.Context) {
+	common.TraceStep(c, "start list container")
 	items, err := con.client.ContainerList(context.TODO(), types.ContainerListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.Arg("label", model.AppPateformLabel)),
@@ -111,6 +116,9 @@ func (con *ContainerController) List(c *gin.Context) {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
+
+	common.TraceStep(c, "list container done")
+
 	containers := make([]model.Container, 0)
 	for _, item := range items {
 		if item.ID == "" || len(item.Names) == 0 {

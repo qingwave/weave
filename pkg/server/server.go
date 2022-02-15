@@ -70,6 +70,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		rateLimitMiddleware,
 		middleware.MonitorMiddleware(),
 		middleware.CORSMiddleware(),
+		middleware.TraceMiddleware(),
 		middleware.LogMiddleware(logger, "/"),
 		gin.Recovery(),
 	)
