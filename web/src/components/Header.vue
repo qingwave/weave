@@ -19,12 +19,14 @@
           </a>
         </el-button>
         <el-dropdown placement="bottom" class="mx-1rem">
+          <el-button type="text">
           <me theme="two-tone" size="18" :fill="['#333' ,'#50e3c2']"/>
+        </el-button>
           <template #dropdown>
-            <div class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
+            <span class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
                <sun theme="two-tone" size="24" :fill="['#333' ,'#f8e71c']"/>
                <span class="ml-2">Hi {{ username }}</span>
-            </div>
+            </span>
             <el-dropdown-menu>
               <el-dropdown-item :icon="Info" @click="notImplement('UserInfo')">
                 UserInfo
