@@ -34,11 +34,11 @@ TODOs
 - [ ] Dark theme
 - [ ] Mobile UI 
 ## Run
+Before starting, you should already install [golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) and [nodejs](https://nodejs.org/en/download/) in your develop env.
 ### Run server
-install dependencies
+Install dependencies, postgresql, redis, swag 
 ```bash
-make postgres
-make redis
+make init
 ```
 
 run locally
@@ -91,11 +91,15 @@ Container web shell
 3. open cloudshell `http://localhost:8080/api/v1/containers/{:containerid}/terminal`
 
 ### Run UI
+Assume you have installed `Nodejs`, if not, install it by [nvm](https://github.com/nvm-sh/nvm#install--update-script)
+
 ```bash
 cd web
 npm i
 npm run dev 
 ```
+
+Default user `admin`, password: `123456`
 
 Explore in http://127.0.0.1:8081
 
