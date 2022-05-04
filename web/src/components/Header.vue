@@ -14,17 +14,20 @@
           <search theme="outline" size="18" fill="#333"/>
         </el-button>
         <el-button type="text">
-          <a :href="githuburl" target="_blank">
+          <a :href="githubUrl" target="_blank">
           <github-one theme="outline" size="18" :fill="['#333']"/>
           </a>
         </el-button>
         <el-dropdown placement="bottom" class="mx-1rem">
-          <me theme="two-tone" size="18" :fill="['#333' ,'#50e3c2']"/>
+          <el-button type="text">
+            <el-avatar  v-if="user.avatar" :size="50" :src="user.avatar" />
+            <me v-else theme="two-tone" size="18" :fill="['#333' ,'#50e3c2']"/>
+          </el-button>
           <template #dropdown>
-            <div class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
+            <span class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
                <sun theme="two-tone" size="24" :fill="['#333' ,'#f8e71c']"/>
-               <span class="ml-2">Hi {{ username }}</span>
-            </div>
+               <span class="ml-2">Hi {{ user.name }}</span>
+            </span>
             <el-dropdown-menu>
               <el-dropdown-item :icon="Info" @click="notImplement('UserInfo')">
                 UserInfo
@@ -54,9 +57,9 @@ import { getUser } from '@/utils';
 import request from '@/axios'
 import { ElMessage, ElNotification } from "element-plus";
 import { useRouter } from 'vue-router';
+import { githubUrl } from '@/config.js'
 
-const username = getUser();
-const githuburl = 'https://github.com/qingwave/weave';
+const user = getUser();
 const router = useRouter();
 
 function logout() {
@@ -64,7 +67,7 @@ function logout() {
     console.log("logout success")
     ElNotification.success({
         title: 'Logout Success',
-        message: 'Bye~ ' + username,
+        message: 'Bye~ ' + user.name,
         showClose: false,
     })
   }).catch((error) => {

@@ -22,23 +22,24 @@ Frontend support features:
 - Charts integration, support by echarts
 - WebShell supported
 - Windi CSS
+- OAuth Login
 
 TODOs
 - [x] Redis cache
 - [x] Request rate limit
 - [x] Authentication
 - [x] WebSocket
-- [ ] Trace
+- [x] Trace
 - [x] UI
 - [x] WebShell
 - [ ] Dark theme
 - [ ] Mobile UI 
 ## Run
+Before starting, you should already install [golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) and [nodejs](https://nodejs.org/en/download/) in your develop env.
 ### Run server
-install dependencies
+Install dependencies, postgresql, redis, swag 
 ```bash
-make postgres
-make redis
+make init
 ```
 
 run locally
@@ -91,11 +92,15 @@ Container web shell
 3. open cloudshell `http://localhost:8080/api/v1/containers/{:containerid}/terminal`
 
 ### Run UI
+Assume you have installed `Nodejs`, if not, install it by [nvm](https://github.com/nvm-sh/nvm#install--update-script)
+
 ```bash
 cd web
 npm i
 npm run dev 
 ```
+
+Default user `admin`, password: `123456`
 
 Explore in http://127.0.0.1:8081
 
@@ -110,3 +115,15 @@ App page
 
 Webshell page
 ![webshell](./document/img/webshell.png)
+
+### Others
+Login with Github, see https://docs.github.com/cn/developers/apps/building-oauth-apps/authorizing-oauth-apps
+1. Open Github developer settings https://github.com/settings/developers, click `OAuth Apps`
+2. Create OAuth app, click `New OAuth App` button
+3. Register app, contents as follows
+```
+  name: Weave
+  Homepage URL: http://127.0.0.1:8081
+  Authorization callback URL: http://127.0.0.1:8081/oauth
+  ```
+4. Get your `clientId` and `clientSecret`, set in `config/app.yaml` and `web/src/config.js`

@@ -5,6 +5,7 @@ import (
 
 	"weave/pkg/common"
 	"weave/pkg/model"
+	"weave/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -28,11 +29,13 @@ func NewUserController(userService model.UserService) *UserController {
 // @Success 200 {object} common.Response{data=model.Users}
 // @Router /api/v1/users [get]
 func (u *UserController) List(c *gin.Context) {
+	common.TraceStep(c, "start list user")
 	users, err := u.userService.List()
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
+	common.TraceStep(c, "list user done")
 	common.ResponseSuccess(c, users)
 }
 
@@ -76,6 +79,8 @@ func (u *UserController) Create(c *gin.Context) {
 	}
 
 	u.userService.Default(user)
+	common.TraceStep(c, "start create user", trace.Field{"user", user.Name})
+	defer common.TraceStep(c, "create user done", trace.Field{"user", user.Name})
 	user, err := u.userService.Create(user)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusInternalServerError, err)
@@ -101,6 +106,9 @@ func (u *UserController) Update(c *gin.Context) {
 		return
 	}
 	logrus.Infof("get update user: %#v, user: %#v", new, new.GetUser())
+
+	common.TraceStep(c, "start update user", trace.Field{"user", new.Name})
+	defer common.TraceStep(c, "update user done", trace.Field{"user", new.Name})
 
 	user, err := u.userService.Update(c.Param("id"), new.GetUser())
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	userCreateField = []string{"name", "email", "password"}
+	userCreateField = []string{"name", "email", "password", "auth_id", "auth_type", "avatar"}
 )
 
 type userRepository struct {
@@ -75,6 +75,15 @@ func (u *userRepository) GetUserByID(id int) (*model.User, error) {
 
 	if err := u.setCacheUser(user); err != nil {
 		logrus.Errorf("failed to set user", err)
+	}
+
+	return user, nil
+}
+
+func (u *userRepository) GetUserByAuthID(authType, authID string) (*model.User, error) {
+	user := new(model.User)
+	if err := u.db.Where("auth_type = ? and auth_id = ?", authType, authID).First(user).Error; err != nil {
+		return nil, err
 	}
 
 	return user, nil

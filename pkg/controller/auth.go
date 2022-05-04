@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"weave/pkg/common"
 	"weave/pkg/model"
+	"weave/pkg/oauth"
 	"weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
@@ -13,12 +15,14 @@ import (
 type AuthController struct {
 	userService model.UserService
 	jwtService  *service.JWTService
+	oauthManger *oauth.OAuthManager
 }
 
-func NewAuthController(userService model.UserService, jwtService *service.JWTService) *AuthController {
+func NewAuthController(userService model.UserService, jwtService *service.JWTService, oauthManager *oauth.OAuthManager) *AuthController {
 	return &AuthController{
 		userService: userService,
 		jwtService:  jwtService,
+		oauthManger: oauthManager,
 	}
 }
 
@@ -37,7 +41,30 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := ac.userService.Auth(auser)
+	var user *model.User
+	var err error
+	if !oauth.IsEmptyAuthType(auser.AuthType) && auser.Name == "" {
+		provider, err := ac.oauthManger.GetAuthProvider(auser.AuthType)
+		if err != nil {
+			common.ResponseFailed(c, http.StatusBadRequest, err)
+			return
+		}
+		authToken, err := provider.GetToken(auser.AuthCode)
+		if err != nil {
+			common.ResponseFailed(c, http.StatusBadRequest, err)
+			return
+		}
+
+		userInfo, err := provider.GetUserInfo(authToken)
+		if err != nil {
+			common.ResponseFailed(c, http.StatusBadRequest, err)
+			return
+		}
+
+		user, err = ac.userService.CreateOAuthUser(userInfo.User())
+	} else {
+		user, err = ac.userService.Auth(auser)
+	}
 	if err != nil {
 		common.ResponseFailed(c, http.StatusUnauthorized, err)
 		return
@@ -49,9 +76,14 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		common.ResponseFailed(c, http.StatusInternalServerError, err)
+		return
+	}
 	if auser.SetCookie {
 		c.SetCookie(common.CookieTokenName, token, 3600*24, "/", "", true, true)
-		c.SetCookie(common.CookieLoginUser, user.Name, 3600*24, "/", "", true, false)
+		c.SetCookie(common.CookieLoginUser, string(userJson), 3600*24, "/", "", true, false)
 	}
 
 	common.ResponseSuccess(c, model.JWTToken{

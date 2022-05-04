@@ -19,6 +19,7 @@ import (
 	"weave/pkg/database"
 	"weave/pkg/middleware"
 	"weave/pkg/model"
+	"weave/pkg/oauth"
 	"weave/pkg/repository"
 	"weave/pkg/service"
 
@@ -58,9 +59,10 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 
 	userService := service.NewUserService(userRepository)
 	jwtService := service.NewJWTService()
+	oauthManager := oauth.NewOAuthManager(conf.OAuthConfig)
 
 	userController := controller.NewUserController(userService)
-	authContoller := controller.NewAuthController(userService, jwtService)
+	authContoller := controller.NewAuthController(userService, jwtService, oauthManager)
 	containerController := controller.NewContainerController(conClient)
 
 	gin.SetMode(conf.Server.ENV)
@@ -70,6 +72,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		rateLimitMiddleware,
 		middleware.MonitorMiddleware(),
 		middleware.CORSMiddleware(),
+		middleware.TraceMiddleware(),
 		middleware.LogMiddleware(logger, "/"),
 		gin.Recovery(),
 	)

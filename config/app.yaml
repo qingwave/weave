@@ -25,3 +25,8 @@ redis:
   port: 6379 
   host: "localhost"
   password: "123456"
+
+oauth:
+  github:
+    clientId: "85db232fde2c9320ece7" # set your client id
+    clientSecret: "" # set your client secret

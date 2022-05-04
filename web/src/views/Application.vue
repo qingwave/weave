@@ -37,12 +37,7 @@
             <el-button size="small" type="primary" circle @click="execApp(scope.$index)" :icon="Terminal" />
             <el-button size="small" circle @click="editApp(scope.$index)" :icon="Edit">
               <el-dialog v-model="showUpdate" center title="Update Application" width="33%">
-                <el-form
-                  ref="updateFormRef"
-                  :model="updatedApp"
-                  label-position="left"
-                  label-width="auto"
-                >
+                <el-form ref="updateFormRef" :model="updatedApp" label-position="left" label-width="auto">
                   <el-form-item label="Name" prop="name">
                     <el-input v-model="updatedApp.name" disabled />
                   </el-form-item>
@@ -64,14 +59,8 @@
 
             <el-popover :visible="showDelete == scope.$index" placement="top" :width="160">
               <template #reference>
-                <el-button
-                  size="small"
-                  type="danger"
-                  @click="showDelete = scope.$index"
-                  :icon="Delete"
-                  circle
-                  class="wl-1rem"
-                />
+                <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
+                  class="wl-1rem" />
               </template>
               <p>Are you sure to delete this app?</p>
               <div class="my-0.5rem">
@@ -79,8 +68,11 @@
                 <el-button size="small" type="danger" @click="deleteApp(scope.$index)">confirm</el-button>
               </div>
             </el-popover>
-            <el-dropdown class="pl-10px">
+            <el-dropdown class="pl-10px" trigger="click">
               <el-button size="small" circle :icon="More" />
+              <el-dialog v-model="showLog" center width="80%">
+                  <pre class="px-1rem overflow-ellipsis break-all w-full">{{ logs }}</pre>
+              </el-dialog>
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :icon="Log" @click="logApp(scope.$index)">Log</el-dropdown-item>
@@ -88,7 +80,8 @@
                   <el-dropdown-item :icon="Browser" @click="openApp(scope.$index)">Open</el-dropdown-item>
                   <el-dropdown-item :icon="PauseOne" @click="operateApp(scope.$index, 'stop')">Stop</el-dropdown-item>
                   <el-dropdown-item :icon="Power" @click="operateApp(scope.$index, 'start')">Start</el-dropdown-item>
-                  <el-dropdown-item :icon="RefreshOne" @click="operateApp(scope.$index, 'restart')">Restart</el-dropdown-item>
+                  <el-dropdown-item :icon="RefreshOne" @click="operateApp(scope.$index, 'restart')">Restart
+                  </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -100,8 +93,10 @@
 </template>
 
 <script setup>
-import { Edit, Delete, Terminal, Log, More, ApplicationOne,
- PauseOne, Power, RefreshOne, ApiApp, Browser } from '@icon-park/vue-next';
+import {
+  Edit, Delete, Terminal, Log, More, ApplicationOne,
+  PauseOne, Power, RefreshOne, ApiApp, Browser
+} from '@icon-park/vue-next';
 import { ref, unref, reactive, onMounted } from 'vue';
 import { ElMessage } from "element-plus";
 import request from '@/axios'
@@ -118,7 +113,9 @@ const apps = ref([
 ]);
 const showCreate = ref(false);
 const showUpdate = ref(false);
+const showLog = ref(false);
 const showDelete = ref(-1);
+const logs = ref("");
 const newApp = ref({
   name: '',
   image: '',
@@ -158,7 +155,7 @@ const getCommand = (cmd) => {
   }
 
   return commands
-}
+};
 
 const createApp = () => {
   const form = unref(createFormRef)
@@ -243,7 +240,7 @@ const deleteApp = (index) => {
 };
 
 const operateApp = (index, verb) => {
-  request.post("/api/v1/containers/" + apps.value[index].id + "?verb="+verb).then(() => {
+  request.post("/api/v1/containers/" + apps.value[index].id + "?verb=" + verb).then(() => {
     ElMessage.success(verb + " success");
     apps.value[index].status = verb;
   }).catch((error) => {
@@ -258,20 +255,33 @@ const operateApp = (index, verb) => {
 }
 
 const getShortID = (index) => {
-  return apps.value[index].id.substring(0,12)
+  return apps.value[index].id.substring(0, 12)
 }
 
 const execApp = (index) => {
-  router.push("/apps/"+ getShortID(index) + "/exec")
+  router.push("/apps/" + getShortID(index) + "/exec")
 }
 
 const proxyApp = (index) => {
-  router.push("/apps/"+ getShortID(index) + "/proxy")
+  router.push("/apps/" + getShortID(index) + "/proxy")
 }
 
 const openApp = (index) => {
-  const uri = "/api/v1/containers/"+getShortID(index)+"/proxy"
-  window.open(uri,'_blank')
+  const uri = "/api/v1/containers/" + getShortID(index) + "/proxy"
+  window.open(uri, '_blank')
+}
+
+const logApp = (index) => {
+  showLog.value = true
+  const id = getShortID(index)
+  request.get(`/api/v1/containers/${id}/log`).then((response) => {
+    logs.value = response.data
+  }).catch((error) => {
+    if (error.response) {
+      console.log("get log failed: " + error.response.data.msg);
+    }
+    console.log(error)
+  })
 }
 
 </script>
