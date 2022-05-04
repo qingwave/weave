@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { getUser } from '@/utils'
 
 const routes = [
@@ -58,22 +58,27 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import("views/Login.vue")
+  },
+  {
+    path: '/oauth',
+    name: 'OAuth',
+    component: () => import("views/OAuth.vue")
   }
 ]
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
 router.beforeEach((to, from, next) => {
   let isAuthenticated = false;
   let user = getUser();
-  if (user.length > 0) {
+  if (user) {
     isAuthenticated = true;
   }
 
-  if (!isAuthenticated && to.name !== 'Login') next({ name: 'Login' })
+  if (!isAuthenticated && to.name !== 'Login' && to.name !== 'OAuth') next({ name: 'Login' })
   else next()
 })
 

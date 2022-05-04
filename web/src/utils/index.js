@@ -16,5 +16,8 @@ export function getCookie(cname) {
 }
 
 export function getUser() {
-    return getCookie('loginUser')
+    let obj = getCookie('loginUser');
+    if (obj) {
+        return JSON.parse(obj);
+    }
 }

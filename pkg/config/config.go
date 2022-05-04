@@ -11,9 +11,10 @@ import (
 var appConfig = flag.String("config", "config/app.yaml", "application config path")
 
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	DB     DBConfig     `yaml:"db"`
-	Redis  RedisConfig  `yaml:"redis"`
+	Server      ServerConfig           `yaml:"server"`
+	DB          DBConfig               `yaml:"db"`
+	Redis       RedisConfig            `yaml:"redis"`
+	OAuthConfig map[string]OAuthConfig `yaml:"oauth"`
 }
 
 type ServerConfig struct {
@@ -37,6 +38,12 @@ type RedisConfig struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	Password string `yaml:"password"`
+}
+
+type OAuthConfig struct {
+	AuthType     string `yaml:"authType"`
+	ClientId     string `yaml:"clientId"`
+	ClientSecret string `yaml:"clientSecret"`
 }
 
 func Parse() (*Config, error) {

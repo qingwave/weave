@@ -35,6 +35,9 @@ func NewJWTService() *JWTService {
 }
 
 func (s *JWTService) CreateToken(user *model.User) (string, error) {
+	if user == nil {
+		return "", fmt.Errorf("empty user")
+	}
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		CustomClaims{

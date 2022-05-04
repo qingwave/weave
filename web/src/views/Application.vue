@@ -155,7 +155,7 @@ const getCommand = (cmd) => {
   }
 
   return commands
-}
+};
 
 const createApp = () => {
   const form = unref(createFormRef)

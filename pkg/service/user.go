@@ -8,6 +8,7 @@ import (
 	"weave/pkg/model"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 const (
@@ -108,6 +109,18 @@ func (u *userService) Auth(auser *model.AuthUser) (*model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (u *userService) CreateOAuthUser(user *model.User) (*model.User, error) {
+	old, err := u.userRepository.GetUserByAuthID(user.AuthType, user.AuthId)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return u.userRepository.Create(user)
+		}
+		return nil, err
+	}
+
+	return old, nil
 }
 
 func (u *userService) getUserByID(id string) (*model.User, error) {

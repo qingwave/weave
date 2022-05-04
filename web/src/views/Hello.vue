@@ -7,13 +7,13 @@
         <img src="@/assets/welcome.svg" class="w-18rem" >
       </div>
       <el-button :icon="Waves" type="primary" plain><router-link to="/about">About Weave</router-link></el-button>
-      <el-button :icon="Github"><a :href="githuburl" target="_blank">Explore More</a></el-button>
+      <el-button :icon="Github"><a :href="githubUrl" target="_blank">Explore More</a></el-button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { Github, Waves } from '@icon-park/vue-next';
+import { githubUrl } from '@/config.js';
 
-const githuburl = 'https://github.com/qingwave/weave';
 </script>
