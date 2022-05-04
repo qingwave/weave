@@ -5,7 +5,7 @@ const authInfo = {
     github: {
         scope: "user:email+read:user",
         endpoint: "https://github.com/login/oauth/authorize",
-        clientId: "85db232fde2c9320ece7", // set your client id, https://docs.github.com/cn/developers/apps/building-oauth-apps/authorizing-oauth-apps
+        clientId: "85db232fde2c9320ece7", // set your github client id
     },
     wechat: {
         scope: "snsapi_login",

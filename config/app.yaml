@@ -28,5 +28,5 @@ redis:
 
 oauth:
   github:
-    clientId: "" # set your client id
-    clientSecret: ""
+    clientId: "85db232fde2c9320ece7" # set your client id
+    clientSecret: "" # set your client secret

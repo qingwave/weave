@@ -31,14 +31,16 @@ onMounted(
         })
         router.push('/');
       }).catch((error) => {
+        let msg = "OAuth failed";
+        if (error.response) {
+          msg += " " + error.response.data.msg
+          console.log("oauth error =>", error.response.data)
+        }
         ElMessage({
-          message: "OAuth failed",
+          message: msg,
           type: "error",
         });
         console.log("oauth failed =>", error);
-        if (error.response) {
-          console.log("oauthe error =>", error.response.data)
-        }
         router.push('/login');
       });
     }

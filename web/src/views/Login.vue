@@ -4,7 +4,7 @@
       <div class="h-max min-w-1/4 w-18rem text-center items-center">
         <div class="inline-flex mt-4 mb-8 items-center">
           <img src="@/assets/weave.png" class="h-12 mr-2" />
-          <h1 class="font-bold text-2xl">Weave</h1>
+          <h1 class="font-bold text-4xl font-mono">Weave</h1>
         </div>
         <el-tabs v-model="activeTab" :key="reloadTab">
           <el-tab-pane label="Login" name="login" stretch>
@@ -62,6 +62,8 @@
 .login-bg {
   background-image: url('@/assets/login-bg.svg');
   background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: 0 100%;
 }
 </style>
 

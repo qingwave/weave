@@ -43,6 +43,10 @@ type GithubToken struct {
 }
 
 func (auth *GithubAuth) GetToken(code string) (*oauth2.Token, error) {
+	if len(auth.Config.ClientID) == 0 || len(auth.Config.ClientSecret) == 0 {
+		return nil, fmt.Errorf("Github OAuth client id or secret is empty, please set in config first")
+	}
+
 	params := &struct {
 		Code         string `json:"code"`
 		ClientId     string `json:"client_id"`
