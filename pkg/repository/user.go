@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strconv"
 
 	"weave/pkg/database"
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	userCreateField = []string{"name", "email", "password", "auth_id", "auth_type", "avatar"}
+	userCreateField = []string{"name", "email", "password", "avatar", model.UserAuthInfoAssociation}
 )
 
 type userRepository struct {
@@ -28,7 +29,7 @@ func NewUserRepository(db *gorm.DB, rdb *database.RedisDB) model.UserRepository 
 
 func (u *userRepository) List() (model.Users, error) {
 	users := make(model.Users, 0)
-	if err := u.db.Order("name").Find(&users).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).Order("name").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -49,27 +50,27 @@ func (u *userRepository) Update(user *model.User) (*model.User, error) {
 		return nil, err
 	}
 
-	u.rdb.HDel(user.CacheKey(), strconv.Itoa(user.ID))
+	u.rdb.HDel(user.CacheKey(), strconv.Itoa(int(user.ID)))
 
 	return user, nil
 }
 
 func (u *userRepository) Delete(user *model.User) error {
-	err := u.db.Delete(user).Error
+	err := u.db.Select(model.UserAuthInfoAssociation).Delete(user).Error
 	if err != nil {
 		return err
 	}
-	u.rdb.HDel(user.CacheKey(), strconv.Itoa(user.ID))
+	u.rdb.HDel(user.CacheKey(), strconv.Itoa(int(user.ID)))
 	return nil
 }
 
-func (u *userRepository) GetUserByID(id int) (*model.User, error) {
+func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
 	if user := u.getCacheUser(id); user != nil {
 		return user, nil
 	}
 
 	user := new(model.User)
-	if err := u.db.First(user, id).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).First(user, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -81,24 +82,41 @@ func (u *userRepository) GetUserByID(id int) (*model.User, error) {
 }
 
 func (u *userRepository) GetUserByAuthID(authType, authID string) (*model.User, error) {
-	user := new(model.User)
-	if err := u.db.Where("auth_type = ? and auth_id = ?", authType, authID).First(user).Error; err != nil {
+	authInfo := new(model.AuthInfo)
+	if err := u.db.Where("auth_type = ? and auth_id = ?", authType, authID).First(authInfo).Error; err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return u.GetUserByID(authInfo.ID)
 }
 
 func (u *userRepository) GetUserByName(name string) (*model.User, error) {
 	user := new(model.User)
-	if err := u.db.Where("name = ?", name).First(&user).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).Where("name = ?", name).First(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
+func (u *userRepository) AddAuthInfo(authInfo *model.AuthInfo) error {
+	if authInfo == nil {
+		return nil
+	}
+	if authInfo.UserId == 0 {
+		return fmt.Errorf("empty user id")
+	}
+	return u.db.Create(authInfo).Error
+}
+
+func (u *userRepository) DelAuthInfo(authInfo *model.AuthInfo) error {
+	if authInfo == nil {
+		return nil
+	}
+	return u.db.Delete(authInfo).Error
+}
+
 func (u *userRepository) Migrate() error {
-	return u.db.AutoMigrate(&model.User{})
+	return u.db.AutoMigrate(&model.User{}, &model.AuthInfo{})
 }
 
 func (u *userRepository) setCacheUser(user *model.User) error {
@@ -106,13 +124,13 @@ func (u *userRepository) setCacheUser(user *model.User) error {
 		return nil
 	}
 
-	return u.rdb.HSet(user.CacheKey(), strconv.Itoa(user.ID), user)
+	return u.rdb.HSet(user.CacheKey(), strconv.Itoa(int(user.ID)), user)
 }
 
-func (u *userRepository) getCacheUser(id int) *model.User {
+func (u *userRepository) getCacheUser(id uint) *model.User {
 	user := new(model.User)
 	key := user.CacheKey()
-	field := strconv.Itoa(id)
+	field := strconv.Itoa(int(id))
 	if err := u.rdb.HGet(key, field, user); err != nil {
 		if err != database.RedisDisableError {
 			logrus.Warnf("failed to hget field %s from key %s, %v", field, key, err)

@@ -44,11 +44,15 @@ type UserInfo struct {
 
 func (ui *UserInfo) User() *model.User {
 	return &model.User{
-		AuthId:   ui.ID,
-		AuthType: ui.AuthType,
-		Name:     ui.Username,
-		Email:    ui.Email,
-		Avatar:   ui.AvatarUrl,
+		Name:   ui.Username,
+		Email:  ui.Email,
+		Avatar: ui.AvatarUrl,
+		AuthInfos: []model.AuthInfo{
+			{
+				AuthType: ui.AuthType,
+				AuthId:   ui.ID,
+			},
+		},
 	}
 }
 

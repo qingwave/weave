@@ -14,7 +14,7 @@ const (
 )
 
 type CustomClaims struct {
-	ID   int    `json:"id"`
+	ID   uint   `json:"id"`
 	Name string `json:"name"`
 	jwt.StandardClaims
 }
@@ -45,7 +45,7 @@ func (s *JWTService) CreateToken(user *model.User) (string, error) {
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: time.Now().Unix() + s.expireDuration,
 				NotBefore: time.Now().Unix() - 1000,
-				Id:        strconv.Itoa(user.ID),
+				Id:        strconv.Itoa(int(user.ID)),
 				Issuer:    s.issuer,
 			},
 		},
@@ -67,8 +67,10 @@ func (s *JWTService) ParseToken(tokenString string) (*model.User, error) {
 		return nil, fmt.Errorf("invaild token")
 	}
 
-	return &model.User{
+	user := &model.User{
 		ID:   claims.ID,
 		Name: claims.Name,
-	}, nil
+	}
+
+	return user, nil
 }

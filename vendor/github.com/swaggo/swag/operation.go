@@ -355,13 +355,20 @@ func (operation *Operation) ParseParamComment(commentLine string, astFile *ast.F
 }
 
 const (
+	jsonTag             = "json"
+	bindingTag          = "binding"
 	defaultTag          = "default"
 	enumsTag            = "enums"
+	exampleTag          = "example"
+	schemaExampleTag    = "schemaExample"
 	formatTag           = "format"
+	validateTag         = "validate"
 	minimumTag          = "minimum"
 	maximumTag          = "maximum"
 	minLengthTag        = "minlength"
 	maxLengthTag        = "maxlength"
+	multipleOfTag       = "multipleOf"
+	readOnlyTag         = "readonly"
 	extensionsTag       = "extensions"
 	collectionFormatTag = "collectionFormat"
 )
@@ -385,6 +392,10 @@ var regexAttributes = map[string]*regexp.Regexp{
 	extensionsTag: regexp.MustCompile(`(?i)\s+extensions\(.*\)`),
 	// for collectionFormat(csv)
 	collectionFormatTag: regexp.MustCompile(`(?i)\s+collectionFormat\(.*\)`),
+	// example(0)
+	exampleTag: regexp.MustCompile(`(?i)\s+example\(.*\)`),
+	// schemaExample(0)
+	schemaExampleTag: regexp.MustCompile(`(?i)\s+schemaExample\(.*\)`),
 }
 
 func (operation *Operation) parseAndExtractionParamAttribute(commentLine, objectType, schemaType string, param *spec.Parameter) error {
@@ -405,6 +416,10 @@ func (operation *Operation) parseAndExtractionParamAttribute(commentLine, object
 			err = setStringParam(param, attrKey, schemaType, attr, commentLine)
 		case formatTag:
 			param.Format = attr
+		case exampleTag:
+			err = setExample(param, schemaType, attr)
+		case schemaExampleTag:
+			err = setSchemaExample(param, schemaType, attr)
 		case extensionsTag:
 			_ = setExtensionParam(param, attr)
 		case collectionFormatTag:
@@ -490,7 +505,7 @@ func setEnumParam(param *spec.Parameter, attr, objectType, schemaType string) er
 
 func setExtensionParam(param *spec.Parameter, attr string) error {
 	param.Extensions = map[string]interface{}{}
-	for _, val := range strings.Split(attr, ",") {
+	for _, val := range splitNotWrapped(attr, ',') {
 		parts := strings.SplitN(val, "=", 2)
 		if len(parts) == 2 {
 			param.Extensions.Add(parts[0], parts[1])
@@ -517,6 +532,38 @@ func setDefault(param *spec.Parameter, schemaType string, value string) error {
 		return nil // Don't set a default value if it's not valid
 	}
 	param.Default = val
+	return nil
+}
+
+// controlCharReplacer replaces \r \n \t in example string values
+var controlCharReplacer = strings.NewReplacer(`\r`, "\r", `\n`, "\n", `\t`, "\t")
+
+func setSchemaExample(param *spec.Parameter, schemaType string, value string) error {
+	val, err := defineType(schemaType, value)
+	if err != nil {
+		return nil // Don't set a example value if it's not valid
+	}
+	// skip schema
+	if param.Schema == nil {
+		return nil
+	}
+
+	switch v := val.(type) {
+	case string:
+		param.Schema.Example = controlCharReplacer.Replace(v)
+	default:
+		param.Schema.Example = val
+	}
+
+	return nil
+}
+
+func setExample(param *spec.Parameter, schemaType string, value string) error {
+	val, err := defineType(schemaType, value)
+	if err != nil {
+		return nil // Don't set a example value if it's not valid
+	}
+	param.Example = val
 	return nil
 }
 
@@ -612,27 +659,29 @@ func (operation *Operation) ParseRouterComment(commentLine string) error {
 
 // ParseSecurityComment parses comment for given `security` comment string.
 func (operation *Operation) ParseSecurityComment(commentLine string) error {
-	securitySource := commentLine[strings.Index(commentLine, "@Security")+1:]
-	l := strings.Index(securitySource, "[")
-	r := strings.Index(securitySource, "]")
-	// exists scope
-	if !(l == -1 && r == -1) {
-		scopes := securitySource[l+1 : r]
-		var s []string
-		for _, scope := range strings.Split(scopes, ",") {
-			s = append(s, strings.TrimSpace(scope))
-		}
-		securityKey := securitySource[0:l]
-		securityMap := map[string][]string{}
-		securityMap[securityKey] = append(securityMap[securityKey], s...)
-		operation.Security = append(operation.Security, securityMap)
-	} else {
-		securityKey := strings.TrimSpace(securitySource)
-		securityMap := map[string][]string{}
-		securityMap[securityKey] = []string{}
-		operation.Security = append(operation.Security, securityMap)
-	}
+	//var securityMap map[string][]string = map[string][]string{}
 
+	var securityMap = make(map[string][]string)
+	securitySource := commentLine[strings.Index(commentLine, "@Security")+1:]
+	for _, securityOption := range strings.Split(securitySource, "||") {
+		securityOption = strings.TrimSpace(securityOption)
+		l := strings.Index(securityOption, "[")
+		r := strings.Index(securityOption, "]")
+		if !(l == -1 && r == -1) {
+			scopes := securityOption[l+1 : r]
+			var s []string
+			for _, scope := range strings.Split(scopes, ",") {
+				s = append(s, strings.TrimSpace(scope))
+			}
+			securityKey := securityOption[0:l]
+			securityMap[securityKey] = append(securityMap[securityKey], s...)
+
+		} else {
+			securityKey := strings.TrimSpace(securityOption)
+			securityMap[securityKey] = []string{}
+		}
+	}
+	operation.Security = append(operation.Security, securityMap)
 	return nil
 }
 
@@ -705,6 +754,8 @@ func (operation *Operation) parseObjectSchema(refType string, astFile *ast.File)
 		return nil, nil
 	case refType == "interface{}":
 		return PrimitiveSchema(OBJECT), nil
+	case refType == "any":
+		return PrimitiveSchema(OBJECT), nil
 	case IsGolangPrimitiveType(refType):
 		refType = TransToValidSchemeType(refType)
 
@@ -725,7 +776,7 @@ func (operation *Operation) parseObjectSchema(refType string, astFile *ast.File)
 			return nil, fmt.Errorf("invalid type: %s", refType)
 		}
 		refType = refType[idx+1:]
-		if refType == "interface{}" {
+		if refType == "interface{}" || refType == "any" {
 			return spec.MapProperty(nil), nil
 		}
 		schema, err := operation.parseObjectSchema(refType, astFile)

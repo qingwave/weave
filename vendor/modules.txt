@@ -225,11 +225,11 @@ github.com/sirupsen/logrus
 # github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2
 ## explicit; go 1.15
 github.com/swaggo/files
-# github.com/swaggo/gin-swagger v1.3.3
-## explicit; go 1.13
+# github.com/swaggo/gin-swagger v1.4.3
+## explicit; go 1.15
 github.com/swaggo/gin-swagger
-# github.com/swaggo/swag v1.7.7
-## explicit; go 1.13
+# github.com/swaggo/swag v1.8.1
+## explicit; go 1.18
 github.com/swaggo/swag
 # github.com/ugorji/go/codec v1.1.7
 ## explicit
@@ -240,7 +240,7 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
+# golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp

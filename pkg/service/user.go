@@ -112,7 +112,11 @@ func (u *userService) Auth(auser *model.AuthUser) (*model.User, error) {
 }
 
 func (u *userService) CreateOAuthUser(user *model.User) (*model.User, error) {
-	old, err := u.userRepository.GetUserByAuthID(user.AuthType, user.AuthId)
+	if len(user.AuthInfos) == 0 {
+		return nil, fmt.Errorf("empty auth info")
+	}
+	authInfo := user.AuthInfos[0]
+	old, err := u.userRepository.GetUserByAuthID(authInfo.AuthType, authInfo.AuthId)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return u.userRepository.Create(user)
@@ -128,7 +132,7 @@ func (u *userService) getUserByID(id string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return u.userRepository.GetUserByID(uid)
+	return u.userRepository.GetUserByID(uint(uid))
 }
 
 func (u *userService) getUser(id string) (*model.User, error) {
@@ -136,7 +140,5 @@ func (u *userService) getUser(id string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &model.User{
-		ID: uid,
-	}, nil
+	return &model.User{ID: uint(uid)}, nil
 }

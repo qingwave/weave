@@ -9,8 +9,8 @@
       <el-table :data="users" height="360" class="w-full max-h-full">
         <el-table-column prop="name" label="Name" />
         <el-table-column prop="email" label="Email" />
-        <el-table-column prop="create_time" label="CreateAt" min-width="120px" />
-        <el-table-column prop="Operation" label="Operation" min-width="120px">
+        <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
+        <el-table-column label="Operation" min-width="120px">
           <template #default="scope">
             <el-button size="small" circle @click="editUser(scope.$index)" :icon="Edit">
               <el-dialog v-model="showUpdate" center title="Update User" width="33%">
@@ -24,7 +24,7 @@
                     <el-input v-model="updatedUser.name" disabled />
                   </el-form-item>
                   <el-form-item label="Email" prop="email" required>
-                    <el-input v-model="updatedUser.image" placeholder="User email" />
+                    <el-input v-model="updatedUser.email" placeholder="User email" />
                   </el-form-item>
                 </el-form>
                 <template #footer>
@@ -142,14 +142,11 @@ const updateUser = (index) => {
     return
   }
 
-  let user = Object.assign({}, users.value[index]);
-  user.cmd = getCommand(updatedUser.value.cmd)
-
   form.validate((valid) => {
     if (valid) {
-      request.put("/api/v1/users/" + updatedUser.value.id, user).then((response) => {
+      request.put("/api/v1/users/" + updatedUser.value.id, updatedUser.value).then((response) => {
         ElMessage.success("Update success");
-        users.value[index] = user;
+        users.value[index] = updatedUser.value;
         showUpdate.value = false;
       }).catch((error) => {
         let msg = 'Update failed'

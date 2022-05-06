@@ -782,9 +782,38 @@
                 }
             }
         },
+        "model.AuthInfo": {
+            "type": "object",
+            "properties": {
+                "authId": {
+                    "type": "string"
+                },
+                "authType": {
+                    "type": "string"
+                },
+                "createAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updateAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.AuthUser": {
             "type": "object",
             "properties": {
+                "authCode": {
+                    "type": "string"
+                },
+                "authType": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -851,6 +880,15 @@
         "model.CreatedUser": {
             "type": "object",
             "properties": {
+                "authInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AuthInfo"
+                    }
+                },
+                "avatar": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -876,6 +914,12 @@
         "model.UpdatedUser": {
             "type": "object",
             "properties": {
+                "authInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AuthInfo"
+                    }
+                },
                 "email": {
                     "type": "string"
                 },
@@ -890,7 +934,16 @@
         "model.User": {
             "type": "object",
             "properties": {
-                "create_time": {
+                "authInfos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AuthInfo"
+                    }
+                },
+                "avatar": {
+                    "type": "string"
+                },
+                "createAt": {
                     "type": "string"
                 },
                 "email": {
@@ -902,7 +955,7 @@
                 "name": {
                     "type": "string"
                 },
-                "update_time": {
+                "updateAt": {
                     "type": "string"
                 }
             }

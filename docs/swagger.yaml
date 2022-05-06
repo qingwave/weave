@@ -8,8 +8,27 @@ definitions:
       msg:
         type: string
     type: object
+  model.AuthInfo:
+    properties:
+      authId:
+        type: string
+      authType:
+        type: string
+      createAt:
+        type: string
+      id:
+        type: integer
+      updateAt:
+        type: string
+      userId:
+        type: integer
+    type: object
   model.AuthUser:
     properties:
+      authCode:
+        type: string
+      authType:
+        type: string
       name:
         type: string
       password:
@@ -53,6 +72,12 @@ definitions:
     type: object
   model.CreatedUser:
     properties:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
+      avatar:
+        type: string
       email:
         type: string
       name:
@@ -69,6 +94,10 @@ definitions:
     type: object
   model.UpdatedUser:
     properties:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
       email:
         type: string
       name:
@@ -78,7 +107,13 @@ definitions:
     type: object
   model.User:
     properties:
-      create_time:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
+      avatar:
+        type: string
+      createAt:
         type: string
       email:
         type: string
@@ -86,7 +121,7 @@ definitions:
         type: integer
       name:
         type: string
-      update_time:
+      updateAt:
         type: string
     type: object
 host: localhost:8080
