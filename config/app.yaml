@@ -12,6 +12,7 @@ server:
       burst: 50
       qps: 10
       cacheSize: 2048
+  jwtSecret: weaveserver
 
 db:
   port: 5432 

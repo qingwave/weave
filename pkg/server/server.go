@@ -58,7 +58,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	}
 
 	userService := service.NewUserService(userRepository)
-	jwtService := service.NewJWTService()
+	jwtService := service.NewJWTService(conf.Server.JWTSecret)
 	oauthManager := oauth.NewOAuthManager(conf.OAuthConfig)
 
 	userController := controller.NewUserController(userService)

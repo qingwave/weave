@@ -11,7 +11,6 @@ import (
 
 const (
 	Issuer = "weave.io"
-	Secret = "weaveserver"
 )
 
 type CustomClaims struct {
@@ -26,9 +25,9 @@ type JWTService struct {
 	expireDuration int64
 }
 
-func NewJWTService() *JWTService {
+func NewJWTService(secret string) *JWTService {
 	return &JWTService{
-		signKey:        []byte(Secret),
+		signKey:        []byte(secret),
 		issuer:         Issuer,
 		expireDuration: int64(24 * time.Hour.Seconds()),
 	}

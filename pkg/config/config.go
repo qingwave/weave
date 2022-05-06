@@ -23,6 +23,7 @@ type ServerConfig struct {
 	Port                   int                     `yaml:"port"`
 	GracefulShutdownPeriod int                     `yaml:"gracefulShutdownPeriod"`
 	LimitConfigs           []ratelimit.LimitConfig `yaml:"rateLimits"`
+	JWTSecret              string                  `yaml:"jwtSecret"`
 }
 
 type DBConfig struct {
