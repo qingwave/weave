@@ -49,7 +49,7 @@ func LogMiddleware(logger *logrus.Logger, pathPrefix ...string) gin.HandlerFunc 
 			if len(c.Errors) > 0 {
 				entry.Error(c.Errors.ByType(gin.ErrorTypePrivate).String())
 			} else {
-				msg := fmt.Sprintf("[%s %s] %d %v", c.Request.Method, path, statusCode, latency)
+				msg := fmt.Sprintf("[%s %s] %d %v", c.Request.Method, c.Request.URL, statusCode, latency)
 				if statusCode >= http.StatusInternalServerError {
 					entry.Error(msg)
 				} else if statusCode >= http.StatusBadRequest {

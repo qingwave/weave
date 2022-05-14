@@ -20,7 +20,7 @@ type userRepository struct {
 	rdb *database.RedisDB
 }
 
-func NewUserRepository(db *gorm.DB, rdb *database.RedisDB) model.UserRepository {
+func newUserRepository(db *gorm.DB, rdb *database.RedisDB) UserRepository {
 	return &userRepository{
 		db:  db,
 		rdb: rdb,
@@ -87,7 +87,7 @@ func (u *userRepository) GetUserByAuthID(authType, authID string) (*model.User, 
 		return nil, err
 	}
 
-	return u.GetUserByID(authInfo.ID)
+	return u.GetUserByID(authInfo.UserId)
 }
 
 func (u *userRepository) GetUserByName(name string) (*model.User, error) {
@@ -113,6 +113,12 @@ func (u *userRepository) DelAuthInfo(authInfo *model.AuthInfo) error {
 		return nil
 	}
 	return u.db.Delete(authInfo).Error
+}
+
+func (u *userRepository) GetGroups(user *model.User) ([]model.Group, error) {
+	groups := make([]model.Group, 0)
+	err := u.db.Model(user).Association(model.GroupAssociation).Find(&groups)
+	return groups, err
 }
 
 func (u *userRepository) Migrate() error {

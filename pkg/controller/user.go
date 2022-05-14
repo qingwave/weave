@@ -2,9 +2,12 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 
+	"weave/pkg/authorization"
 	"weave/pkg/common"
 	"weave/pkg/model"
+	"weave/pkg/service"
 	"weave/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
@@ -12,10 +15,10 @@ import (
 )
 
 type UserController struct {
-	userService model.UserService
+	userService service.UserService
 }
 
-func NewUserController(userService model.UserService) *UserController {
+func NewUserController(userService service.UserService) Controller {
 	return &UserController{
 		userService: userService,
 	}
@@ -100,6 +103,12 @@ func (u *UserController) Create(c *gin.Context) {
 // @Success 200 {object} common.Response{data=model.User}
 // @Router /api/v1/users/{id} [put]
 func (u *UserController) Update(c *gin.Context) {
+	user := common.GetUser(c)
+	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsRootAdmin(user.Name)) {
+		common.ResponseFailed(c, http.StatusForbidden, nil)
+		return
+	}
+
 	new := new(model.UpdatedUser)
 	if err := c.BindJSON(new); err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
@@ -128,10 +137,43 @@ func (u *UserController) Update(c *gin.Context) {
 // @Success 200 {object} common.Response
 // @Router /api/v1/users/{id} [delete]
 func (u *UserController) Delete(c *gin.Context) {
+	user := common.GetUser(c)
+	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsRootAdmin(user.Name)) {
+		common.ResponseFailed(c, http.StatusForbidden, nil)
+		return
+	}
+
 	if err := u.userService.Delete(c.Param("id")); err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
 
 	common.ResponseSuccess(c, nil)
+}
+
+// @Summary Get groups
+// @Description Get groups
+// @Produce json
+// @Tags group
+// @Security JWT
+// @Param id path int true "user id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/users/{id}/groups [get]
+func (u *UserController) GetGroups(c *gin.Context) {
+	groups, err := u.userService.GetGroups(c.Param("id"))
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, groups)
+}
+
+func (u *UserController) RegisterRoute(api *gin.RouterGroup) {
+	api.GET("/users", u.List)
+	api.POST("/users", u.Create)
+	api.GET("/users/:id", u.Get)
+	api.PUT("/users/:id", u.Update)
+	api.DELETE("/users/:id", u.Delete)
+	api.GET("/users/:id/groups", u.GetGroups)
 }

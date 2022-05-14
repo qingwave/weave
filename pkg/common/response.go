@@ -2,7 +2,6 @@ package common
 
 import (
 	"net/http"
-	"weave/pkg/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -30,14 +29,15 @@ func ResponseFailed(c *gin.Context, code int, err error) {
 	if code == 0 {
 		code = http.StatusInternalServerError
 	}
+	var msg string
 	if err != nil {
-		val, _ := c.Get(UserContextKey)
-		user, ok := val.(*model.User)
+		msg = err.Error()
+		user := GetUser(c)
 		var name string
-		if ok {
+		if user != nil {
 			name = user.Name
 		}
 		logrus.Warnf("url: %s, user: %s, error: %v", c.Request.URL, name, err)
 	}
-	NewResponse(c, code, nil, err.Error())
+	NewResponse(c, code, nil, msg)
 }

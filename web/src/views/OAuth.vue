@@ -18,7 +18,7 @@ onMounted(
         const newParams = new URLSearchParams(queryString);
         const authType = newParams.get("oauth");
 
-    request.post("/api/auth/token", {
+    request.post("/api/v1/auth/token", {
         authType : authType,
         authCode: code,
         setCookie: true,
@@ -30,19 +30,7 @@ onMounted(
           showClose: false,
         })
         router.push('/');
-      }).catch((error) => {
-        let msg = "OAuth failed";
-        if (error.response) {
-          msg += " " + error.response.data.msg
-          console.log("oauth error =>", error.response.data)
-        }
-        ElMessage({
-          message: msg,
-          type: "error",
-        });
-        console.log("oauth failed =>", error);
-        router.push('/login');
-      });
+      })
     }
 )
 

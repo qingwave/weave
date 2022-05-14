@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"weave/pkg/common"
-	"weave/pkg/middleware/ratelimit"
+	"weave/pkg/utils/ratelimit"
 
 	"github.com/gin-gonic/gin"
 )

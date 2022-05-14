@@ -52,12 +52,12 @@ See http://localhost:8080
 ### Test api
 Register user
 ```bash
-curl -XPOST http://localhost:8080/api/auth/user -d '{"name": "zhang3", "email": "zhang3@t.com","password": "123456"}'
+curl -XPOST http://localhost:8080/api/v1/auth/user -d '{"name": "zhang3", "email": "zhang3@t.com","password": "123456"}'
 ```
 
 Login, get jwt token
 ```bash
-curl -XPOST http://localhost:8080/api/auth/token -d '{"name": "zhang3", "password": "123456"}'
+curl -XPOST http://localhost:8080/api/v1/auth/token -d '{"name": "zhang3", "password": "123456"}'
 ```
 Response as follows, set token in `Authorization Header`
 ```json
@@ -100,7 +100,8 @@ npm i
 npm run dev 
 ```
 
-Default user `admin`, password: `123456`
+Default admin user `admin/123456`
+or demo user `demo/123456`
 
 Explore in http://127.0.0.1:8081
 

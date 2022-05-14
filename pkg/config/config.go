@@ -3,7 +3,9 @@ package config
 import (
 	"flag"
 	"os"
-	"weave/pkg/middleware/ratelimit"
+	"path"
+	"path/filepath"
+	"weave/pkg/utils/ratelimit"
 
 	"gopkg.in/yaml.v2"
 )
@@ -15,6 +17,7 @@ type Config struct {
 	DB          DBConfig               `yaml:"db"`
 	Redis       RedisConfig            `yaml:"redis"`
 	OAuthConfig map[string]OAuthConfig `yaml:"oauth"`
+	AuthConfig  AuthenticationConfig   `yaml:"authentication"`
 }
 
 type ServerConfig struct {
@@ -24,6 +27,7 @@ type ServerConfig struct {
 	GracefulShutdownPeriod int                     `yaml:"gracefulShutdownPeriod"`
 	LimitConfigs           []ratelimit.LimitConfig `yaml:"rateLimits"`
 	JWTSecret              string                  `yaml:"jwtSecret"`
+	DockerHost             string                  `yaml:"dockerHost"`
 }
 
 type DBConfig struct {
@@ -32,6 +36,7 @@ type DBConfig struct {
 	Name     string `yaml:"name"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
+	Migrate  bool   `yaml:"migrate"`
 }
 
 type RedisConfig struct {
@@ -47,6 +52,16 @@ type OAuthConfig struct {
 	ClientSecret string `yaml:"clientSecret"`
 }
 
+type AuthenticationConfig struct {
+	AuthModelConfigName             string `yaml:"authModelConfigName"`
+	AuthModelConfigFullName         string
+	AuthDefaultPolicyConfig         string `yaml:"authDefaultPolicyConfig"`
+	LoadDefaultPolicyAlways         bool   `yaml:"loadDefaultPolicyAlways"`
+	AuthDefaultPolicyConfigFullName string
+	AuthTablePrefix                 string `yaml:"authTablePrefix"`
+	AuthTableName                   string `yaml:"authTableName"`
+}
+
 func Parse() (*Config, error) {
 	config := &Config{}
 
@@ -59,6 +74,10 @@ func Parse() (*Config, error) {
 	if err := yaml.NewDecoder(file).Decode(&config); err != nil {
 		return nil, err
 	}
+
+	baseDir := filepath.Dir(*appConfig)
+	config.AuthConfig.AuthModelConfigFullName = path.Join(baseDir, config.AuthConfig.AuthModelConfigName)
+	config.AuthConfig.AuthDefaultPolicyConfigFullName = path.Join(baseDir, config.AuthConfig.AuthDefaultPolicyConfig)
 
 	return config, nil
 }

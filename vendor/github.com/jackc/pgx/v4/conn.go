@@ -73,9 +73,8 @@ type Conn struct {
 
 	connInfo *pgtype.ConnInfo
 
-	wbuf             []byte
-	preallocatedRows []connRows
-	eqb              extendedQueryBuilder
+	wbuf []byte
+	eqb  extendedQueryBuilder
 }
 
 // Identifier a PostgreSQL identifier or name. Identifiers can be composed of
@@ -366,30 +365,6 @@ func (c *Conn) Ping(ctx context.Context) error {
 	return err
 }
 
-func connInfoFromRows(rows Rows, err error) (map[string]uint32, error) {
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	nameOIDs := make(map[string]uint32, 256)
-	for rows.Next() {
-		var oid uint32
-		var name pgtype.Text
-		if err = rows.Scan(&oid, &name); err != nil {
-			return nil, err
-		}
-
-		nameOIDs[name.String] = oid
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return nameOIDs, err
-}
-
 // PgConn returns the underlying *pgconn.PgConn. This is an escape hatch method that allows lower level access to the
 // PostgreSQL connection than pgx exposes.
 //
@@ -414,7 +389,8 @@ func (c *Conn) Exec(ctx context.Context, sql string, arguments ...interface{}) (
 	commandTag, err := c.exec(ctx, sql, arguments...)
 	if err != nil {
 		if c.shouldLog(LogLevelError) {
-			c.log(ctx, LogLevelError, "Exec", map[string]interface{}{"sql": sql, "args": logQueryArgs(arguments), "err": err})
+			endTime := time.Now()
+			c.log(ctx, LogLevelError, "Exec", map[string]interface{}{"sql": sql, "args": logQueryArgs(arguments), "err": err, "time": endTime.Sub(startTime)})
 		}
 		return commandTag, err
 	}
@@ -537,12 +513,7 @@ func (c *Conn) execPrepared(ctx context.Context, sd *pgconn.StatementDescription
 }
 
 func (c *Conn) getRows(ctx context.Context, sql string, args []interface{}) *connRows {
-	if len(c.preallocatedRows) == 0 {
-		c.preallocatedRows = make([]connRows, 64)
-	}
-
-	r := &c.preallocatedRows[len(c.preallocatedRows)-1]
-	c.preallocatedRows = c.preallocatedRows[0 : len(c.preallocatedRows)-1]
+	r := &connRows{}
 
 	r.ctx = ctx
 	r.logger = c
@@ -674,7 +645,7 @@ optionLoop:
 		resultFormats = c.eqb.resultFormats
 	}
 
-	if c.stmtcache != nil && c.stmtcache.Mode() == stmtcache.ModeDescribe {
+	if c.stmtcache != nil && c.stmtcache.Mode() == stmtcache.ModeDescribe && !ok {
 		rows.resultReader = c.pgConn.ExecParams(ctx, sql, c.eqb.paramValues, sd.ParamOIDs, c.eqb.paramFormats, resultFormats)
 	} else {
 		rows.resultReader = c.pgConn.ExecPrepared(ctx, sd.Name, c.eqb.paramValues, c.eqb.paramFormats, resultFormats)
@@ -797,8 +768,7 @@ func (c *Conn) SendBatch(ctx context.Context, b *Batch) BatchResults {
 			var err error
 			sd, err = stmtCache.Get(ctx, bi.query)
 			if err != nil {
-				// the stmtCache was prefilled from distinctUnpreparedQueries above so we are guaranteed no errors
-				panic("BUG: unexpected error from stmtCache")
+				return &batchResults{ctx: ctx, conn: c, err: err}
 			}
 		}
 

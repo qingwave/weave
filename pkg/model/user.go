@@ -6,16 +6,19 @@ import (
 )
 
 const (
+	UserAssociation         = "Users"
 	UserAuthInfoAssociation = "AuthInfos"
+	GroupAssociation        = "Groups"
 )
 
 type User struct {
 	ID        uint       `json:"id" gorm:"autoIncrement;primaryKey"`
-	Name      string     `json:"name" gorm:"size:100;not null"`
+	Name      string     `json:"name" gorm:"size:100;not null;unique"`
 	Password  string     `json:"-" gorm:"size:256;"`
 	Email     string     `json:"email" gorm:"size:256;"`
 	Avatar    string     `json:"avatar" gorm:"size:256;"`
 	AuthInfos []AuthInfo `json:"authInfos" gorm:"foreignKey:UserId;references:ID"`
+	Groups    []Group    `json:"groups" gorm:"many2many:user_groups;"`
 
 	BaseModel
 }
@@ -39,6 +42,7 @@ func (u *User) UnmarshalBinary(data []byte) error {
 type AuthInfo struct {
 	ID           uint      `json:"id" gorm:"autoIncrement;primaryKey"`
 	UserId       uint      `json:"userId" gorm:"size:256"`
+	Url          string    `json:"url" gorm:"size:256"`
 	AuthType     string    `json:"authType" gorm:"size:256"`
 	AuthId       string    `json:"authId" gorm:"size:256"`
 	AccessToken  string    `json:"-" gorm:"size:256"`
@@ -94,29 +98,23 @@ type AuthUser struct {
 	AuthCode  string `json:"authCode"`
 }
 
+type UserRole struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+	Role string `json:"role"`
+}
+
+func (u *UserRole) GetUser() *User {
+	return &User{
+		ID:   u.ID,
+		Name: u.Name,
+	}
+}
+
+type UserInfo struct {
+	User
+	InRoot bool   `json:"inRoot"`
+	Role   string `json:"role"`
+}
+
 type Users []User
-
-type UserService interface {
-	List() (Users, error)
-	Create(*User) (*User, error)
-	Get(string) (*User, error)
-	CreateOAuthUser(user *User) (*User, error)
-	Update(string, *User) (*User, error)
-	Delete(string) error
-	Validate(*User) error
-	Auth(*AuthUser) (*User, error)
-	Default(*User)
-}
-
-type UserRepository interface {
-	GetUserByID(uint) (*User, error)
-	GetUserByAuthID(authType, authID string) (*User, error)
-	GetUserByName(string) (*User, error)
-	List() (Users, error)
-	Create(user *User) (*User, error)
-	Update(user *User) (*User, error)
-	Delete(user *User) error
-	AddAuthInfo(authInfo *AuthInfo) error
-	DelAuthInfo(authInfo *AuthInfo) error
-	Migrate() error
-}

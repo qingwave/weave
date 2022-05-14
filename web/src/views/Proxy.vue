@@ -14,7 +14,6 @@ const proxyURL = ref('');
 
 onMounted(
     () => {
-        
         let id = route.params.id;
         if (id.length == 0) {
             return
