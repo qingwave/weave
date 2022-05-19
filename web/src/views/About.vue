@@ -1,6 +1,6 @@
 <template>
   <div class="container h-full w-full">
-    <div class="pt-2rem px-6rem">
+    <div class="py-2rem px-4rem h-full">
       <h1 class="font-bold text-2xl mb-2rem">#About</h1>
       <p class="text-l mb-2rem" v-html="msg" />
       <div class="flex justify-center">

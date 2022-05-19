@@ -1,8 +1,8 @@
 base: clean swagger
-	go build -o bin/weave main.go
+	go build -mod vendor -o bin/weave main.go
 
 run: 
-	go run main.go
+	go run -mod vendor main.go
 
 TESTPKG=$(shell go list ./...)
 test:

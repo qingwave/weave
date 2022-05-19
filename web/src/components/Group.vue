@@ -1,0 +1,191 @@
+<template>
+  <div class="w-full h-full flex justify-center">
+    <el-card class="mx-4rem my-2rem w-4/5 h-max" shadow="never">
+      <template #header>
+        <div class="flex justify-between">
+          <span>Groups</span>
+          <el-button type="primary" plain :icon="Peoples" @Click="showCreate = true">Create</el-button>
+        </div>
+        <el-dialog v-model="showCreate" center title="Create Group" width="33%">
+          <el-form ref="createFormRef" :model="newGroup" label-position="left" label-width="auto">
+            <el-form-item label="Name" prop="name" required>
+              <el-input v-model="newGroup.name" placeholder="Group name" />
+            </el-form-item>
+            <el-form-item label="Describe" prop="describe" required>
+              <el-input v-model="newGroup.describe" placeholder="Describe image" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button type="primary" @click="createGroup">Confirm</el-button>
+              <el-button @click="showCreate = false">Cancel</el-button>
+            </span>
+          </template>
+        </el-dialog>
+      </template>
+      <el-table :data="groups" height="360" class="w-full max-h-full">
+        <el-table-column prop="name" label="Name">
+          <template #default="scope">
+            <router-link :to="getGroupUrl(scope.row.id)"><el-link type="primary">{{scope.row.name}}</el-link></router-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="describe" label="Describe" />
+        <el-table-column prop="creatorId" label="Creator" />
+        <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
+        <el-table-column label="Operation" min-width="120px">
+          <template #default="scope">
+          <el-dialog v-model="showUpdate" center :modal="false" title="Update Group" width="33%">
+                <el-form
+                  ref="updateFormRef"
+                  :model="updatedGroup"
+                  label-position="left"
+                  label-width="auto"
+                >
+                  <el-form-item label="Name" prop="name">
+                    <el-input v-model="updatedGroup.name" disabled />
+                  </el-form-item>
+                  <el-form-item label="Describe" prop="describe" required>
+                    <el-input v-model="updatedGroup.describe" placeholder="Group describe" />
+                  </el-form-item>
+                </el-form>
+                <template #footer>
+                  <span class="dialog-footer">
+                    <el-button type="primary" @click="updateGroup(scope.row)">Confirm</el-button>
+                    <el-button @click="showUpdate = false">Cancel</el-button>
+                  </span>
+                </template>
+            </el-dialog>
+            <el-button size="small" circle @click="editGroup(scope.row)" :icon="Edit"/>
+
+            <el-popover :visible="showDelete == scope.$index" placement="top" :width="160">
+              <template #reference>
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="showDelete = scope.$index"
+                  :icon="Delete"
+                  circle
+                  class="wl-1rem"
+                />
+              </template>
+              <p>Are you sure to delete this group?</p>
+              <div class="my-0.5rem">
+                <el-button size="small" type="text" @click="showDelete = -1">cancel</el-button>
+                <el-button size="small" type="danger" @click="deleteGroup(scope.row)">confirm</el-button>
+              </div>
+            </el-popover>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
+  </div>
+</template>
+
+<style scoped>
+</style>
+
+<script setup>
+import { Edit, Delete, Peoples } from '@icon-park/vue-next';
+import { ref, unref, onMounted } from 'vue';
+import { ElMessage } from "element-plus";
+import request from '@/axios';
+import { getUser } from '@/utils';
+
+const props = defineProps({
+  listAll: Boolean,
+})
+
+const user = getUser();
+const groups = ref();
+
+const showCreate = ref(false);
+const showUpdate = ref(false);
+const showDelete = ref(-1);
+const newGroup = ref({
+  name: '',
+  describe: '',
+});
+
+const updatedGroup = ref({});
+const createFormRef = ref();
+const updateFormRef = ref();
+
+onMounted(
+  () => {
+    let id = user.id;
+    if (!id) {
+      return
+    }
+    
+    let url = `/api/v1/users/${id}/groups`;
+    if (props.listAll) {
+      url = `/api/v1/groups`
+    }
+
+    request.get(url).then((response) => {
+      groups.value = response.data.data;
+    })
+  }
+)
+
+const getGroupUrl = (id) => {
+  return `/groups/${id}`
+};
+
+const createGroup = () => {
+  const form = unref(createFormRef)
+  if (!form) {
+    return
+  }
+
+  form.validate((valid) => {
+    if (valid) {
+      request.post("/api/v1/groups", {
+        name: newGroup.value.name,
+        describe: newGroup.value.describe,
+      }).then((response) => {
+        ElMessage.success("Create success");
+        groups.value.push(response.data.data);
+        showCreate.value = false;
+      })
+    } else {
+      ElMessage.error("Input invalid");
+    }
+  });
+};
+
+const editGroup = (row) => {
+  updatedGroup.value = Object.assign({}, row);
+  showUpdate.value = true;
+}
+
+const updateGroup = (row) => {
+  const form = unref(updateFormRef);
+  if (!form) {
+    return
+  }
+
+  form.validate((valid) => {
+    if (valid) {
+      request.put("/api/v1/groups/" + row.id, updatedGroup.value).then((response) => {
+        ElMessage.success("Update success");
+        const index = groups.value.findIndex(v => v.id === row.id);
+        groups.value[index] = updatedGroup.value;
+        showUpdate.value = false;
+      })
+    } else {
+      ElMessage.error("Input invalid");
+    }
+  });
+};
+
+const deleteGroup = (row) => {
+  request.delete("/api/v1/groups/" + row.id).then(() => {
+    ElMessage.success("Delete success");
+    const index = groups.value.findIndex(v => v.id === row.id);
+    groups.value.splice(index, 1);
+    showDelete.value = -1;
+  })
+};
+
+</script>

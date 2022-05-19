@@ -8,8 +8,27 @@ definitions:
       msg:
         type: string
     type: object
+  model.AuthInfo:
+    properties:
+      authId:
+        type: string
+      authType:
+        type: string
+      createAt:
+        type: string
+      id:
+        type: integer
+      updateAt:
+        type: string
+      userId:
+        type: integer
+    type: object
   model.AuthUser:
     properties:
+      authCode:
+        type: string
+      authType:
+        type: string
       name:
         type: string
       password:
@@ -51,14 +70,50 @@ definitions:
       port:
         type: integer
     type: object
+  model.CreatedGroup:
+    properties:
+      creatorId:
+        type: integer
+      describe:
+        type: string
+      name:
+        type: string
+    type: object
   model.CreatedUser:
     properties:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
+      avatar:
+        type: string
       email:
         type: string
       name:
         type: string
       password:
         type: string
+    type: object
+  model.Group:
+    properties:
+      createAt:
+        type: string
+      creatorId:
+        type: integer
+      describe:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updateAt:
+        type: string
+      updaterId:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/model.User'
+        type: array
     type: object
   model.JWTToken:
     properties:
@@ -69,6 +124,10 @@ definitions:
     type: object
   model.UpdatedUser:
     properties:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
       email:
         type: string
       name:
@@ -78,15 +137,25 @@ definitions:
     type: object
   model.User:
     properties:
-      create_time:
+      authInfos:
+        items:
+          $ref: '#/definitions/model.AuthInfo'
+        type: array
+      avatar:
+        type: string
+      createAt:
         type: string
       email:
         type: string
+      groups:
+        items:
+          $ref: '#/definitions/model.Group'
+        type: array
       id:
         type: integer
       name:
         type: string
-      update_time:
+      updateAt:
         type: string
     type: object
 host: localhost:8080
@@ -111,7 +180,7 @@ paths:
       summary: Index
       tags:
       - index
-  /api/auth/token:
+  /api/v1/auth/token:
     delete:
       description: User logout
       produces:
@@ -150,7 +219,7 @@ paths:
       summary: Login
       tags:
       - auth
-  /api/auth/user:
+  /api/v1/auth/user:
     post:
       consumes:
       - application/json
@@ -407,6 +476,208 @@ paths:
       summary: Proxy container
       tags:
       - container
+  /api/v1/groups:
+    get:
+      description: List group
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Group'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List group
+      tags:
+      - group
+    post:
+      consumes:
+      - application/json
+      description: Create group and storage
+      parameters:
+      - description: group info
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreatedGroup'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Group'
+              type: object
+      security:
+      - JWT: []
+      summary: Create group
+      tags:
+      - group
+  /api/v1/groups/{id}:
+    delete:
+      description: Delete group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete group
+      tags:
+      - group
+    get:
+      description: Get group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Group'
+              type: object
+      security:
+      - JWT: []
+      summary: Get group
+      tags:
+      - group
+    put:
+      consumes:
+      - application/json
+      description: Update group and storage
+      parameters:
+      - description: group info
+        in: body
+        name: group
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdatedUser'
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Group'
+              type: object
+      security:
+      - JWT: []
+      summary: Update group
+      tags:
+      - group
+  /api/v1/groups/{id}/users:
+    delete:
+      description: Delete user from group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete user
+      tags:
+      - group
+    get:
+      description: Get users
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Get users
+      tags:
+      - group
+    post:
+      description: Add user to group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: user info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add user
+      tags:
+      - group
   /api/v1/users:
     get:
       description: List user and storage
@@ -536,6 +807,27 @@ paths:
       summary: Update user
       tags:
       - user
+  /api/v1/users/{id}/groups:
+    post:
+      description: Get groups
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Get groups
+      tags:
+      - group
   /healthz:
     get:
       produces:

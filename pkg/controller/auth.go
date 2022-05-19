@@ -4,21 +4,23 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"weave/pkg/authentication"
+	"weave/pkg/authentication/oauth"
+	"weave/pkg/authorization"
 	"weave/pkg/common"
 	"weave/pkg/model"
-	"weave/pkg/oauth"
 	"weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	userService model.UserService
-	jwtService  *service.JWTService
+	userService service.UserService
+	jwtService  *authentication.JWTService
 	oauthManger *oauth.OAuthManager
 }
 
-func NewAuthController(userService model.UserService, jwtService *service.JWTService, oauthManager *oauth.OAuthManager) *AuthController {
+func NewAuthController(userService service.UserService, jwtService *authentication.JWTService, oauthManager *oauth.OAuthManager) Controller {
 	return &AuthController{
 		userService: userService,
 		jwtService:  jwtService,
@@ -33,7 +35,7 @@ func NewAuthController(userService model.UserService, jwtService *service.JWTSer
 // @Tags auth
 // @Param user body model.AuthUser true "auth user info"
 // @Success 200 {object} common.Response{data=model.JWTToken}
-// @Router /api/auth/token [post]
+// @Router /api/v1/auth/token [post]
 func (ac *AuthController) Login(c *gin.Context) {
 	auser := new(model.AuthUser)
 	if err := c.BindJSON(auser); err != nil {
@@ -76,7 +78,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	userJson, err := json.Marshal(user)
+	userJson, err := json.Marshal(wrapRootInfo(*user))
 	if err != nil {
 		common.ResponseFailed(c, http.StatusInternalServerError, err)
 		return
@@ -97,7 +99,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 // @Produce json
 // @Tags auth
 // @Success 200 {object} common.Response
-// @Router /api/auth/token [delete]
+// @Router /api/v1/auth/token [delete]
 func (ac *AuthController) Logout(c *gin.Context) {
 	c.SetCookie(common.CookieTokenName, "", -1, "/", "", true, true)
 	c.SetCookie(common.CookieLoginUser, "", -1, "/", "", true, false)
@@ -111,7 +113,7 @@ func (ac *AuthController) Logout(c *gin.Context) {
 // @Tags auth
 // @Param user body model.CreatedUser true "user info"
 // @Success 200 {object} common.Response{data=model.User}
-// @Router /api/auth/user [post]
+// @Router /api/v1/auth/user [post]
 func (ac *AuthController) Register(c *gin.Context) {
 	createdUser := new(model.CreatedUser)
 	if err := c.BindJSON(createdUser); err != nil {
@@ -132,4 +134,20 @@ func (ac *AuthController) Register(c *gin.Context) {
 	}
 
 	common.ResponseSuccess(c, user)
+}
+
+func (ac *AuthController) RegisterRoute(api *gin.RouterGroup) {
+	api.POST("/auth/token", ac.Login)
+	api.DELETE("/auth/token", ac.Logout)
+	api.POST("/auth/user", ac.Register)
+}
+
+func wrapRootInfo(user model.User) *model.UserInfo {
+	ui := &model.UserInfo{User: user}
+	roles := authorization.Enforcer.GetRolesForUserInDomain(user.Name, authorization.RootGroup)
+	if len(roles) > 0 {
+		ui.InRoot = true
+		ui.Role = roles[0]
+	}
+	return ui
 }

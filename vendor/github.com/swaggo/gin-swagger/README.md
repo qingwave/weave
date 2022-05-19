@@ -75,7 +75,7 @@ func Helloworld(g *gin.Context)  {
 }
 ```
 
-2. Use `swag init` command to generate a docs, docs generated will be stored at
+2. Use `swag init` command to generate a docs, docs generated will be stored at `docs/`.
 3. import the docs like this:
    I assume your project named `github.com/go-project-name/docs`.
 
@@ -143,6 +143,9 @@ Demo project tree, `swag init` is run at relative `.`
 └── main.go
 ```
 
+## Multiple APIs
+This feature where introduced in swag v1.7.9
+
 ## Configuration
 
 You can configure Swagger using different configuration options
@@ -162,7 +165,8 @@ func main() {
 | Option                   | Type   | Default    | Description                                                                                                                                                                                                                                               |
 | ------------------------ | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | URL                      | string | "doc.json" | URL pointing to API definition                                                                                                                                                                                                                            |
-| DocExpantion             | string | "list"     | Controls the default expansion setting for the operations and tags. It can be 'list' (expands only the tags), 'full' (expands the tags and operations) or 'none' (expands nothing).                                                                       |
+| DocExpansion             | string | "list"     | Controls the default expansion setting for the operations and tags. It can be 'list' (expands only the tags), 'full' (expands the tags and operations) or 'none' (expands nothing).                                                                       |
 | DeepLinking              | bool   | true       | If set to true, enables deep linking for tags and operations. See the Deep Linking documentation for more information.                                                                                                                                    |
 | DefaultModelsExpandDepth | int    | 1          | Default expansion depth for models (set to -1 completely hide the models).                                                                                                                                                                                |
-| InstanceName             | string | "swagger"  | The instance name of the swagger document. If multiple different swagger instances should be deployed on one gin router, ensure that each instance has a unique name (use the _--instanceName_ parameter to generate swagger documents with _swag init_). |
+| InstanceName             | string | "swagger"  | The instance name of the swagger document. If multiple different swagger instances should be deployed on one gin router, ensure that each instance has a unique name (use the _--instanceName_ parameter to generate swagger documents with _swag init_).                                                                                                     
+| PersistAuthotization | bool | false | If set to true, it persists authorization data and it would not be lost on browser close/refresh. |

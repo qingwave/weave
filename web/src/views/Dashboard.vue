@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap w-full h-full p-2rem pb-5rem bg-gray-100 justify-between">
+  <div class="flex flex-wrap w-full h-full p-2rem pb-5rem justify-between">
     <div class="w-32/100 h-10rem bg-white rounded-md mb-1rem" v-for="(item) in cards" :key="item.name">
       <div class="flex w-full h-full px-3rem items-center">
         <div class="flex-col w-6/10">

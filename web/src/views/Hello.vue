@@ -1,11 +1,9 @@
 <template>
-  <div class="w-full h-full flex justify-center align-center text-center">
-    <div class="pt-2rem px-6rem">
+  <div class="w-full h-full h-max-full flex justify-center align-center text-center">
+    <div class="w-full h-full py-2rem px-4rem">
       <h1 class="font-bold text-2xl mb-1rem">Hello Weave</h1>
       <h2 class="text-lg text-gray-500">Powerful server template with golang and vue</h2>
-      <div class="my-2rem">
-        <img src="@/assets/welcome.svg" class="w-18rem" >
-      </div>
+      <img src="@/assets/welcome.svg" class="w-20rem my-2rem mx-auto" >
       <el-button :icon="Waves" type="primary" plain><router-link to="/about">About Weave</router-link></el-button>
       <el-button :icon="Github"><a :href="githubUrl" target="_blank">Explore More</a></el-button>
     </div>

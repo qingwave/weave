@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"weave/pkg/common"
-	"weave/pkg/container"
+	"weave/pkg/library/docker"
 	"weave/pkg/model"
 	"weave/pkg/utils/trace"
 
@@ -24,10 +24,10 @@ import (
 )
 
 type ContainerController struct {
-	client *container.Client
+	client *docker.Client
 }
 
-func NewContainerController(client *container.Client) *ContainerController {
+func NewContainerController(client *docker.Client) Controller {
 	return &ContainerController{
 		client: client,
 	}
@@ -384,6 +384,26 @@ func (con *ContainerController) Exec(c *gin.Context) {
 	// TODO ws graceful shutdown
 	go wsWrite(hijack.Conn, conn)
 	wsRead(conn, hijack.Conn)
+}
+
+func (con *ContainerController) RegisterRoute(api *gin.RouterGroup) {
+	if con.client == nil {
+		logrus.Warn("container client is nil, skip register routers")
+		return
+	}
+
+	api.GET("/containers", con.List)
+	api.POST("/containers", con.Create)
+	api.GET("/containers/:id", con.Get)
+	api.PUT("/containers/:id", con.Update)
+	api.POST("/containers/:id", con.Operate)
+	api.DELETE("/containers/:id", con.Delete)
+	api.GET("/containers/:id/log", con.Log)
+	api.GET("/containers/:id/exec", con.Exec)
+	api.Any("/containers/:id/proxy/*any", con.Proxy)
+	api.GET("/containers/:id/terminal", func(c *gin.Context) {
+		c.HTML(200, "terminal.html", nil)
+	})
 }
 
 var upgrader = websocket.Upgrader{

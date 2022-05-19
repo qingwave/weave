@@ -1,17 +1,24 @@
 <template>
-  <div class="flex w-full h-full">
-    <Menu/>
-    <div class="flex-col w-full min-h-screen overflow-hidden">
-      <Header/>
-      <div class="h-full w-full">
+  <div class="flex flex-col w-full h-full bg-slate">
+      <Header class="w-full h-full bg-slate"/>
+      <div class="flex flex-row flex-grow w-full overflow-hidden">
+        <Menu/>
+        <div class="w-full">
           <router-view class="overflow-y-scroll" />
+        </div>
       </div>
-    </div>
   </div>
 </template>
 
-<script step>
+<style scoped>
+.bg-slate {
+  --tw-bg-opacity: 1;
+  background-color: #f1f5f9;
+}
+</style>
+
+<script setup>
 // @ is an alias to /src
-import Menu from 'components/Menu.vue'
-import Header from 'components/Header.vue'
+import Menu from '@/components/Menu.vue'
+import Header from '@/components/Header.vue'
 </script>

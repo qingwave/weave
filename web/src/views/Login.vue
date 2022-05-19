@@ -1,16 +1,16 @@
 <template>
   <div class="h-full login-bg">
     <div class="flex h-full justify-center items-center">
-      <div class="h-max min-w-1/4 w-18rem text-center items-center">
+      <div class="h-max min-w-16rem w-1/4 max-w-24rem text-center items-center">
         <div class="inline-flex mt-4 mb-8 items-center">
           <img src="@/assets/weave.png" class="h-12 mr-2" />
           <h1 class="font-bold text-4xl font-mono">Weave</h1>
         </div>
-        <el-tabs v-model="activeTab" :key="reloadTab">
-          <el-tab-pane label="Login" name="login" stretch>
-            <el-form ref="loginFormRef" :model="loginUser" :rules="rules">
+
+        <div v-if="showLogin">
+            <el-form ref="loginFormRef" :model="loginUser" size="large" :rules="rules" show-message>
               <el-form-item prop="name">
-                <el-input v-model="loginUser.name" placeholder="Please input" size="large">
+                <el-input v-model="loginUser.name" placeholder="admin">
                   <template #prefix>
                     <User />
                   </template>
@@ -18,8 +18,7 @@
               </el-form-item>
 
               <el-form-item prop="password">
-                <el-input v-model="loginUser.password" type="password" placeholder="Please input password" show-password
-                  size="large">
+                <el-input v-model="loginUser.password" type="password" placeholder="123456" show-password>
                   <template #prefix>
                     <Lock />
                   </template>
@@ -27,8 +26,11 @@
               </el-form-item>
             </el-form>
 
-            <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">Login</el-button>
-            <div class="my-1.5rem">
+            <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
+            <div class="mt-0.25rem text-right">
+              <el-button type="text" @click="showLogin=false">SIGN UP</el-button>
+            </div>
+            <div class="my-0.5rem">
               <el-button type="text" @click="oauthLogin('github')">
                 <Github theme="outline" size="30" fill="#333" />
               </el-button>
@@ -36,23 +38,27 @@
                 <Wechat theme="filled" size="30" fill="#7ed321" />
               </el-button>
             </div>
-          </el-tab-pane>
-          <el-tab-pane label="Register" name="register" stretch>
-            <el-form ref="registerFormRef" :model="registerUser" label-position="left" :rules="rules"
-              label-width="auto">
+        </div>
+
+          <div v-if="showLogin == false">
+            <el-form ref="registerFormRef" :model="registerUser" label-position="top" :rules="rules"
+              label-width="auto" size="large">
               <el-form-item label="Username" prop="name">
                 <el-input placeholder="user name" v-model="registerUser.name" size="large"></el-input>
               </el-form-item>
               <el-form-item label="Email" prop="email">
-                <el-input placeholder="email" v-model="registerUser.email" size="large"></el-input>
+                <el-input placeholder="email" v-model="registerUser.email"></el-input>
               </el-form-item>
               <el-form-item label="Password" prop="password">
-                <el-input placeholder="password" minlength="6" v-model="registerUser.password" size="large"></el-input>
+                <el-input placeholder="password" minlength="6" v-model="registerUser.password"></el-input>
               </el-form-item>
             </el-form>
-            <el-button class="w-full" type="primary" size="large" @click="register(registerFormRef)">Register</el-button>
-          </el-tab-pane>
-        </el-tabs>
+            
+            <el-button class="w-full" type="primary" size="large" @click="register(registerFormRef)">SIGN UP</el-button>
+            <div class="mt-0.25rem text-right">
+              <el-button type="text" @click="showLogin=true">SIGN IN</el-button>
+            </div>
+          </div>
       </div>
     </div>
   </div>
@@ -60,6 +66,7 @@
 
 <style scoped>
 .login-bg {
+  background-color: #f1f5f9;
   background-image: url('@/assets/login-bg.svg');
   background-repeat: no-repeat;
   background-size: 100% auto;
@@ -76,13 +83,15 @@ import { useRouter } from 'vue-router';
 import { redirectUri, authInfo } from '@/config.js'
 
 const router = useRouter();
+
 const loginFormRef = ref();
 const registerFormRef = ref();
-const activeTab = ref('login');
-const reloadTab = ref(0);
+
+const showLogin = ref(true);
+
 const loginUser = reactive({
-  name: "",
-  password: "",
+  name: "admin",
+  password: "123456",
 });
 const registerUser = reactive({
   name: "",
@@ -109,7 +118,7 @@ const login = async (form) => {
   }
   await form.validate((valid, fields) => {
     if (valid) {
-      request.post("/api/auth/token", {
+      request.post("/api/v1/auth/token", {
         name: loginUser.name,
         password: loginUser.password,
         setCookie: true,
@@ -117,16 +126,10 @@ const login = async (form) => {
         ElNotification.success({
           title: 'Login Success',
           message: 'Hi~ ' + loginUser.name,
-          showClose: false,
+          showClose: true,
         })
         router.push('/');
-      }).catch((error) => {
-        ElMessage({
-          message: "Auth failed",
-          type: "error",
-        });
-        console.log("auth failed =>", error);
-      });
+      })
     } else {
       console.log("input invaild", fields)
       ElMessage({
@@ -172,7 +175,7 @@ const register = async (form) => {
 
   await form.validate((valid, fields) => {
     if (valid) {
-      request.post("/api/auth/user", {
+      request.post("/api/v1/auth/user", {
         name: registerUser.name,
         password: registerUser.password,
         email: registerUser.email,
@@ -184,19 +187,7 @@ const register = async (form) => {
         loginUser.name = registerUser.name;
         loginUser.password = registerUser.password;
         activeTab.value = 'login';
-        reloadTab.value++;
-      }).catch((error) => {
-        ElMessage({
-          message: "Register failed",
-          type: "error",
-        });
-        if (error.response) {
-          console.log("register failed =>", error.response.data);
-        } else {
-          console.log("register failed =>", error)
-        }
-
-      });
+      })
     } else {
       console.log("Input invalid =>", fields)
       ElMessage({

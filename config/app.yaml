@@ -12,6 +12,15 @@ server:
       burst: 50
       qps: 10
       cacheSize: 2048
+  jwtSecret: weaveserver
+  dockerHost: unix:///var/run/docker.sock
+
+authentication:
+  authModelConfigName: "auth_model.conf"
+  authDefaultPolicyConfig: "auth_default_policy.csv"
+  loadDefaultPolicyAlways: false
+  authTablePrefix: ""
+  authTableName: "auth_rules"
 
 db:
   port: 5432 
@@ -19,6 +28,7 @@ db:
   name: "weave"
   user: "postgres"
   password: "123456"
+  migrate: true
 
 redis:
   enable: true

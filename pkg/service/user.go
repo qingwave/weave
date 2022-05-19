@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"weave/pkg/model"
+	"weave/pkg/repository"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -16,10 +17,10 @@ const (
 )
 
 type userService struct {
-	userRepository model.UserRepository
+	userRepository repository.UserRepository
 }
 
-func NewUserService(userRepository model.UserRepository) model.UserService {
+func NewUserService(userRepository repository.UserRepository) UserService {
 	return &userService{
 		userRepository: userRepository,
 	}
@@ -112,15 +113,38 @@ func (u *userService) Auth(auser *model.AuthUser) (*model.User, error) {
 }
 
 func (u *userService) CreateOAuthUser(user *model.User) (*model.User, error) {
-	old, err := u.userRepository.GetUserByAuthID(user.AuthType, user.AuthId)
+	if len(user.AuthInfos) == 0 {
+		return nil, fmt.Errorf("empty auth info")
+	}
+	authInfo := user.AuthInfos[0]
+	old, err := u.userRepository.GetUserByAuthID(authInfo.AuthType, authInfo.AuthId)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return u.userRepository.Create(user)
 		}
 		return nil, err
 	}
-
 	return old, nil
+}
+
+func (u *userService) GetGroups(id string) ([]model.Group, error) {
+	user, err := u.getUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.userRepository.GetGroups(user)
+
+	// items, err := authorization.Enforcer.GetDomainsForUser(user.Name)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// groups := make([]model.Group, 0)
+	// for _, item := range items {
+	// 	groups = append(groups, model.Group{Name: item})
+	// }
+	// return groups, nil
 }
 
 func (u *userService) getUserByID(id string) (*model.User, error) {
@@ -128,7 +152,7 @@ func (u *userService) getUserByID(id string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return u.userRepository.GetUserByID(uid)
+	return u.userRepository.GetUserByID(uint(uid))
 }
 
 func (u *userService) getUser(id string) (*model.User, error) {
@@ -136,7 +160,5 @@ func (u *userService) getUser(id string) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &model.User{
-		ID: uid,
-	}, nil
+	return &model.User{ID: uint(uid)}, nil
 }
