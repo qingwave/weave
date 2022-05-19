@@ -14,6 +14,7 @@ Server support features:
 - Authentication, support jwt
 - Request rate limit, server level or user ip
 - Redis cache
+- RBAC, support by casbin 
 
 Frontend support features:
 - Vue3 supported

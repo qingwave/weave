@@ -16,20 +16,27 @@ export default defineConfig({
       'components': resolve(__dirname, '/src/components'),
     }
   },
+  css: {
+		preprocessorOptions: {
+			scss: {
+				additionalData: `@use "@/styles/element.scss" as *;`,
+			},
+		},
+  },
   plugins: [
     vue(),
     WindiCSS(),
     AutoImport({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({importStyle: "sass"})],
     }),
     Components({
       resolvers: [
-        ElementPlusResolver(),
+        ElementPlusResolver({importStyle: "sass"}),
       ],
     }),
-    styleImport({
-      resolves: [ElementPlusResolve()],
-    })
+    // styleImport({
+    //   resolves: [ElementPlusResolve()],
+    // })
   ],
   server: {
     host: "127.0.0.1",
