@@ -128,6 +128,7 @@ const updatedApp = ref({
 const createFormRef = ref();
 const updateFormRef = ref();
 
+const defaultTime = {timeout: "10000"}
 onMounted(
   () => {
     request.get("/api/v1/containers").then((response) => {
@@ -156,7 +157,7 @@ const createApp = () => {
         name: newApp.value.name,
         image: newApp.value.image,
         cmd: getCommand(newApp.value.cmd),
-      }).then((response) => {
+      }, defaultTime).then((response) => {
         ElMessage.success("Create success");
         apps.value.push(response.data.data);
         showCreate.value = false;
@@ -182,7 +183,7 @@ const updateApp = (row) => {
     updatedApp.value.cmd = getCommand(updatedApp.value.cmd);
     
     if (valid) {
-      request.put("/api/v1/containers/" + row.id, updatedApp.value).then((response) => {
+      request.put("/api/v1/containers/" + row.id, updatedApp.value, defaultTime).then((response) => {
         ElMessage.success("Update success");
         const index = apps.value.findIndex(v => v.id === row.id);
         apps.value[index] = updatedApp.value;
@@ -240,7 +241,7 @@ const getAppStatusType = (status) => {
   if (status == "running" || status == "start") {
     return "success"
   } else if (status == "stop" || status == "exited" ) {
-    return "info"
+    return "warning"
   } else if (status == "dead") {
     return "danger"
   } else {

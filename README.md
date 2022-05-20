@@ -1,6 +1,8 @@
 # Weave
 Simple but functional Go+Vue application starter, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
+![hello](./document/img/hello.png)
+
 ## Features
 Server support features:
 - Restful api, write by gin
@@ -35,7 +37,7 @@ TODOs
 - [x] WebShell
 - [ ] Dark theme
 - [ ] Mobile UI 
-## Run
+## Get started
 Before starting, you should already install [golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) and [nodejs](https://nodejs.org/en/download/) in your develop env.
 ### Run server
 Install dependencies, postgresql, redis, swag 
@@ -106,6 +108,8 @@ or demo user `demo/123456`
 
 Explore in http://127.0.0.1:8081
 
+More ui in [img](./document/img/)
+
 Login page
 ![login](./document/img/login.png)
 
@@ -118,14 +122,6 @@ App page
 Webshell page
 ![webshell](./document/img/webshell.png)
 
-### Others
-Login with Github, see https://docs.github.com/cn/developers/apps/building-oauth-apps/authorizing-oauth-apps
-1. Open Github developer settings https://github.com/settings/developers, click `OAuth Apps`
-2. Create OAuth app, click `New OAuth App` button
-3. Register app, contents as follows
-```
-  name: Weave
-  Homepage URL: http://127.0.0.1:8081
-  Authorization callback URL: http://127.0.0.1:8081/oauth
-  ```
-4. Get your `clientId` and `clientSecret`, set in `config/app.yaml` and `web/src/config.js`
+### Documents
+- [OAuth](./document/oauth.md)
+- [RBAC](./document/authentication.md)

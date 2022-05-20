@@ -49,30 +49,16 @@ func (con *ContainerController) Create(c *gin.Context) {
 		return
 	}
 
-	if ccon.Image == "" {
-		common.ResponseFailed(c, http.StatusBadRequest, errors.New("image cannot be empty"))
-	}
-
 	common.TraceStep(c, "start create container", trace.Field{"name", ccon.Name})
 	defer common.TraceStep(c, "create container done", trace.Field{"name", ccon.Name})
 
-	resp, err := con.client.ContainerCreate(context.TODO(),
-		model.ContainerConfig(ccon),
-		model.ContainerHostConfig(ccon),
-		nil, nil, ccon.Name)
-
+	cid, err := con.runContainer(ccon)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := con.client.ContainerStart(context.TODO(), resp.ID,
-		types.ContainerStartOptions{}); err != nil {
-		common.ResponseFailed(c, http.StatusBadRequest, err)
-		return
-	}
-
-	common.ResponseSuccess(c, ccon.GetContainer(resp.ID))
+	common.ResponseSuccess(c, ccon.GetContainer(cid))
 }
 
 // @Summary Get container
@@ -195,27 +181,13 @@ func (con *ContainerController) Update(c *gin.Context) {
 		return
 	}
 
-	if ccon.Image == "" {
-		common.ResponseFailed(c, http.StatusBadRequest, errors.New("image cannot be empty"))
-	}
-
-	resp, err := con.client.ContainerCreate(context.TODO(),
-		model.ContainerConfig(ccon),
-		model.ContainerHostConfig(ccon),
-		nil, nil, ccon.Name)
-
+	cid, err := con.runContainer(ccon)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
 
-	if err := con.client.ContainerStart(context.TODO(), resp.ID,
-		types.ContainerStartOptions{}); err != nil {
-		common.ResponseFailed(c, http.StatusBadRequest, err)
-		return
-	}
-
-	common.ResponseSuccess(c, ccon.GetContainer(resp.ID))
+	common.ResponseSuccess(c, ccon.GetContainer(cid))
 }
 
 // @Summary Delete container
@@ -404,6 +376,37 @@ func (con *ContainerController) RegisterRoute(api *gin.RouterGroup) {
 	api.GET("/containers/:id/terminal", func(c *gin.Context) {
 		c.HTML(200, "terminal.html", nil)
 	})
+}
+
+func (con *ContainerController) runContainer(ccon *model.CreatedContainer) (string, error) {
+	if ccon.Image == "" {
+		return "", errors.New("image cannot be empty")
+	}
+
+	reader, err := con.client.ImagePull(context.TODO(), ccon.Image, types.ImagePullOptions{})
+	if reader != nil {
+		defer reader.Close()
+	}
+	if err != nil {
+		return "", err
+	}
+	io.Copy(io.Discard, reader)
+
+	resp, err := con.client.ContainerCreate(context.TODO(),
+		model.ContainerConfig(ccon),
+		model.ContainerHostConfig(ccon),
+		nil, nil, ccon.Name)
+
+	if err != nil {
+		return "", err
+	}
+
+	if err := con.client.ContainerStart(context.TODO(), resp.ID,
+		types.ContainerStartOptions{}); err != nil {
+		return resp.ID, err
+	}
+
+	return resp.ID, nil
 }
 
 var upgrader = websocket.Upgrader{
