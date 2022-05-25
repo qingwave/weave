@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"weave/pkg/database"
-	"weave/pkg/model"
+	"github.com/qingwave/weave/pkg/database"
+	"github.com/qingwave/weave/pkg/model"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -75,7 +75,7 @@ func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
 	}
 
 	if err := u.setCacheUser(user); err != nil {
-		logrus.Errorf("failed to set user", err)
+		logrus.Errorf("failed to set user: %v", err)
 	}
 
 	return user, nil

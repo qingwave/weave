@@ -2,11 +2,18 @@ package main
 
 import (
 	"flag"
+	"os"
 
-	"weave/pkg/config"
-	"weave/pkg/server"
+	"github.com/qingwave/weave/pkg/config"
+	"github.com/qingwave/weave/pkg/server"
+	"github.com/qingwave/weave/pkg/version"
 
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	printVersion = flag.Bool("v", false, "print version")
+	appConfig    = flag.String("config", "config/app.yaml", "application config path")
 )
 
 // @title           Weave Server API
@@ -25,10 +32,15 @@ import (
 func main() {
 	flag.Parse()
 
+	if *printVersion {
+		version.Print()
+		os.Exit(0)
+	}
+
 	logger := logrus.StandardLogger()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 
-	conf, err := config.Parse()
+	conf, err := config.Parse(*appConfig)
 	if err != nil {
 		logger.Fatalf("Failed to parse config: %v", err)
 	}

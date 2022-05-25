@@ -3,8 +3,8 @@
       <Header class="w-full h-full bg-slate"/>
       <div class="flex flex-row flex-grow w-full overflow-hidden">
         <Menu/>
-        <div class="w-full">
-          <router-view class="overflow-y-scroll" />
+        <div class="w-full overflow-y-scroll">
+          <router-view />
         </div>
       </div>
   </div>

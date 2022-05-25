@@ -6,6 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Home
+// @Produce html
+// @Tags home
+// @Router /index [get]
 func Index(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(
 		`<html>

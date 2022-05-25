@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"weave/pkg/authentication"
-	"weave/pkg/common"
+	"github.com/qingwave/weave/pkg/authentication"
+	"github.com/qingwave/weave/pkg/common"
 
 	"github.com/gin-gonic/gin"
 )

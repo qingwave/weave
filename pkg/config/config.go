@@ -1,16 +1,14 @@
 package config
 
 import (
-	"flag"
 	"os"
 	"path"
 	"path/filepath"
-	"weave/pkg/utils/ratelimit"
+
+	"github.com/qingwave/weave/pkg/utils/ratelimit"
 
 	"gopkg.in/yaml.v2"
 )
-
-var appConfig = flag.String("config", "config/app.yaml", "application config path")
 
 type Config struct {
 	Server      ServerConfig           `yaml:"server"`
@@ -62,10 +60,10 @@ type AuthenticationConfig struct {
 	AuthTableName                   string `yaml:"authTableName"`
 }
 
-func Parse() (*Config, error) {
+func Parse(appConfig string) (*Config, error) {
 	config := &Config{}
 
-	file, err := os.Open(*appConfig)
+	file, err := os.Open(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +73,7 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	baseDir := filepath.Dir(*appConfig)
+	baseDir := filepath.Dir(appConfig)
 	config.AuthConfig.AuthModelConfigFullName = path.Join(baseDir, config.AuthConfig.AuthModelConfigName)
 	config.AuthConfig.AuthDefaultPolicyConfigFullName = path.Join(baseDir, config.AuthConfig.AuthDefaultPolicyConfig)
 

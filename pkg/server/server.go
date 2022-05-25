@@ -10,22 +10,27 @@ import (
 	"syscall"
 	"time"
 
-	_ "weave/docs"
-	"weave/pkg/authentication"
-	"weave/pkg/authentication/oauth"
-	"weave/pkg/authorization"
-	"weave/pkg/config"
-	"weave/pkg/controller"
-	"weave/pkg/database"
-	"weave/pkg/library/docker"
-	"weave/pkg/middleware"
-	"weave/pkg/repository"
-	"weave/pkg/service"
-	"weave/pkg/utils/request"
-	"weave/pkg/utils/set"
+	_ "github.com/qingwave/weave/docs"
+	"github.com/qingwave/weave/pkg/authentication"
+	"github.com/qingwave/weave/pkg/authentication/oauth"
+	"github.com/qingwave/weave/pkg/authorization"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/config"
+	"github.com/qingwave/weave/pkg/controller"
+	"github.com/qingwave/weave/pkg/database"
+	"github.com/qingwave/weave/pkg/library/docker"
+	"github.com/qingwave/weave/pkg/middleware"
+	"github.com/qingwave/weave/pkg/repository"
+	"github.com/qingwave/weave/pkg/service"
+	"github.com/qingwave/weave/pkg/utils/request"
+	"github.com/qingwave/weave/pkg/utils/set"
+	"github.com/qingwave/weave/pkg/version"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 )
 
@@ -68,7 +73,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 
 	userController := controller.NewUserController(userService)
 	groupController := controller.NewGroupController(groupService)
-	authContoller := controller.NewAuthController(userService, jwtService, oauthManager)
+	authController := controller.NewAuthController(userService, jwtService, oauthManager)
 	containerController := controller.NewContainerController(conClient)
 	rbacController := controller.NewRbacController()
 
@@ -89,9 +94,6 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 
 	e.LoadHTMLFiles("static/terminal.html")
 
-	// set route
-	InitRouter(e, userController, groupController, authContoller, containerController, rbacController)
-
 	return &Server{
 		engine:          e,
 		config:          conf,
@@ -99,6 +101,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		db:              db,
 		rdb:             rdb,
 		containerClient: conClient,
+		controllers:     []controller.Controller{userController, groupController, authController, containerController, rbacController},
 	}, nil
 }
 
@@ -110,11 +113,15 @@ type Server struct {
 	db              *gorm.DB
 	rdb             *database.RedisDB
 	containerClient *docker.Client
+
+	controllers []controller.Controller
 }
 
 // graceful shutdown
 func (s *Server) Run() {
 	defer s.Close()
+
+	s.initRouter()
 
 	addr := fmt.Sprintf("%s:%d", s.config.Server.Address, s.config.Server.Port)
 	s.logger.Infof("Start server on: %s", addr)
@@ -151,4 +158,69 @@ func (s *Server) Close() {
 	if s.containerClient != nil {
 		s.containerClient.Close()
 	}
+}
+
+func (s *Server) initRouter() {
+	root := s.engine
+
+	// register non-resource routers
+	root.GET("/", common.WrapFunc(s.getRoutes))
+	root.GET("/index", controller.Index)
+	root.GET("/healthz", common.WrapFunc(s.Ping))
+	root.GET("/version", common.WrapFunc(version.Get))
+	root.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	root.Any("/debug/pprof/*any", gin.WrapH(http.DefaultServeMux))
+	if gin.Mode() != gin.ReleaseMode {
+		root.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	}
+
+	api := root.Group("/api/v1")
+	for _, router := range s.controllers {
+		router.RegisterRoute(api)
+	}
+}
+
+func (s *Server) getRoutes() []string {
+	paths := set.NewString()
+	for _, r := range s.engine.Routes() {
+		if r.Path != "" {
+			paths.Insert(r.Path)
+		}
+	}
+	return paths.Slice()
+}
+
+type ServerStatus struct {
+	Ping  bool `json:"ping"`
+	DB    bool `json:"db"`
+	Redis bool `json:"redis"`
+}
+
+func (s *Server) Ping() *ServerStatus {
+	status := &ServerStatus{Ping: true}
+
+	ctx, cannel := context.WithTimeout(context.TODO(), 2*time.Second)
+	defer cannel()
+
+	db, err := s.db.DB()
+	if err == nil {
+		err = db.PingContext(ctx)
+		if err == nil {
+			status.DB = true
+		}
+	}
+	if err != nil {
+		logrus.Warnf("check db failed: %v", err)
+	}
+
+	if s.rdb != nil {
+		_, err := s.rdb.Ping(ctx).Result()
+		if err == nil {
+			status.Redis = true
+		} else {
+			logrus.Warnf("check redis failed: %v", err)
+		}
+	}
+
+	return status
 }

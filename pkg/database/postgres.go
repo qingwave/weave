@@ -2,7 +2,8 @@ package database
 
 import (
 	"fmt"
-	"weave/pkg/config"
+
+	"github.com/qingwave/weave/pkg/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

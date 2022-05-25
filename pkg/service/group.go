@@ -3,9 +3,10 @@ package service
 import (
 	"fmt"
 	"strconv"
-	"weave/pkg/authorization"
-	"weave/pkg/model"
-	"weave/pkg/repository"
+
+	"github.com/qingwave/weave/pkg/authorization"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/repository"
 )
 
 type groupService struct {

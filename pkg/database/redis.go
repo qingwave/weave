@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"weave/pkg/config"
+
+	"github.com/qingwave/weave/pkg/config"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"

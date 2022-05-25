@@ -1,9 +1,9 @@
 package common
 
 import (
-	"weave/pkg/model"
-	"weave/pkg/utils/request"
-	"weave/pkg/utils/trace"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/utils/request"
+	"github.com/qingwave/weave/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
 )

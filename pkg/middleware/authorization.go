@@ -3,9 +3,10 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"weave/pkg/authorization"
-	"weave/pkg/common"
-	"weave/pkg/model"
+
+	"github.com/qingwave/weave/pkg/authorization"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/model"
 
 	"github.com/gin-gonic/gin"
 )

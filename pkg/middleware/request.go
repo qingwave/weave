@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"net/http"
-	"weave/pkg/common"
-	"weave/pkg/utils/request"
+
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/utils/request"
 
 	"github.com/gin-gonic/gin"
 )

@@ -20,25 +20,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "index"
-                ],
-                "summary": "Index",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/auth/token": {
             "post": {
                 "description": "User login",
@@ -817,7 +798,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/model.UserRole"
                         }
                     }
                 ],
@@ -858,7 +839,106 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.User"
+                            "$ref": "#/definitions/model.UserRole"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "user name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "user role",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/common.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/policies": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "List rbac policy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "List rbac policy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ptype: p/g/g2",
+                        "name": "ptype",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Handle rbac policy and storage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rbac"
+                ],
+                "summary": "Handle rbac policy",
+                "parameters": [
+                    {
+                        "description": "rbac policy info",
+                        "name": "policy",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Policy"
                         }
                     }
                 ],
@@ -1096,7 +1176,7 @@ const docTemplate = `{
             }
         },
         "/api/v1/users/{id}/groups": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "JWT": []
@@ -1129,23 +1209,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/healthz": {
+        "/index": {
             "get": {
                 "produces": [
-                    "application/json"
+                    "text/html"
                 ],
                 "tags": [
-                    "healthz"
+                    "home"
                 ],
-                "summary": "Healthz",
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
+                "summary": "Home",
+                "responses": {}
             }
         }
     },
@@ -1178,6 +1251,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "updateAt": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 },
                 "userId": {
@@ -1337,6 +1413,29 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Policy": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "oldPolicy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "policy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "model.UpdatedUser": {
             "type": "object",
             "properties": {
@@ -1388,6 +1487,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updateAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.UserRole": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }
