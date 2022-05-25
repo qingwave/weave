@@ -1,6 +1,6 @@
 package repository
 
-import "weave/pkg/model"
+import "github.com/qingwave/weave/pkg/model"
 
 type Repository interface {
 	User() UserRepository

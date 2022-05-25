@@ -5,8 +5,9 @@ import (
 	"net"
 	"net/http"
 	"time"
-	"weave/pkg/config"
-	"weave/pkg/model"
+
+	"github.com/qingwave/weave/pkg/config"
+	"github.com/qingwave/weave/pkg/model"
 
 	"golang.org/x/oauth2"
 )

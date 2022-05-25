@@ -4,9 +4,9 @@ import (
 	"flag"
 	"os"
 
-	"weave/pkg/config"
-	"weave/pkg/server"
-	"weave/pkg/version"
+	"github.com/qingwave/weave/pkg/config"
+	"github.com/qingwave/weave/pkg/server"
+	"github.com/qingwave/weave/pkg/version"
 
 	"github.com/sirupsen/logrus"
 )

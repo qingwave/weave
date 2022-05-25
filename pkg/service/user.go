@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"weave/pkg/model"
-	"weave/pkg/repository"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/repository"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

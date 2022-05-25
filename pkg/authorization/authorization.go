@@ -3,7 +3,8 @@ package authorization
 import (
 	"os"
 	"strings"
-	"weave/pkg/config"
+
+	"github.com/qingwave/weave/pkg/config"
 
 	"github.com/Knetic/govaluate"
 	"github.com/casbin/casbin/v2"

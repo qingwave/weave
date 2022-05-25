@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"time"
-	"weave/pkg/common"
-	utiltrace "weave/pkg/utils/trace"
+
+	"github.com/qingwave/weave/pkg/common"
+	utiltrace "github.com/qingwave/weave/pkg/utils/trace"
 
 	"github.com/bombsimon/logrusr/v2"
 	"github.com/gin-gonic/gin"

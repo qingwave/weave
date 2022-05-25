@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"weave/pkg/database"
+	"github.com/qingwave/weave/pkg/database"
 
 	"gorm.io/gorm"
 )

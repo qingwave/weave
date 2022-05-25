@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"weave/pkg/common"
-	"weave/pkg/utils/ratelimit"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/utils/ratelimit"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"weave/pkg/utils/set"
+	"github.com/qingwave/weave/pkg/utils/set"
 )
 
 const (

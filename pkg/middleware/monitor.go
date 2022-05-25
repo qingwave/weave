@@ -3,7 +3,8 @@ package middleware
 import (
 	"strconv"
 	"time"
-	"weave/pkg/metrics"
+
+	"github.com/qingwave/weave/pkg/metrics"
 
 	"github.com/gin-gonic/gin"
 )

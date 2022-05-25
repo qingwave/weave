@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"weave/pkg/database"
-	"weave/pkg/model"
+	"github.com/qingwave/weave/pkg/database"
+	"github.com/qingwave/weave/pkg/model"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"weave/pkg/common"
-	"weave/pkg/library/docker"
-	"weave/pkg/model"
-	"weave/pkg/utils/trace"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/library/docker"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/utils/trace"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"

@@ -4,7 +4,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"weave/pkg/utils/ratelimit"
+
+	"github.com/qingwave/weave/pkg/utils/ratelimit"
 
 	"gopkg.in/yaml.v2"
 )

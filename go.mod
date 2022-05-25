@@ -1,4 +1,4 @@
-module weave
+module github.com/qingwave/weave
 
 go 1.18
 

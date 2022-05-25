@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"weave/pkg/model"
+
+	"github.com/qingwave/weave/pkg/model"
 
 	"github.com/golang-jwt/jwt/v4"
 )

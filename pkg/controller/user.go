@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"weave/pkg/authorization"
-	"weave/pkg/common"
-	"weave/pkg/model"
-	"weave/pkg/service"
-	"weave/pkg/utils/trace"
+	"github.com/qingwave/weave/pkg/authorization"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/service"
+	"github.com/qingwave/weave/pkg/utils/trace"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

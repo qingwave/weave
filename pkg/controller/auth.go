@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"weave/pkg/authentication"
-	"weave/pkg/authentication/oauth"
-	"weave/pkg/authorization"
-	"weave/pkg/common"
-	"weave/pkg/model"
-	"weave/pkg/service"
+	"github.com/qingwave/weave/pkg/authentication"
+	"github.com/qingwave/weave/pkg/authentication/oauth"
+	"github.com/qingwave/weave/pkg/authorization"
+	"github.com/qingwave/weave/pkg/common"
+	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
 )

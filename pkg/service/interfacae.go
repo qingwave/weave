@@ -1,6 +1,6 @@
 package service
 
-import "weave/pkg/model"
+import "github.com/qingwave/weave/pkg/model"
 
 type UserService interface {
 	List() (model.Users, error)
