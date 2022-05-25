@@ -2,6 +2,7 @@ package set
 
 import (
 	"reflect"
+	"sort"
 )
 
 type Empty struct{}
@@ -64,4 +65,13 @@ func (s String) HasAny(items ...string) bool {
 		}
 	}
 	return false
+}
+
+func (s String) Slice() []string {
+	slice := make([]string, 0, len(s))
+	for item := range s {
+		slice = append(slice, item)
+	}
+	sort.Strings(slice)
+	return slice
 }

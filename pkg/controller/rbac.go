@@ -24,7 +24,7 @@ func NewRbacController() Controller {
 // @Security JWT
 // @Success 200 {object} common.Response{data=[]string}
 // @Param ptype    query     string  false  "ptype: p/g/g2"
-// @Router /api/v1/policies policies [get]
+// @Router /api/v1/policies [get]
 func (rbac *RbacController) List(c *gin.Context) {
 	ptype := c.Query("ptype")
 	policies := make([][]string, 0)
@@ -51,7 +51,7 @@ func (rbac *RbacController) List(c *gin.Context) {
 // @Security JWT
 // @Param rbac policy body model.Policy true "rbac policy info"
 // @Success 200 {object} common.Response
-// @Router /api/v1/policies policies [post]
+// @Router /api/v1/policies [post]
 func (rbac *RbacController) Handle(c *gin.Context) {
 	params := &model.Policy{}
 	if err := c.BindJSON(&params); err != nil {

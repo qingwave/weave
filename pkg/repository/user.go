@@ -75,7 +75,7 @@ func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
 	}
 
 	if err := u.setCacheUser(user); err != nil {
-		logrus.Errorf("failed to set user", err)
+		logrus.Errorf("failed to set user: %v", err)
 	}
 
 	return user, nil

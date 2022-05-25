@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -x
+set -e
+
+make
+
+if [ $? -ne 0 ]; then
+    echo "run `make` failed, skip commit"
+fi
