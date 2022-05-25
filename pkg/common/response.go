@@ -37,7 +37,11 @@ func ResponseFailed(c *gin.Context, code int, err error) {
 		if user != nil {
 			name = user.Name
 		}
-		logrus.Warnf("url: %s, user: %s, error: %v", c.Request.URL, name, err)
+		var url string
+		if c.Request != nil {
+			url = c.Request.URL.String()
+		}
+		logrus.Warnf("url: %s, user: %s, error: %v", url, name, msg)
 	}
 	NewResponse(c, code, nil, msg)
 }
