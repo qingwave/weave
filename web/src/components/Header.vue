@@ -14,16 +14,16 @@
         </el-menu>
       </el-col>
       <el-col :span="6" class="text-right content-center">
-        <el-button type="text" @click="notImplement('Search')">
+        <el-button link @click="notImplement('Search')">
           <search theme="outline" size="18" fill="#333" />
         </el-button>
-        <el-button type="text">
+        <el-button link>
           <a :href="githubUrl" target="_blank">
             <github-one theme="outline" size="18" :fill="['#333']" />
           </a>
         </el-button>
         <el-dropdown placement="bottom" class="mx-1rem">
-          <el-button type="text">
+          <el-button link>
             <el-avatar v-if="user.avatar" :size="50" :src="user.avatar" />
             <me v-else theme="two-tone" size="18" :fill="['#333', '#50e3c2']" />
           </el-button>

@@ -142,6 +142,10 @@ func (ac *AuthController) RegisterRoute(api *gin.RouterGroup) {
 	api.POST("/auth/user", ac.Register)
 }
 
+func (ac *AuthController) Name() string {
+	return "Authentication"
+}
+
 func wrapRootInfo(user model.User) *model.UserInfo {
 	ui := &model.UserInfo{User: user}
 	roles := authorization.Enforcer.GetRolesForUserInDomain(user.Name, authorization.RootGroup)

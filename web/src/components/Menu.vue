@@ -35,7 +35,9 @@
 
 <script setup>
 import { ref } from 'vue';
-import { DashboardCar, ApplicationTwo, Peoples, Like, MoreFour, MenuFoldOne, MenuUnfoldOne, CategoryManagement } from '@icon-park/vue-next';
+import { DashboardCar, ApplicationTwo, Peoples, Like, 
+    MoreFour, MenuFoldOne, MenuUnfoldOne, CategoryManagement,
+    SailboatOne } from '@icon-park/vue-next';
 import { inRootGroup } from '@/utils';
 
 const isRoot = inRootGroup();
@@ -66,6 +68,34 @@ const menuList = [
 ]
 
 const subMenuList = [
+  {
+    title: 'Kubernetes',
+    icon: SailboatOne,
+    name: "/kubernetes",
+    show: isRoot,
+    children: [
+      {
+        name: '/namespaces',
+        title: 'Namespaces'
+      },
+      {
+        name: '/workloads',
+        title: 'Workloads'
+      },
+      {
+        name: '/pods',
+        title: 'Pods'
+      },
+      {
+        name: '/services',
+        title: 'Services'
+      },
+      {
+        name: '/ingresses',
+        title: 'Ingresses'
+      }
+    ]
+  },
   {
     title: 'Admin',
     icon: CategoryManagement,

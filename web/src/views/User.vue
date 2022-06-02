@@ -1,56 +1,72 @@
 <template>
-  <div class="w-full h-full flex justify-center">
-    <el-card class="mx-4rem my-2rem w-4/5 h-max" shadow="never">
-      <template #header>
-        <div class="flex justify-between">
-          <span>Users</span>
+  <div class="w-full flex justify-center">
+    <div class="flex flex-col w-full h-full mx-4rem my-2rem space-y-1rem">
+      
+      <div class="flex overflow-hidden rounded-lg shadow-lg">
+        <div class="flex w-full h-5rem bg-white items-center">
+          <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-0.75rem text-2xl font-600">Users</span>
         </div>
-      </template>
-      <el-table :data="users" height="360" class="w-full max-h-full">
-        <el-table-column prop="name" label="Name">
-          <template #default="scope">
-            <router-link :to="getUserUrl(scope.row.id)">
-              <el-link type="primary">{{ scope.row.name }}</el-link>
-            </router-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="email" label="Email" />
-        <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
-        <el-table-column label="Operation" min-width="120px">
-          <template #default="scope">
-            <el-dialog v-model="showUpdate" center title="Update User" width="33%">
-              <el-form ref="updateFormRef" :model="updatedUser" label-position="left" label-width="auto">
-                <el-form-item label="Name" prop="name">
-                  <el-input v-model="updatedUser.name" disabled />
-                </el-form-item>
-                <el-form-item label="Email" prop="email" required>
-                  <el-input v-model="updatedUser.email" placeholder="User email" />
-                </el-form-item>
-              </el-form>
-              <template #footer>
-                <span class="dialog-footer">
-                  <el-button type="primary" @click="updateUser(scope.row)">Confirm</el-button>
-                  <el-button @click="showUpdate = false">Cancel</el-button>
-                </span>
-              </template>
-            </el-dialog>
-            <el-button size="small" circle @click="editUser(scope.row)" :icon="Edit"></el-button>
+      </div>
 
-            <el-popover :visible="showDelete == scope.$index" placement="top" :width="160">
-              <template #reference>
-                <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
-                  class="wl-1rem" />
+      <el-card class="h-max">
+        <template #header>
+          <div class="flex w-1/2">
+            <el-input v-model="search" placeholder="Type to search">
+              <template #prefix>
+                <el-icon>
+                  <Search />
+                </el-icon>
               </template>
-              <p>Are you sure to delete this user?</p>
-              <div class="my-0.5rem">
-                <el-button size="small" type="text" @click="showDelete = -1">cancel</el-button>
-                <el-button size="small" type="danger" @click="deleteUser(scope.row)">confirm</el-button>
-              </div>
-            </el-popover>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-card>
+            </el-input>
+          </div>
+        </template>
+        <el-table :data="filter" class="w-full max-h-full">
+          <el-table-column prop="name" label="Name">
+            <template #default="scope">
+              <router-link :to="getUserUrl(scope.row.id)">
+                <el-link type="primary">{{ scope.row.name }}</el-link>
+              </router-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="email" label="Email" />
+          <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
+          <el-table-column label="Operation" min-width="120px">
+            <template #default="scope">
+              <el-dialog v-model="showUpdate" center title="Update User" width="33%">
+                <el-form ref="updateFormRef" :model="updatedUser" label-position="left" label-width="auto">
+                  <el-form-item label="Name" prop="name">
+                    <el-input v-model="updatedUser.name" disabled />
+                  </el-form-item>
+                  <el-form-item label="Email" prop="email" required>
+                    <el-input v-model="updatedUser.email" placeholder="User email" />
+                  </el-form-item>
+                </el-form>
+                <template #footer>
+                  <span class="dialog-footer">
+                    <el-button type="primary" @click="updateUser(scope.row)">Confirm</el-button>
+                    <el-button @click="showUpdate = false">Cancel</el-button>
+                  </span>
+                </template>
+              </el-dialog>
+              <el-button size="small" circle @click="editUser(scope.row)" :icon="Edit"></el-button>
+
+              <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
+                <template #reference>
+                  <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
+                    class="wl-1rem" />
+                </template>
+                <p>Are you sure to delete this user?</p>
+                <div class="my-0.5rem">
+                  <el-button size="small" text @click="showDelete = -1">cancel</el-button>
+                  <el-button size="small" type="danger" @click="deleteUser(scope.row)">confirm</el-button>
+                </div>
+              </el-popover>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
+    </div>
   </div>
 </template>
 
@@ -58,8 +74,8 @@
 </style>
 
 <script setup>
-import { Edit, Delete } from '@icon-park/vue-next';
-import { ref, unref, onMounted } from 'vue';
+import { Edit, Delete, Search, User } from '@icon-park/vue-next';
+import { ref, unref, onMounted, computed } from 'vue';
 import { ElMessage } from "element-plus";
 import request from '@/axios'
 
@@ -76,6 +92,16 @@ const newUser = ref({
 const updatedUser = ref({});
 const createFormRef = ref();
 const updateFormRef = ref();
+
+const search = ref('');
+const filter = computed(() =>
+  users.value.filter(
+    (data) =>
+      !search.value ||
+      data.name.toLowerCase().includes(search.value.toLowerCase())
+  )
+)
+
 
 onMounted(
   () => {

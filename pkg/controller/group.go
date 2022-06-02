@@ -228,3 +228,7 @@ func (g *GroupController) RegisterRoute(api *gin.RouterGroup) {
 	api.POST("/groups/:id/users", g.AddUser)
 	api.DELETE("/groups/:id/users", g.DelUser)
 }
+
+func (g *GroupController) Name() string {
+	return "Group"
+}

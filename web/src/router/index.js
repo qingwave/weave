@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { getUser } from '@/utils'
-import { FRAGMENT } from '@vue/compiler-core'
 
 const routes = [
   {
@@ -61,13 +60,43 @@ const routes = [
       },
       {
         path: '/apps/:id/exec',
-        name: 'Terminal',
-        component: () => import("views/Terminal.vue")
+        name: 'ContainerTerminal',
+        component: () => import("views/ContainerTerminal.vue")
       },
       {
         path: '/apps/:id/proxy:proxyPath(.*)',
         name: 'Proxy',
         component: () => import("views/Proxy.vue"),
+      },
+      {
+        path: '/namespaces',
+        name: 'Namespace',
+        component: () => import("views/kube/Namespace.vue")
+      },
+      {
+        path: '/workloads',
+        name: 'Workload',
+        component: () => import("views/kube/Workload.vue")
+      },
+      {
+        path: '/pods',
+        name: 'Pod',
+        component: () => import("views/kube/Pod.vue")
+      },
+      {
+        path: '/services',
+        name: 'Service',
+        component: () => import("views/kube/Service.vue")
+      },
+      {
+        path: '/ingresses',
+        name: 'Ingress',
+        component: () => import("views/kube/Ingress.vue")
+      },
+      {
+        path: '/namespaces/:namespace/pods/:pod/exec',
+        name: 'PodTerminal',
+        component: () => import("views/kube/PodTerminal.vue")
       },
       {
         path: '/404',

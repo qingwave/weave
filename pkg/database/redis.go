@@ -32,7 +32,7 @@ func NewRedisClient(conf *config.RedisConfig) (*RedisDB, error) {
 		DB:       0,
 	})
 
-	if _, err := rdb.Ping(context.TODO()).Result(); err != nil {
+	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +51,7 @@ func (rdb *RedisDB) HGet(key, field string, obj interface{}) error {
 		return RedisDisableError
 	}
 
-	return rdb.Client.HGet(context.TODO(), key, field).Scan(obj)
+	return rdb.Client.HGet(context.Background(), key, field).Scan(obj)
 }
 
 func (rdb *RedisDB) HSet(key, field string, val interface{}) error {
@@ -59,7 +59,7 @@ func (rdb *RedisDB) HSet(key, field string, val interface{}) error {
 		return nil
 	}
 
-	return rdb.Client.HSet(context.TODO(), key, field, val).Err()
+	return rdb.Client.HSet(context.Background(), key, field, val).Err()
 }
 
 func (rdb *RedisDB) HDel(key string, fields ...string) error {
@@ -67,5 +67,5 @@ func (rdb *RedisDB) HDel(key string, fields ...string) error {
 		return nil
 	}
 
-	return rdb.Client.HDel(context.TODO(), key, fields...).Err()
+	return rdb.Client.HDel(context.Background(), key, fields...).Err()
 }
