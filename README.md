@@ -16,7 +16,8 @@ Server support features:
 - Authentication, support jwt
 - Request rate limit, server level or user ip
 - Redis cache
-- RBAC, support by casbin 
+- RBAC, support by casbin
+- Container application management, support docker and kubernetes 
 
 Frontend support features:
 - Vue3 supported
@@ -53,6 +54,8 @@ make run
 See http://localhost:8080
 
 ### Test api
+See more in swagger http://localhost:8080/swagger/index.html#/
+
 Register user
 ```bash
 curl -XPOST http://localhost:8080/api/v1/auth/user -d '{"name": "zhang3", "email": "zhang3@t.com","password": "123456"}'
@@ -123,5 +126,6 @@ Webshell page
 ![webshell](./document/img/webshell.png)
 
 ### Documents
+- [Config](./config/app.yaml), your can enable docker/kubernetes in config
 - [OAuth](./document/oauth.md)
 - [RBAC](./document/authentication.md)

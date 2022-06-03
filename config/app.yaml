@@ -15,11 +15,11 @@ server:
   jwtSecret: weaveserver
 
 docker:
-  enable: true
+  enable: true # enable docker, start dockerd at first
   host: unix:///var/run/docker.sock
 
 kubernetes:
-  enable: true
+  enable: true # set `KUBECONFIG` env or flag --kubeconfig at first
   watchResources:
   - "Deployment.v1.apps"
   - "Pod.v1."
