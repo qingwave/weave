@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/qingwave/weave/pkg/config"
+	"github.com/qingwave/weave/pkg/model"
 
 	"github.com/Knetic/govaluate"
 	"github.com/casbin/casbin/v2"
-	"github.com/casbin/casbin/v2/model"
+	casbinmodel "github.com/casbin/casbin/v2/model"
 	fileadapter "github.com/casbin/casbin/v2/persist/file-adapter"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ func InitAuthorization(db *gorm.DB, conf config.AuthenticationConfig) error {
 		return err
 	}
 
-	m, err := model.NewModelFromFile(conf.AuthModelConfigFullName)
+	m, err := casbinmodel.NewModelFromFile(conf.AuthModelConfigFullName)
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,10 @@ func matchFunc(f func(args ...interface{}) bool) govaluate.ExpressionFunction {
 	}
 }
 
-func IsRootAdmin(user string) bool {
-	ok, _ := Enforcer.HasRoleForUser(user, AdminRole, RootGroup)
+func IsRootAdmin(user *model.User) bool {
+	if user == nil || user.Name == "" {
+		return false
+	}
+	ok, _ := Enforcer.HasRoleForUser(user.Name, AdminRole, RootGroup)
 	return ok
 }

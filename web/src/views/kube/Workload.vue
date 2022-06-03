@@ -1,0 +1,321 @@
+<template>
+    <div class="w-full justify-center">
+        <el-dialog v-model="showUpdate" top="5vh" width="98%" title="Edit Yaml">
+            <CodeEditor height="60vh" :value="obj2yaml(updatedApp)" @change="onChange"></CodeEditor>
+            <template #footer>
+                <span>
+                    <el-button @click="showUpdate = false">Cancel</el-button>
+                    <el-button type="primary" @click="updateApp">Confirm</el-button>
+                </span>
+            </template>
+        </el-dialog>
+
+        <div class="flex flex-col h-full mx-4rem my-2rem space-y-1rem">
+            <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
+                <div class="flex w-full h-5rem bg-white items-center">
+                    <application-one class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
+                    <span class="m-0.75rem text-2xl font-600">Workloads</span>
+                </div>
+                <div class="flex h-3rem items-center ml-1rem">
+                    <el-button-group v-for="a in appTypes">
+                        <el-button plain autofocus @click="appType = a">{{ a.name }}</el-button>
+                    </el-button-group>
+                </div>
+            </div>
+
+            <el-card class="h-max flex-row">
+                <template #header>
+                    <div class="flex w-full justify-between">
+                        <el-select class="w-1/3" v-model="currentNamespace" filterable
+                            placeholder="please select namespace">
+                            <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" />
+                        </el-select>
+
+                        <el-input class="mx-2rem" v-model="search" placeholder="Type to search">
+                            <template #prefix>
+                                <el-icon>
+                                    <Search />
+                                </el-icon>
+                            </template>
+                        </el-input>
+
+                        <el-button type="primary" plain round :icon="ApplicationOne" @Click="showCreate = true">Create
+                        </el-button>
+                    </div>
+                    <el-dialog v-model="showCreate" center title="Create Application" width="33%">
+                        <el-form ref="createFormRef" :model="newApp" label-position="left" label-width="auto">
+                            <el-form-item label="Namespace" v-model="currentNamespace">
+                                <el-select v-model="currentNamespace" filterable placeholder="please select namespace">
+                                    <el-option v-for="ns in namespaces" :label="ns.metadata.name"
+                                        :value="ns.metadata.name" />
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="Name" prop="name" required>
+                                <el-input v-model="newApp.name" placeholder="App name" />
+                            </el-form-item>
+                            <el-form-item label="Describe" prop="describe" required>
+                                <el-input v-model="newApp.describe" placeholder="App describe" />
+                            </el-form-item>
+                            <el-form-item label="Replicas" prop="replicas" required>
+                                <el-input-number v-model="newApp.replicas" :min="1" placeholder="Replicas" />
+                            </el-form-item>
+                            <el-form-item label="Container" prop="container" required>
+                                <el-input v-model="newApp.container" placeholder="Container name" />
+                            </el-form-item>
+                            <el-form-item label="Image" prop="image" required>
+                                <el-input v-model="newApp.image" placeholder="Container image" />
+                            </el-form-item>
+                            <el-form-item label="Command" prop="command">
+                                <el-input v-model="newApp.command" placeholder="Container command" />
+                            </el-form-item>
+                            <el-form-item label="Args" prop="args">
+                                <el-input v-model="newApp.args" placeholder="Container args" />
+                            </el-form-item>
+                        </el-form>
+                        <template #footer>
+                            <span class="dialog-footer">
+                                <el-button type="primary" @click="createApp">Confirm</el-button>
+                                <el-button @click="showCreate = false">Cancel</el-button>
+                            </span>
+                        </template>
+                    </el-dialog>
+                </template>
+                <el-table :data="filter" height="360" class="w-full max-h-full">
+                    <el-table-column prop="metadata.name" label="Name" sortable />
+                    <el-table-column prop="metadata.namespace" label="Namespace" />
+                    <el-table-column prop="status" label="Status">
+                        <template #default="scope">
+                            {{ getAppStatusType(scope.row.status) }}({{ scope.row.status.readyReplicas || 0 }} / {{
+                                    scope.row.status.replicas || 0
+                            }})
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="spec.template.spec.containers[0].image" label="Image" min-width="120px" />
+                    <el-table-column prop="metadata.creationTimestamp" label="StartAt" sortable min-width="120px" />
+                    <el-table-column label="Operation" min-width="120px">
+                        <template #default="scope">
+                            <div class="space-x-0.75rem">
+                                <el-button class="" size="small" circle @click="editApp(scope.row)" :icon="Edit" />
+
+                                <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
+                                    <template #reference>
+                                        <el-button size="small" type="danger" @click="showDelete = scope.$index"
+                                            :icon="Delete" circle class="wl-1rem" />
+                                    </template>
+                                    <p>Are you sure to delete this app?</p>
+                                    <div class="ml-0.5rem">
+                                        <el-button size="small" text @click="showDelete = -1">cancel</el-button>
+                                        <el-button size="small" type="danger" @click="deleteApp(scope.row)">confirm
+                                        </el-button>
+                                    </div>
+                                </el-popover>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import {
+    Edit, Delete, ApplicationOne, Search
+} from '@icon-park/vue-next';
+import { ref, unref, onMounted, watchEffect, computed } from 'vue';
+import { ElMessage } from "element-plus";
+import request from '@/axios';
+import { obj2yaml, yaml2obj } from '@/utils/yaml.js';
+import CodeEditor from '@/components/CodeEditor.vue';
+
+const appTypes = [
+    { name: "Deployment", resource: "deployments" },
+    { name: "StatefulSet", resource: "statefulsets" },
+    { name: "DaemonSet", resource: "daemonsets" }
+]
+
+const appType = ref(appTypes[0])
+
+const showCreate = ref(false);
+const showUpdate = ref(false);
+const showDelete = ref(-1);
+const newApp = ref({
+    name: '',
+    image: '',
+    cmd: []
+});
+
+const updatedApp = ref({
+    name: '',
+    image: '',
+    cmd: []
+});
+const createFormRef = ref();
+
+const currentNamespace = ref();
+const namespaces = ref([]);
+
+const apps = ref([]);
+
+const search = ref('');
+
+const filter = computed(() =>
+    apps.value.filter(
+        (data) =>
+            !search.value ||
+            data.metadata.name.toLowerCase().includes(search.value.toLowerCase())
+    )
+);
+
+onMounted(
+    () => {
+        request.get("/api/v1/namespaces").then((response) => {
+            namespaces.value = response.data.data.items;
+            namespaces.value.sort(function (a, b) {
+                let x = a.metadata.name;
+                let y = b.metadata.name;
+                return x.localeCompare(y);
+            })
+        })
+    }
+);
+
+const getApps = (namespace, resource) => {
+    request.get(`/api/v1/namespaces/${namespace}/${resource}`).then((response) => {
+        apps.value = response.data.data.items;
+    })
+};
+
+watchEffect(() => {
+    if (!currentNamespace.value || !appType.value.resource) {
+        return []
+    }
+    getApps(currentNamespace.value, appType.value.resource)
+});
+
+const getCommand = (cmd) => {
+    if (!cmd) {
+        return []
+    }
+
+    if (Array.isArray(cmd)) {
+        return cmd
+    }
+
+    if (cmd instanceof String) {
+        return cmd.trim().split(/\s+/)
+    }
+
+    return []
+};
+
+const createApp = () => {
+    const form = unref(createFormRef)
+    if (!form) {
+        return
+    }
+
+    form.validate((valid, err) => {
+        if (valid) {
+            request.post(`/api/v1/namespaces/${currentNamespace.value}/${appType.value.resource}`, {
+                apiVersion: "v1",
+                kind: appType.value.name,
+                metadata: {
+                    name: newApp.value.name,
+                    annotations: {
+                        "weave.io/platform": "true",
+                        "weave.io/describe": newApp.describe,
+                    },
+                    labels: {
+                        "weave.io/platform": "true",
+                        "weave.io/app": newApp.value.name,
+                    }
+                },
+                spec: {
+                    replicas: newApp.value.replicas,
+                    selector: {
+                        matchLabels: { "weave.io/app": newApp.value.name }
+                    },
+                    template: {
+                        metadata: {
+                            labels: { "weave.io/app": newApp.value.name }
+                        },
+                        spec: {
+                            containers: [{
+                                name: newApp.value.container,
+                                image: newApp.value.image,
+                                command: getCommand(newApp.value.command),
+                                args: getCommand(newApp.value.args),
+                            }]
+                        }
+                    }
+                }
+            }).then((response) => {
+                ElMessage.success("Create success");
+                apps.value.push(response.data.data);
+                showCreate.value = false;
+            })
+        } else {
+            console.log("xxxx", err)
+            ElMessage.error("Input invalid");
+        }
+    });
+};
+
+const editApp = (row) => {
+    updatedApp.value = Object.assign({}, row);
+    newUpdatedApp = updatedApp.value;
+    showUpdate.value = true;
+}
+
+let newUpdatedApp = {};
+const onChange = (val, cm) => {
+    newUpdatedApp = val
+};
+
+const updateApp = () => {
+    if (newUpdatedApp instanceof Object) {
+        ElMessage.info("Nothing to update")
+        return
+    } else {
+        newUpdatedApp = yaml2obj(newUpdatedApp)
+        if (!newUpdatedApp) {
+            ElMessage.warning("Input invaild")
+            return
+        }
+    }
+
+    request.put(`/api/v1/namespaces/${currentNamespace.value}/${appType.value.resource}/${updatedApp.value.metadata.name}`,
+        newUpdatedApp).then((response) => {
+            ElMessage.success("Update success");
+            const index = apps.value.findIndex(v => v.metadata.name === updatedApp.value.metadata.name);
+            apps.value[index] = newUpdatedApp;
+            showUpdate.value = false;
+        })
+};
+
+const deleteApp = (row) => {
+    request.delete(`/api/v1/namespaces/${currentNamespace.value}/${appType.value.resource}/${row.metadata.name}`).then(() => {
+        ElMessage.success("Delete success");
+        const index = apps.value.findIndex(v => v.metadata.name === row.metadata.name);
+        apps.value.splice(index, 1);
+        showDelete.value = -1;
+    })
+};
+
+const getAppStatusType = (status) => {
+    if (status.observedGeneration <= 1) {
+        if (status.updatedReplicas < status.replicas) {
+            return "creating"
+        }
+    }
+
+    if (status.updatedReplicas < status.replicas) {
+        return "updating"
+    } else if (status.readyReplicas < status.replicas) {
+        return "notAllReady"
+    } else {
+        return "running"
+    }
+};
+</script>

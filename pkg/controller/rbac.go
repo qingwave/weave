@@ -85,6 +85,10 @@ func (rbac *RbacController) RegisterRoute(api *gin.RouterGroup) {
 	api.POST("/policies", rbac.Handle)
 }
 
+func (rbac *RbacController) Name() string {
+	return "RBAC"
+}
+
 func addPolicy(ptype string, policy []interface{}) (bool, error) {
 	switch ptype {
 	case model.DefaultPolicyType:

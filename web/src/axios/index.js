@@ -25,6 +25,7 @@ request.interceptors.response.use(response => {
                     msg = `bad request`;
                     break;
                 case 401:
+                    window.location.href = '/login';
                     msg = `request unauthorized`;
                     break;
                 case 403:

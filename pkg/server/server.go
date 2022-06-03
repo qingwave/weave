@@ -17,8 +17,10 @@ import (
 	"github.com/qingwave/weave/pkg/common"
 	"github.com/qingwave/weave/pkg/config"
 	"github.com/qingwave/weave/pkg/controller"
+	"github.com/qingwave/weave/pkg/controller/kubecontroller"
 	"github.com/qingwave/weave/pkg/database"
 	"github.com/qingwave/weave/pkg/library/docker"
+	"github.com/qingwave/weave/pkg/library/kubernetes"
 	"github.com/qingwave/weave/pkg/middleware"
 	"github.com/qingwave/weave/pkg/repository"
 	"github.com/qingwave/weave/pkg/service"
@@ -50,9 +52,22 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		return nil, err
 	}
 
-	conClient, err := docker.NewClient(conf.Server.DockerHost)
-	if err != nil {
-		logrus.Warningf("failed to create docker client, container api disabled: %v", err)
+	var conClient *docker.Client
+	if conf.Docker.Enable {
+		conClient, err = docker.NewClient(conf.Docker.Host)
+		if err != nil {
+			logrus.Warningf("failed to create docker client, container api disabled: %v", err)
+			conf.Docker.Enable = false
+		}
+	}
+
+	var kubeClient *kubernetes.KubeClient
+	if conf.Kubernetes.Enable {
+		kubeClient, err = kubernetes.NewClient(&conf.Kubernetes)
+		if err != nil {
+			logrus.Warnf("failed to create k8s client: %v", err)
+			conf.Kubernetes.Enable = false
+		}
 	}
 
 	repository := repository.NewRepository(db, rdb)
@@ -76,6 +91,15 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	authController := controller.NewAuthController(userService, jwtService, oauthManager)
 	containerController := controller.NewContainerController(conClient)
 	rbacController := controller.NewRbacController()
+	kubeController := kubecontroller.NewKubeControllers(kubeClient)
+
+	controllers := []controller.Controller{userController, groupController, authController, rbacController}
+	if conf.Docker.Enable {
+		controllers = append(controllers, containerController)
+	}
+	if conf.Kubernetes.Enable {
+		controllers = append(controllers, kubeController)
+	}
 
 	gin.SetMode(conf.Server.ENV)
 
@@ -101,7 +125,8 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		db:              db,
 		rdb:             rdb,
 		containerClient: conClient,
-		controllers:     []controller.Controller{userController, groupController, authController, containerController, rbacController},
+		kubeClient:      kubeClient,
+		controllers:     controllers,
 	}, nil
 }
 
@@ -113,6 +138,7 @@ type Server struct {
 	db              *gorm.DB
 	rdb             *database.RedisDB
 	containerClient *docker.Client
+	kubeClient      *kubernetes.KubeClient
 
 	controllers []controller.Controller
 }
@@ -122,6 +148,12 @@ func (s *Server) Run() {
 	defer s.Close()
 
 	s.initRouter()
+
+	if s.kubeClient != nil {
+		if err := s.kubeClient.StartCache(); err != nil {
+			s.logger.Fatalf("failed to start kubernetes cache")
+		}
+	}
 
 	addr := fmt.Sprintf("%s:%d", s.config.Server.Address, s.config.Server.Port)
 	s.logger.Infof("Start server on: %s", addr)
@@ -175,9 +207,12 @@ func (s *Server) initRouter() {
 	}
 
 	api := root.Group("/api/v1")
+	controllers := make([]string, 0, len(s.controllers))
 	for _, router := range s.controllers {
 		router.RegisterRoute(api)
+		controllers = append(controllers, router.Name())
 	}
+	logrus.Infof("server enabled controllers: %v", controllers)
 }
 
 func (s *Server) getRoutes() []string {
@@ -199,7 +234,7 @@ type ServerStatus struct {
 func (s *Server) Ping() *ServerStatus {
 	status := &ServerStatus{Ping: true}
 
-	ctx, cannel := context.WithTimeout(context.TODO(), 2*time.Second)
+	ctx, cannel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cannel()
 
 	db, err := s.db.DB()

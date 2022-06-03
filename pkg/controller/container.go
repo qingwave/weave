@@ -52,7 +52,7 @@ func (con *ContainerController) Create(c *gin.Context) {
 	common.TraceStep(c, "start create container", trace.Field{"name", ccon.Name})
 	defer common.TraceStep(c, "create container done", trace.Field{"name", ccon.Name})
 
-	cid, err := con.runContainer(ccon)
+	cid, err := con.runContainer(c.Request.Context(), ccon)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -76,7 +76,7 @@ func (con *ContainerController) Get(c *gin.Context) {
 		return
 	}
 
-	resp, err := con.client.ContainerInspect(context.TODO(), id)
+	resp, err := con.client.ContainerInspect(c.Request.Context(), id)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -94,7 +94,7 @@ func (con *ContainerController) Get(c *gin.Context) {
 // @Router /api/v1/containers [get]
 func (con *ContainerController) List(c *gin.Context) {
 	common.TraceStep(c, "start list container")
-	items, err := con.client.ContainerList(context.TODO(), types.ContainerListOptions{
+	items, err := con.client.ContainerList(c.Request.Context(), types.ContainerListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.Arg("label", model.AppPateformLabel)),
 	})
@@ -132,15 +132,16 @@ func (con *ContainerController) Operate(c *gin.Context) {
 		return
 	}
 
+	ctx := c.Request.Context()
 	verb := c.Query("verb")
 	var err error
 	switch verb {
 	case "start":
-		err = con.client.ContainerStart(context.TODO(), id, types.ContainerStartOptions{})
+		err = con.client.ContainerStart(ctx, id, types.ContainerStartOptions{})
 	case "restart":
-		err = con.client.ContainerRestart(context.TODO(), id, nil)
+		err = con.client.ContainerRestart(ctx, id, nil)
 	case "stop":
-		err = con.client.ContainerStop(context.TODO(), id, nil)
+		err = con.client.ContainerStop(ctx, id, nil)
 	default:
 		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("invaild verb：%s", verb))
 		return
@@ -171,7 +172,8 @@ func (con *ContainerController) Update(c *gin.Context) {
 		return
 	}
 
-	con.client.ContainerRemove(context.TODO(), id, types.ContainerRemoveOptions{
+	ctx := c.Request.Context()
+	con.client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{
 		Force: true,
 	})
 
@@ -181,7 +183,7 @@ func (con *ContainerController) Update(c *gin.Context) {
 		return
 	}
 
-	cid, err := con.runContainer(ccon)
+	cid, err := con.runContainer(ctx, ccon)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -205,7 +207,7 @@ func (con *ContainerController) Delete(c *gin.Context) {
 		return
 	}
 
-	err := con.client.ContainerRemove(context.TODO(), id, types.ContainerRemoveOptions{
+	err := con.client.ContainerRemove(c.Request.Context(), id, types.ContainerRemoveOptions{
 		Force: true,
 	})
 	if err != nil {
@@ -233,7 +235,7 @@ func (con *ContainerController) Log(c *gin.Context) {
 		return
 	}
 
-	reader, err := con.client.ContainerLogs(context.TODO(), id, types.ContainerLogsOptions{
+	reader, err := con.client.ContainerLogs(c.Request.Context(), id, types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Timestamps: true,
@@ -272,7 +274,7 @@ func (con *ContainerController) Proxy(c *gin.Context) {
 		return
 	}
 
-	resp, err := con.client.ContainerInspect(context.TODO(), id)
+	resp, err := con.client.ContainerInspect(c.Request.Context(), id)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -324,7 +326,8 @@ func (con *ContainerController) Exec(c *gin.Context) {
 		shell = "sh"
 	}
 
-	idResp, err := con.client.ContainerExecCreate(context.TODO(), id, types.ExecConfig{
+	ctx := c.Request.Context()
+	idResp, err := con.client.ContainerExecCreate(ctx, id, types.ExecConfig{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -336,7 +339,7 @@ func (con *ContainerController) Exec(c *gin.Context) {
 		return
 	}
 
-	hijack, err := con.client.ContainerExecAttach(context.TODO(), idResp.ID, types.ExecStartCheck{
+	hijack, err := con.client.ContainerExecAttach(ctx, idResp.ID, types.ExecStartCheck{
 		Detach: false,
 		Tty:    true,
 	})
@@ -353,7 +356,6 @@ func (con *ContainerController) Exec(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	// TODO ws graceful shutdown
 	go wsWrite(hijack.Conn, conn)
 	wsRead(conn, hijack.Conn)
 }
@@ -378,12 +380,16 @@ func (con *ContainerController) RegisterRoute(api *gin.RouterGroup) {
 	})
 }
 
-func (con *ContainerController) runContainer(ccon *model.CreatedContainer) (string, error) {
+func (con *ContainerController) Name() string {
+	return "Container"
+}
+
+func (con *ContainerController) runContainer(ctx context.Context, ccon *model.CreatedContainer) (string, error) {
 	if ccon.Image == "" {
 		return "", errors.New("image cannot be empty")
 	}
 
-	reader, err := con.client.ImagePull(context.TODO(), ccon.Image, types.ImagePullOptions{})
+	reader, err := con.client.ImagePull(ctx, ccon.Image, types.ImagePullOptions{})
 	if reader != nil {
 		defer reader.Close()
 	}
@@ -392,7 +398,7 @@ func (con *ContainerController) runContainer(ccon *model.CreatedContainer) (stri
 	}
 	io.Copy(io.Discard, reader)
 
-	resp, err := con.client.ContainerCreate(context.TODO(),
+	resp, err := con.client.ContainerCreate(ctx,
 		model.ContainerConfig(ccon),
 		model.ContainerHostConfig(ccon),
 		nil, nil, ccon.Name)
@@ -401,7 +407,7 @@ func (con *ContainerController) runContainer(ccon *model.CreatedContainer) (stri
 		return "", err
 	}
 
-	if err := con.client.ContainerStart(context.TODO(), resp.ID,
+	if err := con.client.ContainerStart(ctx, resp.ID,
 		types.ContainerStartOptions{}); err != nil {
 		return resp.ID, err
 	}

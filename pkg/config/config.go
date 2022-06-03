@@ -16,6 +16,8 @@ type Config struct {
 	Redis       RedisConfig            `yaml:"redis"`
 	OAuthConfig map[string]OAuthConfig `yaml:"oauth"`
 	AuthConfig  AuthenticationConfig   `yaml:"authentication"`
+	Docker      DockerConfig           `yaml:"docker"`
+	Kubernetes  KubeConfig             `yaml:"kubernetes"`
 }
 
 type ServerConfig struct {
@@ -25,7 +27,6 @@ type ServerConfig struct {
 	GracefulShutdownPeriod int                     `yaml:"gracefulShutdownPeriod"`
 	LimitConfigs           []ratelimit.LimitConfig `yaml:"rateLimits"`
 	JWTSecret              string                  `yaml:"jwtSecret"`
-	DockerHost             string                  `yaml:"dockerHost"`
 }
 
 type DBConfig struct {
@@ -58,6 +59,16 @@ type AuthenticationConfig struct {
 	AuthDefaultPolicyConfigFullName string
 	AuthTablePrefix                 string `yaml:"authTablePrefix"`
 	AuthTableName                   string `yaml:"authTableName"`
+}
+
+type DockerConfig struct {
+	Enable bool   `yaml:"enable"`
+	Host   string `yaml:"host"`
+}
+
+type KubeConfig struct {
+	Enable         bool     `yaml:"enable"`
+	WatchResources []string `yaml:"watchResources"`
 }
 
 func Parse(appConfig string) (*Config, error) {

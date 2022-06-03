@@ -28,13 +28,13 @@
 
             <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
             <div class="mt-0.25rem text-right">
-              <el-button type="text" @click="showLogin=false">SIGN UP</el-button>
+              <el-button text @click="showLogin=false">SIGN UP</el-button>
             </div>
             <div class="my-0.5rem">
-              <el-button type="text" @click="oauthLogin('github')">
+              <el-button text @click="oauthLogin('github')">
                 <Github theme="outline" size="30" fill="#333" />
               </el-button>
-              <el-button type="text" @click="oauthLogin('wechat')">
+              <el-button text @click="oauthLogin('wechat')">
                 <Wechat theme="filled" size="30" fill="#7ed321" />
               </el-button>
             </div>
@@ -56,7 +56,7 @@
             
             <el-button class="w-full" type="primary" size="large" @click="register(registerFormRef)">SIGN UP</el-button>
             <div class="mt-0.25rem text-right">
-              <el-button type="text" @click="showLogin=true">SIGN IN</el-button>
+              <el-button text @click="showLogin=true">SIGN IN</el-button>
             </div>
           </div>
       </div>

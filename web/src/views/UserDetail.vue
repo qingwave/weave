@@ -1,41 +1,45 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <el-card class="mx-4rem my-2rem w-4/5 h-max" shadow="never">
-      <el-descriptions title="User Info" :model="user" size="large" :column=1>
-        <el-descriptions-item label="Name">{{ user.name }}</el-descriptions-item>
-        <el-descriptions-item label="Email">{{ user.email }}</el-descriptions-item>
-        <el-descriptions-item label="CreateAt">{{ user.createAt }}</el-descriptions-item>
-        <div v-for="auth in user.authInfos">
-          <el-descriptions-item :label="auth.authType">
-            {{ auth.authId }}
-          </el-descriptions-item>
+    <div class="flex flex-col w-full mx-4rem my-2rem space-y-1rem">
+      <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
+        <div class="flex w-full h-5rem bg-white items-center">
+          <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-0.75rem text-2xl font-600">User Info</span>
         </div>
-
-      </el-descriptions>
-
-      <div class="mt-1rem">
-        <span class="my-0.5rem">
-          <el-button @Click="showUpdate = true">Update</el-button>
-        </span>
-
-        <el-dialog v-model="showUpdate" center title="Update User" width="33%">
-          <el-form ref="updateFormRef" :model="updatedUser" label-position="left" label-width="auto">
-            <el-form-item label="Name" prop="name">
-              <el-input v-model="updatedUser.name" disabled />
-            </el-form-item>
-            <el-form-item label="Email" prop="email" required>
-              <el-input v-model="updatedUser.email" placeholder="User email" />
-            </el-form-item>
-          </el-form>
-          <template #footer>
-            <span class="dialog-footer">
-              <el-button type="primary" @click="updateUser">Confirm</el-button>
-              <el-button @click="showUpdate = false">Cancel</el-button>
-            </span>
-          </template>
-        </el-dialog>
+        <div class="flex h-3rem items-center">
+          <el-button class="ml-1rem" plain text @Click="showUpdate = true">Update</el-button>
+          <el-dialog v-model="showUpdate" center title="Update User" width="33%">
+              <el-form ref="updateFormRef" :model="updatedUser" label-position="left" label-width="auto">
+                <el-form-item label="Name" prop="name">
+                  <el-input v-model="updatedUser.name" disabled />
+                </el-form-item>
+                <el-form-item label="Email" prop="email" required>
+                  <el-input v-model="updatedUser.email" placeholder="User email" />
+                </el-form-item>
+              </el-form>
+              <template #footer>
+                <span class="dialog-footer">
+                  <el-button type="primary" @click="updateUser">Confirm</el-button>
+                  <el-button @click="showUpdate = false">Cancel</el-button>
+                </span>
+              </template>
+            </el-dialog>
+        </div>
       </div>
-    </el-card>
+
+      <el-card class="flex flex-col h-max">
+          <el-descriptions :model="user" size="large" :column=1>
+            <el-descriptions-item label="Name">{{ user.name }}</el-descriptions-item>
+            <el-descriptions-item label="Email">{{ user.email }}</el-descriptions-item>
+            <el-descriptions-item label="CreateAt">{{ user.createAt }}</el-descriptions-item>
+            <div v-for="auth in user.authInfos">
+              <el-descriptions-item :label="auth.authType">
+                {{ auth.authId }}
+              </el-descriptions-item>
+            </div>
+          </el-descriptions>
+        </el-card>
+    </div>
   </div>
 </template>
 
@@ -43,6 +47,7 @@
 </style>
 
 <script setup>
+import { User } from '@icon-park/vue-next';
 import { ref, unref, onMounted } from 'vue';
 import { ElMessage } from "element-plus";
 import request from '@/axios';

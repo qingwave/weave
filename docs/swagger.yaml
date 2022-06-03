@@ -702,6 +702,128 @@ paths:
       summary: Add user
       tags:
       - group
+  /api/v1/namespaces/:namespace/:resource:
+    get:
+      consumes:
+      - application/json
+      description: List kube resource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+      security:
+      - JWT: []
+      summary: List kube resource
+      tags:
+      - k8s
+    post:
+      consumes:
+      - application/json
+      description: Create kube resource
+      parameters:
+      - description: k8s json info
+        in: body
+        name: app
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+      security:
+      - JWT: []
+      summary: Create kube resource
+      tags:
+      - k8s
+  /api/v1/namespaces/:namespace/:resource/:name:
+    delete:
+      consumes:
+      - application/json
+      description: Delete kube resource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete kube resource
+      tags:
+      - k8s
+    get:
+      consumes:
+      - application/json
+      description: Get kube resource
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+      security:
+      - JWT: []
+      summary: Get kube resource
+      tags:
+      - k8s
+    put:
+      consumes:
+      - application/json
+      description: Update kube resource
+      parameters:
+      - description: k8s json info
+        in: body
+        name: app
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  additionalProperties: true
+                  type: object
+              type: object
+      security:
+      - JWT: []
+      summary: Update kube resource
+      tags:
+      - k8s
   /api/v1/policies:
     get:
       description: List rbac policy

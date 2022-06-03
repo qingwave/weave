@@ -13,7 +13,16 @@ server:
       qps: 10
       cacheSize: 2048
   jwtSecret: weaveserver
-  dockerHost: unix:///var/run/docker.sock
+
+docker:
+  enable: true
+  host: unix:///var/run/docker.sock
+
+kubernetes:
+  enable: true
+  watchResources:
+  - "Deployment.v1.apps"
+  - "Pod.v1."
 
 authentication:
   authModelConfigName: "auth_model.conf"

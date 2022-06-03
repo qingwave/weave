@@ -27,8 +27,13 @@ func AuthorizationMiddleware() gin.HandlerFunc {
 
 		if ri.IsResourceRequest {
 			resource := ri.Resource
-			if !authorization.Enforce(user.Name, ri.Namespace, resource, ri.Name, ri.Verb) {
-				common.ResponseFailed(c, http.StatusForbidden, nil)
+			ok := authorization.Enforce(user.Name, ri.Namespace, resource, ri.Name, ri.Verb)
+			if !ok {
+				if user.Name == "" {
+					common.ResponseFailed(c, http.StatusUnauthorized, nil)
+				} else {
+					common.ResponseFailed(c, http.StatusForbidden, fmt.Errorf("user [%s] is forbidden for resource %s in namespace %s", user.Name, resource, ri.Namespace))
+				}
 				c.Abort()
 				return
 			}

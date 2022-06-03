@@ -1,7 +1,13 @@
 <template>
     <div class="flex flex-row w-full">
-        <el-input v-model="search" placeholder="Type to search" />
-        <el-button class="ml-1/3" @click="showCreate = true">Create Policy</el-button>
+        <el-input v-model="search" placeholder="Type to search">
+            <template #prefix>
+                <el-icon>
+                    <Search />
+                </el-icon>
+            </template>
+        </el-input>
+        <el-button round class="ml-1/3" @click="showCreate = true">Create Policy</el-button>
     </div>
     <el-dialog v-model="showCreate" center title="Create Policy" width="33%">
         <el-form ref="createFormRef" :model="newPolicy" label-position="left" label-width="auto">
@@ -17,17 +23,17 @@
         </template>
     </el-dialog>
     <el-dialog v-model="showUpdate" center title="Update Policy" width="33%">
-                    <el-form ref="updateFormRef" :model="updatedPolicy" label-position="left" label-width="auto">
-                        <el-form-item v-for="label, i in props.labels" :label="label">
-                            <el-input v-model="updatedPolicy[i]" />
-                        </el-form-item>
-                    </el-form>
-                    <template #footer>
-                        <span class="dialog-footer">
-                            <el-button type="primary" @click="updatePolicy(updateRow)">Confirm</el-button>
-                            <el-button @click="showUpdate = false">Cancel</el-button>
-                        </span>
-                    </template>
+        <el-form ref="updateFormRef" :model="updatedPolicy" label-position="left" label-width="auto">
+            <el-form-item v-for="label, i in props.labels" :label="label">
+                <el-input v-model="updatedPolicy[i]" />
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button type="primary" @click="updatePolicy(updateRow)">Confirm</el-button>
+                <el-button @click="showUpdate = false">Cancel</el-button>
+            </span>
+        </template>
     </el-dialog>
     <el-table :data="filterPolicies" class="w-full mb-2rem">
         <el-table-column v-for="label, i in props.labels" :label="label">
@@ -38,14 +44,14 @@
         <el-table-column label="Operation" min-width="120px">
             <template #default="scope">
                 <el-button size="small" circle @click="editPolicy(scope.row)" :icon="Edit"></el-button>
-                <el-popover :visible="showDelete == scope.$index" placement="top" :width="160">
+                <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                     <template #reference>
                         <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
                             class="wl-1rem" />
                     </template>
                     <p>Are you sure to delete this policy?</p>
                     <div class="my-0.5rem">
-                        <el-button size="small" type="text" @click="showDelete = -1">cancel</el-button>
+                        <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                         <el-button size="small" type="danger" @click="deletePolicy(scope.row)">confirm</el-button>
                     </div>
                 </el-popover>
@@ -58,7 +64,7 @@
 </style>
 
 <script setup>
-import { Edit, Delete } from '@icon-park/vue-next';
+import { Edit, Delete, Search } from '@icon-park/vue-next';
 import { ref, unref, computed, onMounted } from 'vue';
 import { ElMessage } from "element-plus";
 import request from '@/axios'
@@ -156,6 +162,5 @@ const deletePolicy = (row) => {
         showDelete.value = -1;
     })
 };
-
 
 </script>
