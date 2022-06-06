@@ -8,7 +8,7 @@
             <CodeEditor height="60vh" :value="logs" mode="log" readOnly light></CodeEditor>
         </el-dialog>
 
-        <div class="flex flex-col h-full mx-4rem my-2rem space-y-1rem">
+        <div class="flex flex-col h-full px-4rem py-2rem space-y-1rem">
             <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
                 <div class="flex w-full h-5rem bg-white items-center">
                     <CubeThree class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
@@ -147,6 +147,7 @@ const execPod = (row) => {
 const showLog = ref(false);
 const logs = ref();
 const logPod = (row) => {
+  logs.value = "";
   request.get(`/api/v1/namespaces/${currentNamespace.value}/pods/${row.metadata.name}/log`).then((response) => {
     logs.value = response.data
   })

@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <div class="flex flex-col w-full mx-4rem my-2rem space-y-1rem">
+    <div class="flex flex-col w-full px-4rem py-2rem space-y-1rem">
       <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
           <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />

@@ -1,6 +1,6 @@
 <template>
   <div class="w-full flex justify-center">
-    <div class="flex flex-col w-full h-full mx-4rem my-2rem space-y-1rem">
+    <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
 
       <div class="flex overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
@@ -33,7 +33,7 @@
             </template>
           </el-dialog>
         </template>
-        <el-table :data="filter" class="w-full max-h-full">
+        <el-table :data="getItems(filter)" class="w-full max-h-full">
           <el-table-column prop="metadata.name" label="Name" />
           <el-table-column prop="metadata.labels['weave.io/group']" label="Group" />
           <el-table-column prop="metadata.annotations['weave.io/describe']" label="Describe" />
@@ -54,6 +54,15 @@
             </template>
           </el-table-column>
         </el-table>
+        <div class="flex w-full justify-center">
+          <el-pagination
+            :page-size="pageSize"
+            :pager-count="5"
+            layout="prev, pager, next"
+            :total="filter.length"
+            @current-change="currentPageChanged"
+          />
+        </div>
       </el-card>
     </div>
   </div>
@@ -77,14 +86,25 @@ const showCreate = ref(false);
 const showDelete = ref(-1);
 const newNamespace = ref({});
 
+const pageSize = ref(10);
+const currentPage = ref(1);
 const search = ref('');
 const filter = computed(() =>
   namespaces.value.filter(
-    (data) =>
-      !search.value ||
+    (data) => {
+      return !search.value ||
       data.metadata.name.toLowerCase().includes(search.value.toLowerCase())
+    }
   )
 )
+
+const getItems = (arr) => {
+  return arr.slice(pageSize.value * (currentPage.value - 1), pageSize.value * currentPage.value)
+}
+
+const currentPageChanged = (current) => {
+  currentPage.value = current
+}
 
 onMounted(
   () => {

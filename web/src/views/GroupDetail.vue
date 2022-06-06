@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full justify-center">
-    <div class="flex flex-col w-full mx-4rem my-2rem h-max justify-center">
+    <div class="flex flex-col w-full px-4rem py-2rem h-max justify-center">
       <el-card class="w-full">
       <template #header>
         <div class="flex w-full items-center">

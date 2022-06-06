@@ -40,7 +40,7 @@
       </template>
     </el-dialog>
 
-    <div class="flex flex-col w-full h-full mx-4rem my-2rem space-y-1rem">
+    <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
 
       <div class="flex overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
