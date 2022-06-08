@@ -1,7 +1,43 @@
 <template>
   <div class="w-full flex justify-center">
-    <div class="flex flex-col w-full h-full mx-4rem my-2rem space-y-1rem">
-      
+    <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
+      <el-dialog v-model="showCreate" top="5vh" title="Create Group" width="50%">
+        <el-form ref="createFormRef" :model="newGroup" label-position="top" label-width="auto">
+          <el-form-item label="Name" prop="name" required>
+            <el-input v-model="newGroup.name" />
+            <span class="text-gray-400">The group name</span>
+          </el-form-item>
+          <el-form-item label="Describe" prop="describe" required>
+            <el-input v-model="newGroup.describe" type="textarea" />
+            <span class="text-gray-400">The group describe information</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="createGroup">Confirm</el-button>
+            <el-button @click="showCreate = false">Cancel</el-button>
+          </span>
+        </template>
+      </el-dialog>
+
+      <el-dialog v-model="showUpdate" top="5vh" title="Update Group" width="50%">
+        <el-form ref="updateFormRef" :model="updatedGroup" label-position="top" label-width="auto">
+          <el-form-item label="Name" prop="name">
+            <el-input v-model="updatedGroup.name" disabled />
+          </el-form-item>
+          <el-form-item label="Describe" prop="describe" required>
+            <el-input v-model="updatedGroup.describe" placeholder="Group describe" />
+            <span class="text-gray-400">The group describe information</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="updateGroup">Confirm</el-button>
+            <el-button @click="showUpdate = false">Cancel</el-button>
+          </span>
+        </template>
+      </el-dialog>
+
       <div class="flex overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
           <Peoples class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
@@ -11,7 +47,7 @@
 
       <el-card class="w-full h-max">
         <template #header>
-          <div class="flex justify-between space-x-10rem">
+          <div class="flex justify-between space-x-2rem">
             <el-input v-model="search" placeholder="Type to search">
               <template #prefix>
                 <el-icon>
@@ -19,24 +55,8 @@
                 </el-icon>
               </template>
             </el-input>
-            <el-button type="primary" round plain :icon="Peoples" @Click="showCreate = true">Create</el-button>
+            <el-button type="primary" plain :icon="Peoples" @Click="showCreate = true">Create</el-button>
           </div>
-          <el-dialog v-model="showCreate" center title="Create Group" width="33%">
-            <el-form ref="createFormRef" :model="newGroup" label-position="left" label-width="auto">
-              <el-form-item label="Name" prop="name" required>
-                <el-input v-model="newGroup.name" placeholder="Group name" />
-              </el-form-item>
-              <el-form-item label="Describe" prop="describe" required>
-                <el-input v-model="newGroup.describe" placeholder="Describe image" />
-              </el-form-item>
-            </el-form>
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button type="primary" @click="createGroup">Confirm</el-button>
-                <el-button @click="showCreate = false">Cancel</el-button>
-              </span>
-            </template>
-          </el-dialog>
         </template>
         <el-table :data="filter" class="w-full max-h-full">
           <el-table-column prop="name" label="Name">
@@ -51,22 +71,6 @@
           <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
           <el-table-column label="Operation" min-width="120px">
             <template #default="scope">
-              <el-dialog v-model="showUpdate" center :modal="false" title="Update Group" width="33%">
-                <el-form ref="updateFormRef" :model="updatedGroup" label-position="left" label-width="auto">
-                  <el-form-item label="Name" prop="name">
-                    <el-input v-model="updatedGroup.name" disabled />
-                  </el-form-item>
-                  <el-form-item label="Describe" prop="describe" required>
-                    <el-input v-model="updatedGroup.describe" placeholder="Group describe" />
-                  </el-form-item>
-                </el-form>
-                <template #footer>
-                  <span class="dialog-footer">
-                    <el-button type="primary" @click="updateGroup(scope.row)">Confirm</el-button>
-                    <el-button @click="showUpdate = false">Cancel</el-button>
-                  </span>
-                </template>
-              </el-dialog>
               <el-button size="small" circle @click="editGroup(scope.row)" :icon="Edit" />
 
               <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
@@ -175,7 +179,7 @@ const editGroup = (row) => {
   showUpdate.value = true;
 }
 
-const updateGroup = (row) => {
+const updateGroup = () => {
   const form = unref(updateFormRef);
   if (!form) {
     return
@@ -183,9 +187,9 @@ const updateGroup = (row) => {
 
   form.validate((valid) => {
     if (valid) {
-      request.put("/api/v1/groups/" + row.id, updatedGroup.value).then((response) => {
+      request.put("/api/v1/groups/" + updatedGroup.value.id, updatedGroup.value).then((response) => {
         ElMessage.success("Update success");
-        const index = groups.value.findIndex(v => v.id === row.id);
+        const index = groups.value.findIndex(v => v.id === updatedGroup.value.id);
         groups.value[index] = updatedGroup.value;
         showUpdate.value = false;
       })

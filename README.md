@@ -1,7 +1,32 @@
 # Weave
 Simple but functional Go+Vue application starter, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
-![hello](./document/img/hello.png)
+<table>
+  <tr>
+     <td width="50%" align="center"><b>Login</b></td>
+     <td width="50%" align="center"><b>Home</b></td>
+  </tr>
+  <tr>
+     <td><img src="document/img/login.png"/></td>
+     <td><img src="document/img/hello.png"/></td>
+  </tr>
+  <tr>
+      <td width="50%" align="center"><b>Dashboard</b></td>
+      <td width="50%" align="center"><b>App</b></td>
+  </tr>
+  <tr>
+     <td><img src="document/img/dashboard.png"/></td>
+     <td><img src="document/img/app.png"/></td>
+  </tr>
+  <tr>
+      <td width="50%" align="center"><b>Web Shell</b></td>
+      <td width="50%" align="center"><b>Web Code Editor</b></td>
+  </tr>
+  <tr>
+     <td><img src="document/img/webshell.png"/></td>
+     <td><img src="document/img/log.png"/></td>
+  </tr>
+</table>
 
 ## Features
 Server support features:
@@ -27,6 +52,7 @@ Frontend support features:
 - WebShell supported
 - Windi CSS
 - OAuth Login
+- Web code editor, support by codemirror
 
 TODOs
 - [x] Redis cache

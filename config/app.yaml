@@ -23,6 +23,7 @@ kubernetes:
   watchResources:
   - "Deployment.v1.apps"
   - "Pod.v1."
+  - "Namespace.v1."
 
 authentication:
   authModelConfigName: "auth_model.conf"

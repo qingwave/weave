@@ -10,19 +10,21 @@
           <el-menu-item index="1">
             <router-link to="/">Home</router-link>
           </el-menu-item>
-          <el-menu-item index="2">Documents</el-menu-item>
+          <el-menu-item index="2">
+            <router-link to="/about">Document</router-link>
+          </el-menu-item>
         </el-menu>
       </el-col>
-      <el-col :span="6" class="text-right content-center">
+      <el-col :span="6" class="text-right pr-1rem space-x-1rem">
         <el-button link @click="notImplement('Search')">
           <search theme="outline" size="18" fill="#333" />
         </el-button>
         <el-button link>
-          <a :href="githubUrl" target="_blank">
+          <a :href="githubInfo.project" target="_blank">
             <github-one theme="outline" size="18" :fill="['#333']" />
           </a>
         </el-button>
-        <el-dropdown placement="bottom" class="mx-1rem">
+        <el-dropdown placement="bottom">
           <el-button link>
             <el-avatar v-if="user.avatar" :size="50" :src="user.avatar" />
             <me v-else theme="two-tone" size="18" :fill="['#333', '#50e3c2']" />
@@ -61,7 +63,7 @@ import { getUser } from '@/utils';
 import request from '@/axios';
 import { ElMessage, ElNotification } from "element-plus";
 import { useRouter } from 'vue-router';
-import { githubUrl } from '@/config.js';
+import { githubInfo } from '@/config.js';
 
 const user = getUser();
 const router = useRouter();

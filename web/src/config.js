@@ -17,6 +17,9 @@ const authInfo = {
     },
 };
 
-const githubUrl = 'https://github.com/qingwave/weave';
+const githubInfo = {
+    project: 'https://github.com/qingwave/weave',
+    doc: 'https://github.com/qingwave/weave/blob/master/README.md#weave',
+}
 
-export { redirectUri, authInfo, githubUrl };
+export { redirectUri, authInfo, githubInfo };
