@@ -5,13 +5,13 @@
       <h2 class="text-lg text-gray-500">Powerful server template with golang and vue</h2>
       <img src="@/assets/welcome.svg" class="w-1/3 my-2rem mx-auto" >
       <el-button :icon="Waves" type="primary" plain><router-link to="/about">About Weave</router-link></el-button>
-      <el-button :icon="Github"><a :href="githubUrl" target="_blank">Explore More</a></el-button>
+      <el-button :icon="Github"><a :href="githubInfo.project" target="_blank">Explore More</a></el-button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { Github, Waves } from '@icon-park/vue-next';
-import { githubUrl } from '@/config.js';
+import { githubInfo } from '@/config.js';
 
 </script>

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row w-full">
+    <div class="flex flex-row w-full space-x-2rem">
         <el-input v-model="search" placeholder="Type to search">
             <template #prefix>
                 <el-icon>
@@ -7,7 +7,7 @@
                 </el-icon>
             </template>
         </el-input>
-        <el-button round class="ml-1/3" @click="showCreate = true">Create Policy</el-button>
+        <el-button type="primary" plain @click="showCreate = true">Create Policy</el-button>
     </div>
     <el-dialog v-model="showCreate" center title="Create Policy" width="33%">
         <el-form ref="createFormRef" :model="newPolicy" label-position="left" label-width="auto">

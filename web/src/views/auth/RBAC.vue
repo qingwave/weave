@@ -6,10 +6,10 @@
           <ListView class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
           <span class="m-0.75rem text-2xl font-600">RBAC Policies</span>
         </div>
-        <div class="flex h-3rem items-center">
-          <el-button-group v-for="(tab, index) in policyTabs" class="ml-1rem">
-            <el-button plain text @click="currentTab = index">{{ tab.name }}</el-button>
-          </el-button-group>
+        <div class="flex h-3rem items-center pl-1rem">
+          <el-radio-group v-model="currentTab">
+            <el-radio-button v-for="(tab, index) in policyTabs" plain :label="index">{{ tab.name }}</el-radio-button>
+          </el-radio-group>
         </div>
       </div>
 

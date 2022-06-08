@@ -36,7 +36,7 @@ const (
 const (
 	kubeNamespace   = "namespaces"
 	KubeDeployment  = "deployments"
-	KubeStatefulset = "statefulset"
+	KubeStatefulset = "statefulsets"
 	kubeDaemonset   = "daemonsets"
 	kubePod         = "pods"
 	KubeService     = "services"

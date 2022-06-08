@@ -1,7 +1,24 @@
 <template>
   <div class="w-full flex justify-center">
     <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
-      
+      <el-dialog v-model="showUpdate" top="5vh" title="Update User" width="50%">
+        <el-form ref="updateFormRef" :model="updatedUser" label-position="top" label-width="auto">
+          <el-form-item label="Name" prop="name">
+            <el-input v-model="updatedUser.name" disabled />
+          </el-form-item>
+          <el-form-item label="Email" prop="email" required>
+            <el-input v-model="updatedUser.email" />
+            <span class="text-gray-400">The user email address</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="updateUser">Confirm</el-button>
+            <el-button @click="showUpdate = false">Cancel</el-button>
+          </span>
+        </template>
+      </el-dialog>
+
       <div class="flex overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
           <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
@@ -11,7 +28,7 @@
 
       <el-card class="h-max">
         <template #header>
-          <div class="flex w-1/2">
+          <div class="flex">
             <el-input v-model="search" placeholder="Type to search">
               <template #prefix>
                 <el-icon>
@@ -33,24 +50,7 @@
           <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
           <el-table-column label="Operation" min-width="120px">
             <template #default="scope">
-              <el-dialog v-model="showUpdate" center title="Update User" width="33%">
-                <el-form ref="updateFormRef" :model="updatedUser" label-position="left" label-width="auto">
-                  <el-form-item label="Name" prop="name">
-                    <el-input v-model="updatedUser.name" disabled />
-                  </el-form-item>
-                  <el-form-item label="Email" prop="email" required>
-                    <el-input v-model="updatedUser.email" placeholder="User email" />
-                  </el-form-item>
-                </el-form>
-                <template #footer>
-                  <span class="dialog-footer">
-                    <el-button type="primary" @click="updateUser(scope.row)">Confirm</el-button>
-                    <el-button @click="showUpdate = false">Cancel</el-button>
-                  </span>
-                </template>
-              </el-dialog>
               <el-button size="small" circle @click="editUser(scope.row)" :icon="Edit"></el-button>
-
               <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                 <template #reference>
                   <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
@@ -142,7 +142,7 @@ const editUser = (row) => {
   showUpdate.value = true;
 }
 
-const updateUser = (row) => {
+const updateUser = () => {
   const form = unref(updateFormRef);
   if (!form) {
     return
@@ -150,9 +150,9 @@ const updateUser = (row) => {
 
   form.validate((valid) => {
     if (valid) {
-      request.put("/api/v1/users/" + row.id, updatedUser.value).then((response) => {
+      request.put("/api/v1/users/" + updatedUser.value.id, updatedUser.value).then((response) => {
         ElMessage.success("Update success");
-        const index = users.value.findIndex(v => v.id === row.id);
+        const index = users.value.findIndex(v => v.id === updatedUser.value.id);
         users.value[index] = updatedUser.value;
         showUpdate.value = false;
       })

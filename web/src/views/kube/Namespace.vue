@@ -1,6 +1,22 @@
 <template>
   <div class="w-full flex justify-center">
     <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
+      <el-dialog v-model="showCreate" title="Create Namespace" width="50%">
+        <el-form :model="newNamespace" label-position="top" label-width="auto">
+          <el-form-item label="Name" prop="group" required>
+            <el-select class="w-full" v-model="newNamespace.group" filterable placeholder="please select related group">
+              <el-option v-for="(g, index) in groups" :label="getNsLabel(g)" :value="index" />
+            </el-select>
+            <span class="text-gray-400">Select related group, will created a new namespace with group name</span>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button type="primary" @click="createNamespace">Confirm</el-button>
+            <el-button @click="showCreate = false">Cancel</el-button>
+          </span>
+        </template>
+      </el-dialog>
 
       <div class="flex overflow-hidden rounded-lg shadow-lg">
         <div class="flex w-full h-5rem bg-white items-center">
@@ -11,7 +27,7 @@
 
       <el-card class="w-full h-max">
         <template #header>
-          <div class="flex justify-between space-x-10rem">
+          <div class="flex justify-between space-x-2rem">
             <el-input v-model="search" placeholder="Type to search">
               <template #prefix>
                 <el-icon>
@@ -19,19 +35,8 @@
                 </el-icon>
               </template>
             </el-input>
-            <el-button type="primary" round plain :icon="BookmarkThree" @Click="showCreate = true">Create</el-button>
+            <el-button type="primary" plain :icon="BookmarkThree" @Click="showCreate = true">Create</el-button>
           </div>
-          <el-dialog v-model="showCreate" center title="Create Namespace" width="33%">
-            <el-select class="w-full" v-model="newNamespace.group" filterable placeholder="please select related group">
-              <el-option v-for="(g, index) in groups" :label="getNsLabel(g)" :value="index" />
-            </el-select>
-            <template #footer>
-              <span class="dialog-footer">
-                <el-button type="primary" @click="createNamespace">Confirm</el-button>
-                <el-button @click="showCreate = false">Cancel</el-button>
-              </span>
-            </template>
-          </el-dialog>
         </template>
         <el-table :data="getItems(filter)" class="w-full max-h-full">
           <el-table-column prop="metadata.name" label="Name" />
@@ -55,13 +60,8 @@
           </el-table-column>
         </el-table>
         <div class="flex w-full justify-center">
-          <el-pagination
-            :page-size="pageSize"
-            :pager-count="5"
-            layout="prev, pager, next"
-            :total="filter.length"
-            @current-change="currentPageChanged"
-          />
+          <el-pagination :page-size="pageSize" :pager-count="5" layout="prev, pager, next" :total="filter.length"
+            @current-change="currentPageChanged" />
         </div>
       </el-card>
     </div>
@@ -93,7 +93,7 @@ const filter = computed(() =>
   namespaces.value.filter(
     (data) => {
       return !search.value ||
-      data.metadata.name.toLowerCase().includes(search.value.toLowerCase())
+        data.metadata.name.toLowerCase().includes(search.value.toLowerCase())
     }
   )
 )

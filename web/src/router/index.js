@@ -11,7 +11,7 @@ const routes = [
       {
         path: '/index',
         name: 'Index',
-        component: () => import("views/Hello.vue")
+        component: () => import("views/home/Hello.vue")
       },
       {
         path: '/dashboard',
@@ -21,52 +21,52 @@ const routes = [
       {
         path: '/about',
         name: 'About',
-        component: () => import("views/About.vue")
+        component: () => import("views/others/About.vue")
       },
       {
         path: '/users',
         name: 'Users',
-        component: () => import("views/User.vue")
+        component: () => import("views/user/User.vue")
       },
       {
         path: '/users/:id',
         name: 'UserDetail',
-        component: () => import("views/UserDetail.vue")
+        component: () => import("views/user/UserDetail.vue")
       },
       {
         path: '/user_groups',
         name: 'UserGroups',
-        component: () => import("views/UserGroup.vue")
+        component: () => import("views/user/UserGroup.vue")
       },
       {
         path: '/groups',
         name: 'Groups',
-        component: () => import("views/SysGroup.vue")
+        component: () => import("views/user/SysGroup.vue")
       },
       {
         path: '/groups/:id',
         name: 'GroupDetail',
-        component: () => import("views/GroupDetail.vue")
+        component: () => import("views/user/GroupDetail.vue")
       },
       {
         path: '/rbac',
         name: 'RBAC',
-        component: () => import("views/RBAC.vue")
+        component: () => import("views/auth/RBAC.vue")
       },
       {
         path: '/apps',
         name: 'Applications',
-        component: () => import("views/Application.vue")
+        component: () => import("views/container/Application.vue")
       },
       {
         path: '/apps/:id/exec',
         name: 'ContainerTerminal',
-        component: () => import("views/ContainerTerminal.vue")
+        component: () => import("views/container/ContainerTerminal.vue")
       },
       {
         path: '/apps/:id/proxy:proxyPath(.*)',
         name: 'Proxy',
-        component: () => import("views/Proxy.vue"),
+        component: () => import("views/container/Proxy.vue"),
       },
       {
         path: '/namespaces',
@@ -99,9 +99,14 @@ const routes = [
         component: () => import("views/kube/PodTerminal.vue")
       },
       {
+        path: '/webcode',
+        name: 'WebCode',
+        component: () => import('views/others/WebCode.vue')
+      },
+      {
         path: '/404',
         name: '404',
-        component: () => import('views/404.vue')
+        component: () => import('views/others/404.vue')
       },
       {
         path: '/:pathMatch(.*)',

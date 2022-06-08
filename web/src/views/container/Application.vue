@@ -1,15 +1,25 @@
 <template>
   <div class="w-full flex justify-center">
-    <el-dialog v-model="showCreate" center title="Create Application" width="33%">
-      <el-form ref="createFormRef" :model="newApp" label-position="left" label-width="auto">
-        <el-form-item label="Name" prop="name" required>
-          <el-input v-model="newApp.name" placeholder="App name" />
-        </el-form-item>
+    <el-dialog v-model="showCreate" top="5vh" title="Create Application" width="60%">
+      <el-form ref="createFormRef" :model="newApp" label-position="top" label-width="auto">
+        <div class="flex flex-row w-full space-x-2rem">
+          <el-form-item label="Name" prop="name" class="w-1/2" required>
+            <el-input v-model="newApp.name" />
+            <span class="text-gray-400">The application name contains only lowercase letters, numbers, and hyphens
+              (-)</span>
+          </el-form-item>
+          <el-form-item label="Describe" prop="describe" class="w-1/2">
+            <el-input v-model="newApp.describe" type="textarea" />
+            <span class="text-gray-400">The application describe information</span>
+          </el-form-item>
+        </div>
         <el-form-item label="Image" prop="image" required>
-          <el-input v-model="newApp.image" placeholder="App image" />
+          <el-input v-model="newApp.image" />
+          <span class="text-gray-400">The application image</span>
         </el-form-item>
         <el-form-item label="Command" prop="cmd">
-          <el-input v-model="newApp.cmd" placeholder="App command" />
+          <el-input v-model="newApp.cmd" type="textarea" />
+          <span class="text-gray-400">The application runs command on startup</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -20,16 +30,24 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="showUpdate" center title="Update Application" width="33%">
-      <el-form ref="updateFormRef" :model="updatedApp" label-position="left" label-width="auto">
-        <el-form-item label="Name" prop="name">
-          <el-input v-model="updatedApp.name" disabled />
-        </el-form-item>
+    <el-dialog v-model="showUpdate" top="5vh" title="Update Application" width="60%">
+      <el-form ref="updateFormRef" :model="updatedApp" label-position="top" label-width="auto">
+        <div class="flex flex-row w-full space-x-2rem">
+          <el-form-item class="w-1/2" label="Name" prop="name">
+            <el-input v-model="updatedApp.name" disabled />
+          </el-form-item>
+          <el-form-item class="w-1/2" label="Describe" prop="describe">
+            <el-input v-model="updatedApp.describe" type="textarea" />
+            <span class="text-gray-400">The application describe information</span>
+          </el-form-item>
+        </div>
         <el-form-item label="Image" prop="image" required>
-          <el-input v-model="updatedApp.image" placeholder="App image" />
+          <el-input v-model="updatedApp.image" />
+          <span class="text-gray-400">The application image</span>
         </el-form-item>
         <el-form-item label="Command" prop="cmd">
-          <el-input v-model="updatedApp.cmd" placeholder="App command" />
+          <el-input v-model="updatedApp.cmd" />
+          <span class="text-gray-400">The application runs command on startup</span>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -51,7 +69,7 @@
 
       <el-card class="h-max">
         <template #header>
-          <div class="flex justify-between space-x-10rem">
+          <div class="flex justify-between space-x-2rem">
             <el-input v-model="search" placeholder="Type to search">
               <template #prefix>
                 <el-icon>
@@ -59,7 +77,7 @@
                 </el-icon>
               </template>
             </el-input>
-            <el-button type="primary" round plain :icon="ApplicationOne" @Click="showCreate = true">Create</el-button>
+            <el-button type="primary" plain :icon="ApplicationOne" @Click="showCreate = true">Create</el-button>
           </div>
         </template>
         <el-table :data="filter" height="360" class="w-full max-h-full">
@@ -185,6 +203,7 @@ const createApp = () => {
         name: newApp.value.name,
         image: newApp.value.image,
         cmd: getCommand(newApp.value.cmd),
+        describe: newApp.describe,
       }, defaultTime).then((response) => {
         ElMessage.success("Create success");
         apps.value.push(response.data.data);
@@ -245,7 +264,7 @@ const getShortID = (row) => {
 }
 
 const execApp = (row) => {
-  window.open("/apps/" + getShortID(row) + "/exec",'_blank');
+  window.open("/apps/" + getShortID(row) + "/exec", '_blank');
 }
 
 const proxyApp = (row) => {

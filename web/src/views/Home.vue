@@ -19,6 +19,6 @@
 
 <script setup>
 // @ is an alias to /src
-import Menu from '@/components/Menu.vue'
-import Header from '@/components/Header.vue'
+import Menu from '@/views/home/Menu.vue'
+import Header from '@/views/home/Header.vue'
 </script>

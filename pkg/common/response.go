@@ -30,8 +30,10 @@ func ResponseFailed(c *gin.Context, code int, err error) {
 		code = http.StatusInternalServerError
 	}
 	if code == http.StatusUnauthorized {
-		c.SetCookie(CookieTokenName, "", -1, "/", "", true, true)
-		c.SetCookie(CookieLoginUser, "", -1, "/", "", true, false)
+		if val, err := c.Cookie(CookieTokenName); err == nil && val != "" {
+			c.SetCookie(CookieTokenName, "", -1, "/", "", true, true)
+			c.SetCookie(CookieLoginUser, "", -1, "/", "", true, false)
+		}
 	}
 
 	var msg string

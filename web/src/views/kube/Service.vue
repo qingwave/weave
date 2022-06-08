@@ -29,13 +29,13 @@
 
             <el-card class="h-max flex-row">
                 <template #header>
-                    <div class="flex w-full justify-between">
+                    <div class="flex w-full space-x-2rem">
                         <el-select class="w-1/3" v-model="currentNamespace" filterable
                             placeholder="please select namespace">
                             <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" />
                         </el-select>
 
-                        <el-input class="mx-2rem" v-model="search" placeholder="Type to search">
+                        <el-input v-model="search" placeholder="Type to search">
                             <template #prefix>
                                 <el-icon>
                                     <Search />
@@ -43,7 +43,7 @@
                             </template>
                         </el-input>
 
-                        <el-button type="primary" plain round :icon="CircularConnection" @Click="clickCreate">
+                        <el-button type="primary" plain :icon="CircularConnection" @Click="clickCreate">
                             Create
                         </el-button>
                     </div>

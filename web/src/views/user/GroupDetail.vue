@@ -26,15 +26,17 @@
           <el-button plain :icon="User" @Click="showCreate = true">AddUser</el-button>
         </div>
         
-        <el-dialog v-model="showCreate" center title="Add User" width="33%">
-          <el-form ref="createFormRef" :model="newUser" label-position="left" label-width="auto">
+        <el-dialog v-model="showCreate" top="5vh" title="Add User" width="50%">
+          <el-form ref="createFormRef" :model="newUser" label-position="top" label-width="auto">
             <el-form-item label="Name" prop="name" required>
-              <el-input v-model="newUser.name" placeholder="User Name" />
+              <el-input v-model="newUser.name" />
+              <span class="text-gray-400">The user name</span>
             </el-form-item>
             <el-form-item label="Role" prop="role" required>
-              <el-select v-model="newUser.role" placeholder="please select user role">
+              <el-select  class="w-full" v-model="newUser.role">
                 <el-option v-for="role in roleOptions" :label="role.label" :value="role.value" />
               </el-select>
+              <span class="text-gray-400">The user role in this group</span>
             </el-form-item>
           </el-form>
           <template #footer>
