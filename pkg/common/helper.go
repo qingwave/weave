@@ -30,7 +30,7 @@ func WrapFunc(f interface{}, args ...interface{}) gin.HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				logrus.Warnf("panic: %v", err)
-				ResponseFailed(c, http.StatusInternalServerError, fmt.Errorf("InternalServerError"))
+				ResponseFailed(c, http.StatusInternalServerError, fmt.Errorf("%v", err))
 			}
 		}()
 

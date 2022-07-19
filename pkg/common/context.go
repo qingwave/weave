@@ -8,6 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func SetTrace(c *gin.Context, t *trace.Trace) {
+	if c == nil || t == nil {
+		return
+	}
+
+	c.Set(TraceContextKey, t)
+}
+
 func GetTrace(c *gin.Context) *trace.Trace {
 	if c == nil {
 		return nil

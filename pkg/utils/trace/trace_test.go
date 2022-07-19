@@ -17,7 +17,7 @@ var (
 )
 
 func TestTrace(t *testing.T) {
-	trace := New("test", testLogger)
+	trace := New("test", testLogger, Field{Key: "test", Value: "val"})
 
 	trace.Step("step1")
 	trace.Step("step2")
@@ -46,4 +46,17 @@ func TestTrace(t *testing.T) {
 
 		assert.NotEmpty(t, logMsg)
 	}
+}
+
+func TestNestTrace(t *testing.T) {
+	trace := New("test", testLogger)
+
+	new := trace.Nest("nest1")
+
+	logMsg = ""
+	trace.Log()
+
+	assert.Len(t, trace.traceItems, 1)
+	assert.Equal(t, trace.traceItems[0], new)
+	assert.NotEmpty(t, logMsg)
 }

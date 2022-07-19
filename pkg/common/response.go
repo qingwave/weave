@@ -29,7 +29,7 @@ func ResponseFailed(c *gin.Context, code int, err error) {
 	if code == 0 {
 		code = http.StatusInternalServerError
 	}
-	if code == http.StatusUnauthorized {
+	if code == http.StatusUnauthorized && c.Request != nil {
 		if val, err := c.Cookie(CookieTokenName); err == nil && val != "" {
 			c.SetCookie(CookieTokenName, "", -1, "/", "", true, true)
 			c.SetCookie(CookieLoginUser, "", -1, "/", "", true, false)
