@@ -1,4 +1,10 @@
 # Weave
+
+[![workflows](https://github.com/qingwave/weave/workflows/weave/badge.svg)](https://github.com/qingwave/weave/actions?query=workflow%3Aweave)
+[![Go Report Card](https://goreportcard.com/badge/github.com/qingwave/weave)](https://goreportcard.com/report/github.com/qingwave/weave)
+[![codecov](https://codecov.io/gh/qingwave/weave/branch/master/graph/badge.svg?token=B93TcvKqA6)](https://codecov.io/gh/qingwave/weave)
+[![GitHub license](https://img.shields.io/github/license/qingwave/weave)](https://github.com/qingwave/weave/blob/master/LICENSE)
+
 Simple but functional Go+Vue application starter, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
 <table>

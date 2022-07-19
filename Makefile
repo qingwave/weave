@@ -24,7 +24,8 @@ run:
 	go run -mod vendor main.go
 
 test:
-	go test -ldflags -s -v --cover $(PKGS)
+	go test -ldflags -s -v -coverprofile=cover.out $(PKGS)
+	go tool cover -func=cover.out -o coverage.txt
 
 clean:
 	@rm -rf bin/

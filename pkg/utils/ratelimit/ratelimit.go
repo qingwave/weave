@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -45,6 +46,10 @@ type RateLimiter struct {
 }
 
 func NewRateLimiter(conf *LimitConfig) (*RateLimiter, error) {
+	if conf == nil {
+		return nil, errors.New("invaild config")
+	}
+
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
