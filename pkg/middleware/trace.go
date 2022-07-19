@@ -21,7 +21,7 @@ func TraceMiddleware() gin.HandlerFunc {
 
 		defer trace.LogIfLong(100 * time.Millisecond)
 
-		c.Set(common.TraceContextKey, trace)
+		common.SetTrace(c, trace)
 
 		c.Next()
 	}

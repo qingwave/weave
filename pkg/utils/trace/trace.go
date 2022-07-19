@@ -2,7 +2,6 @@ package trace
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -241,23 +240,4 @@ func (t *Trace) calculateStepThreshold() *time.Duration {
 
 	stepThreshold := traceThreshold / time.Duration(lenTrace)
 	return &stepThreshold
-}
-
-// ContextTraceKey provides a common key for traces in context.Context values.
-type ContextTraceKey struct{}
-
-// FromContext returns the trace keyed by ContextTraceKey in the context values, if one
-// is present, or nil If there is no trace in the Context.
-// It is safe to call Nest() on the returned value even if it is nil because ((*Trace)nil).Nest returns a top level
-// trace.
-func FromContext(ctx context.Context) *Trace {
-	if v, ok := ctx.Value(ContextTraceKey{}).(*Trace); ok {
-		return v
-	}
-	return nil
-}
-
-// ContextWithTrace returns a context with trace included in the context values, keyed by ContextTraceKey.
-func ContextWithTrace(ctx context.Context, trace *Trace) context.Context {
-	return context.WithValue(ctx, ContextTraceKey{}, trace)
 }

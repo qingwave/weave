@@ -1,7 +1,6 @@
 package set
 
 import (
-	"reflect"
 	"sort"
 )
 
@@ -13,16 +12,6 @@ func NewString(items ...string) String {
 	ss := String{}
 	ss.Insert(items...)
 	return ss
-}
-
-func StringKeySet(theMap interface{}) String {
-	v := reflect.ValueOf(theMap)
-	ret := String{}
-
-	for _, keyValue := range v.MapKeys() {
-		ret.Insert(keyValue.Interface().(string))
-	}
-	return ret
 }
 
 // Insert adds items to the set.
