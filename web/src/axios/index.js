@@ -1,9 +1,14 @@
-import axios from "axios";
-import { ElMessage } from "element-plus";
+import axios from "axios"
+import { ElMessage } from "element-plus"
+import { getUser } from "@/utils"
 
 // vite proxy, need not cors
 // axios.defaults.baseURL = "http://127.0.0.1:8080";
 // axios.defaults.withCredentials = true;
+
+const user = getUser()
+
+const anonymous = 'anonymous';
 
 const request = axios.create({
     timeout: 3000,
@@ -12,10 +17,19 @@ const request = axios.create({
     }
 });
 
+request.interceptors.request.use(config => {
+    if ( user != null && user.name == anonymous) {
+        return Promise.reject(anonymous)
+    }
+    return config
+}, error => {
+    return Promise.reject(error)
+})
+
 request.interceptors.response.use(response => {
     return response
 }, error => {
-    let msg;
+    let msg
     if (error.response) {
         if (error.response.data.msg) {
             msg = `${error.response.data.msg}`;
@@ -53,6 +67,9 @@ request.interceptors.response.use(response => {
                 msg = `request failed with code ${error.code}`;
         }
     } else {
+        if (error == anonymous) {
+            return
+        }
         msg = `network failed with error ${error}`
     }
 

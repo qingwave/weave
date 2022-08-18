@@ -59,7 +59,7 @@
 
 <script setup>
 import { Info, SettingOne, Logout, Sun, Search, GithubOne, Me } from '@icon-park/vue-next';
-import { getUser } from '@/utils';
+import { getUser, delUser } from '@/utils';
 import request from '@/axios';
 import { ElMessage, ElNotification } from "element-plus";
 import { useRouter } from 'vue-router';
@@ -75,11 +75,13 @@ function logout() {
       title: 'Logout Success',
       message: 'Bye~ ' + user.name,
       showClose: true,
+      duration: 1500,
     })
     router.push('/login');
   }).catch((error) => {
     console.log(error)
   })
+  delUser()
 };
 
 function toUserInfo() {

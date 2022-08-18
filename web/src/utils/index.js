@@ -16,11 +16,31 @@ export function getCookie(cname) {
     return "";
 }
 
+export function setCookie(cname, cvalue, days) {
+    let date = new Date();
+    date.setDate(date.getDate() + days);
+    let value = cvalue + ((days == null) ? "" : "; expires=" + date.toUTCString());
+    document.cookie = cname + "=" + value;
+}
+
 export function getUser() {
     let obj = getCookie('loginUser');
     if (obj) {
         return JSON.parse(obj);
     }
+}
+
+export function setUser(user) {
+    if (!user) {
+        return
+    }
+
+    let value = JSON.stringify(user)
+    setCookie('loginUser', value, 1)
+}
+
+export function delUser() {
+    setCookie('loginUser', '', -1)
 }
 
 export function inRootGroup() {
@@ -60,26 +80,26 @@ function deepEqual(object1, object2) {
         return true
     }
 
-  const keys1 = Object.keys(object1);
-  const keys2 = Object.keys(object2);
+    const keys1 = Object.keys(object1);
+    const keys2 = Object.keys(object2);
 
-  if (keys1.length !== keys2.length) {
-    return false;
-  }
-
-  for (let index = 0; index < keys1.length; index++) {
-    const val1 = object1[keys1[index]];
-    const val2 = object2[keys2[index]];
-    const areObjects = isObject(val1) && isObject(val2);
-    if (areObjects && !deepEqual(val1, val2) || 
-        !areObjects && val1 !== val2) {
-      return false;
+    if (keys1.length !== keys2.length) {
+        return false;
     }
-  }
 
-  return true;
+    for (let index = 0; index < keys1.length; index++) {
+        const val1 = object1[keys1[index]];
+        const val2 = object2[keys2[index]];
+        const areObjects = isObject(val1) && isObject(val2);
+        if (areObjects && !deepEqual(val1, val2) ||
+            !areObjects && val1 !== val2) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function isObject(object) {
-  return object != null && typeof object === 'object';
+    return object != null && typeof object === 'object';
 }

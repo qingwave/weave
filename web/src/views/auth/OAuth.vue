@@ -28,6 +28,7 @@ onMounted(
           title: 'Login Success',
           message: 'Hi~ ' + user.name,
           showClose: false,
+          duration: 1500,
         })
         router.push('/');
       })
