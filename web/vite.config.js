@@ -11,9 +11,9 @@ import WindiCSS from 'vite-plugin-windicss'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': resolve(__dirname, '/src'),
-      'views': resolve(__dirname, '/src/views'),
-      'components': resolve(__dirname, '/src/components'),
+      '@': resolve(__dirname, 'src'),
+      'views': resolve(__dirname, 'src/views'),
+      'components': resolve(__dirname, 'src/components'),
     }
   },
   css: {
