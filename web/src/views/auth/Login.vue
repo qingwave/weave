@@ -27,9 +27,13 @@
             </el-form>
 
             <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
-            <div class="mt-0.25rem text-right">
-              <el-button link @click="showLogin=false">SIGN UP</el-button>
+            <div class="w-full flex mt-0.25rem">
+              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous login" size="large" />
+              <div class="w-1/2 text-right">
+                <el-button link @click="showLogin=false">SIGN UP</el-button>
+              </div>
             </div>
+            
             <div class="my-0.5rem">
               <el-button link @click="oauthLogin('github')">
                 <Github theme="outline" size="30" fill="#333" />
@@ -75,12 +79,13 @@
 </style>
 
 <script setup>
-import { ElMessage, ElNotification } from "element-plus";
-import { User, Lock, Github, Wechat } from '@icon-park/vue-next';
-import { ref, reactive } from 'vue';
+import { ElMessage, ElNotification } from "element-plus"
+import { User, Lock, Github, Wechat } from '@icon-park/vue-next'
+import { ref, reactive } from 'vue'
 import request from '@/axios'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
 import { redirectUri, authInfo } from '@/config.js'
+import { setUser } from '@/utils'
 
 const router = useRouter();
 
@@ -88,6 +93,8 @@ const loginFormRef = ref();
 const registerFormRef = ref();
 
 const showLogin = ref(true);
+
+const anonymousLogin = ref(false);
 
 const loginUser = reactive({
   name: "admin",
@@ -116,6 +123,25 @@ const login = async (form) => {
   if (!form) {
     return
   }
+
+  let success = function() {
+    ElNotification.success({
+          title: 'Login Success',
+          message: 'Hi~ ' + loginUser.name,
+          showClose: true,
+          duration: 1500,
+        })
+    router.push('/');
+  }
+
+  if (anonymousLogin.value) {
+    setUser({
+      name: "anonymous",
+    })
+    success()
+    return
+  }
+
   await form.validate((valid, fields) => {
     if (valid) {
       request.post("/api/v1/auth/token", {
@@ -123,12 +149,7 @@ const login = async (form) => {
         password: loginUser.password,
         setCookie: true,
       }).then((response) => {
-        ElNotification.success({
-          title: 'Login Success',
-          message: 'Hi~ ' + loginUser.name,
-          showClose: true,
-        })
-        router.push('/');
+        success()
       })
     } else {
       console.log("input invaild", fields)
