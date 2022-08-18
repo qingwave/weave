@@ -73,6 +73,7 @@ TODOs
 ## Get started
 Before starting, you should already install [golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) and [nodejs](https://nodejs.org/en/download/) in your develop env.
 ### Run server
+
 Install dependencies, postgresql, redis, swag 
 ```bash
 make init
@@ -82,6 +83,8 @@ run locally
 ```bash
 make run
 ```
+
+> For Windows, you can run script in [Makefile](./Makefile) manually
 
 See http://localhost:8080
 
