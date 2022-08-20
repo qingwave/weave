@@ -28,7 +28,7 @@
 
             <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
             <div class="w-full flex mt-0.25rem">
-              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous login" size="large" />
+              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous Login" size="large" />
               <div class="w-1/2 text-right">
                 <el-button link @click="showLogin=false">SIGN UP</el-button>
               </div>
