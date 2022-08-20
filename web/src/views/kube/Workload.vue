@@ -7,9 +7,9 @@
                 <el-step title="Advanced Settings" />
             </el-steps>
 
-            <el-form class="my-2rem " v-show="createActive == 0" ref="formRef0" :model="newApp" label-position="top"
+            <el-form class="my-[2rem] " v-show="createActive == 0" ref="formRef0" :model="newApp" label-position="top"
                 label-width="auto">
-                <div class="flex flex-row w-full space-x-2rem">
+                <div class="flex flex-row w-full space-x-[2rem]">
                     <el-form-item class="w-1/2" label="Name" prop="name" required>
                         <el-input v-model="newApp.name" />
                         <span class="text-gray-400">The application name</span>
@@ -28,17 +28,17 @@
                 </el-form-item>
             </el-form>
 
-            <el-form class="my-2rem" v-show="createActive == 1" ref="formRef1" :model="newApp" label-position="top"
+            <el-form class="my-[2rem]" v-show="createActive == 1" ref="formRef1" :model="newApp" label-position="top"
                 label-width="auto">
-                <div class="flex flex-col w-full space-y-1rem">
-                    <div class="w-full border rounded px-1rem">
+                <div class="flex flex-col w-full space-y-[1rem]">
+                    <div class="w-full border rounded px-[1rem]">
                         <el-form-item label="Replicas" prop="replicas" required>
                             <el-input-number v-model="newApp.replicas" :min="1" placeholder="Replicas" />
                         </el-form-item>
                     </div>
-                    <div class="w-full border rounded px-1rem">
+                    <div class="w-full border rounded px-[1rem]">
                         <div class="py-2 font-bold">Container Spec</div>
-                        <div class="flex flex-row w-full space-x-2rem">
+                        <div class="flex flex-row w-full space-x-[2rem]">
                             <el-form-item class="w-1/2" label="Container" prop="container" required>
                                 <el-input v-model="newApp.container" />
                                 <span class="text-gray-400">The container name</span>
@@ -60,32 +60,32 @@
                 </div>
             </el-form>
 
-            <el-form class="my-2rem" v-show="createActive == 2" ref="formRef2" :model="newApp" label-position="top"
+            <el-form class="my-[2rem]" v-show="createActive == 2" ref="formRef2" :model="newApp" label-position="top"
                 label-width="auto">
-                <div class="flex flex-col w-full space-y-1rem">
-                    <div class="w-full border rounded px-1rem">
+                <div class="flex flex-col w-full space-y-[1rem]">
+                    <div class="w-full border rounded px-[1rem]">
                         <div class="py-2 font-bold">Metadata</div>
                         <div class="py-1">Labels</div>
                         <el-form-item v-for="(item, index) in newApp.labels">
-                            <div class="flex flex-row w-full space-x-1rem justify-center">
+                            <div class="flex flex-row w-full space-x-[1rem] justify-center">
                                 <el-input v-model="item.key" placeholder="key" />
                                 <el-input v-model="item.value" placeholder="value" />
                                 <el-button link @click.prevent="removeLabel(labelType, item)" :icon="Delete" />
                             </div>
                         </el-form-item>
-                        <div class="my-1rem text-right">
+                        <div class="my-[1rem] text-right">
                             <el-button @click="addLabel(labelType)">Add</el-button>
                         </div>
 
                         <div class="py-1">Annotations</div>
                         <el-form-item v-for="(item, index) in newApp.annotations">
-                            <div class="flex flex-row w-full space-x-1rem justify-center">
+                            <div class="flex flex-row w-full space-x-[1rem] justify-center">
                                 <el-input v-model="item.key" placeholder="key" />
                                 <el-input v-model="item.value" placeholder="value" />
                                 <el-button link @click.prevent="removeLabel(annotationType, item)" :icon="Delete" />
                             </div>
                         </el-form-item>
-                        <div class="my-1rem text-right">
+                        <div class="my-[1rem] text-right">
                             <el-button @click="addLabel(annotationType)">Add</el-button>
                         </div>
                     </div>
@@ -112,13 +112,13 @@
             </template>
         </el-dialog>
 
-        <div class="flex flex-col h-full px-4rem py-2rem space-y-1rem">
+        <div class="flex flex-col h-full px-[4rem] py-[2rem] space-y-[1rem]">
             <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-                <div class="flex w-full h-5rem bg-white items-center">
-                    <application-one class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-                    <span class="m-0.75rem text-2xl font-600">Workloads</span>
+                <div class="flex w-full h-[5rem] bg-white items-center">
+                    <application-one class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+                    <span class="m-[0.75rem] text-2xl font-600">Workloads</span>
                 </div>
-                <div class="flex h-3rem items-center ml-1rem">
+                <div class="flex h-[3rem] items-center ml-[1rem]">
                     <el-radio-group v-model="appTypeIndex">
                         <el-radio-button v-for="(a, index) in appTypes" plain :label="index">{{ a.name }}
                         </el-radio-button>
@@ -128,7 +128,7 @@
 
             <el-card class="h-max flex-row">
                 <template #header>
-                    <div class="flex w-full space-x-2rem">
+                    <div class="flex w-full space-x-[2rem]">
                         <el-select class="w-1/3" v-model="currentNamespace" filterable
                             placeholder="please select namespace">
                             <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" />
@@ -163,16 +163,16 @@
                     <el-table-column prop="metadata.creationTimestamp" label="StartAt" sortable min-width="120px" />
                     <el-table-column label="Operation" min-width="120px">
                         <template #default="scope">
-                            <div class="space-x-0.75rem">
+                            <div class="space-x-[0.75rem]">
                                 <el-button class="" size="small" circle @click="editApp(scope.row)" :icon="Edit" />
 
                                 <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                                     <template #reference>
                                         <el-button size="small" type="danger" @click="showDelete = scope.$index"
-                                            :icon="Delete" circle class="wl-1rem" />
+                                            :icon="Delete" circle class="wl-[1rem]" />
                                     </template>
                                     <p>Are you sure to delete this app?</p>
-                                    <div class="ml-0.5rem">
+                                    <div class="ml-[0.5rem]">
                                         <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                                         <el-button size="small" type="danger" @click="deleteApp(scope.row)">confirm
                                         </el-button>

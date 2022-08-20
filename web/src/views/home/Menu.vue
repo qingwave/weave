@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col h-full">
-    <el-menu class="w-14rem py-1rem flex-grow overflow-x-hidden overflow-y-auto" background-color="#f1f5f9"
+    <el-menu class="w-[14rem] py-[1rem] flex-grow overflow-x-hidden overflow-y-auto" background-color="#f1f5f9"
       text-color="#4b5563" active-text-color="#10b981" unique-opened :collapse="isCollapse" router>
 
       <el-menu-item :index="menu.name" v-for="menu in menuList" :key="menu.title">
@@ -25,7 +25,7 @@
       </el-sub-menu>
     </el-menu>
     
-    <div class="flex flex-grow-1 w-full my-1rem pl-1.5rem">
+    <div class="flex flex-grow-1 w-full my-[1rem] pl-[1.5rem]">
       <div v-if="isCollapse">
         <menu-fold-one v-model="isCollapse" @click="collapseMenu" />
       </div>
@@ -122,6 +122,14 @@ const subMenuList = [
     name: '/others',
     icon: MoreFour,
     children: [
+      {
+        name: '/about',
+        title: 'About'
+      },
+      {
+        name: '/markdown',
+        title: 'MarkDownEditor'
+      },
       {
         name: '/webcode',
         title: 'WebCode'

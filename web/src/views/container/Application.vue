@@ -2,7 +2,7 @@
   <div class="w-full flex justify-center">
     <el-dialog v-model="showCreate" top="5vh" title="Create Application" width="60%">
       <el-form ref="createFormRef" :model="newApp" label-position="top" label-width="auto">
-        <div class="flex flex-row w-full space-x-2rem">
+        <div class="flex flex-row w-full space-x-[2rem]">
           <el-form-item label="Name" prop="name" class="w-1/2" required>
             <el-input v-model="newApp.name" />
             <span class="text-gray-400">The application name contains only lowercase letters, numbers, and hyphens
@@ -32,7 +32,7 @@
 
     <el-dialog v-model="showUpdate" top="5vh" title="Update Application" width="60%">
       <el-form ref="updateFormRef" :model="updatedApp" label-position="top" label-width="auto">
-        <div class="flex flex-row w-full space-x-2rem">
+        <div class="flex flex-row w-full space-x-[2rem]">
           <el-form-item class="w-1/2" label="Name" prop="name">
             <el-input v-model="updatedApp.name" disabled />
           </el-form-item>
@@ -58,18 +58,18 @@
       </template>
     </el-dialog>
 
-    <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
+    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
 
       <div class="flex overflow-hidden rounded-lg shadow-lg">
-        <div class="flex w-full h-5rem bg-white items-center">
-          <ApplicationOne class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-          <span class="m-0.75rem text-2xl font-600">Applications</span>
+        <div class="flex w-full h-[5rem] bg-white items-center">
+          <ApplicationOne class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-[0.75rem] text-2xl font-600">Applications</span>
         </div>
       </div>
 
       <el-card class="h-max">
         <template #header>
-          <div class="flex justify-between space-x-2rem">
+          <div class="flex justify-between space-x-[2rem]">
             <el-input v-model="search" placeholder="Type to search">
               <template #prefix>
                 <el-icon>
@@ -94,20 +94,20 @@
           <el-table-column prop="Operation" label="Operation" min-width="120px">
             <template #default="scope">
               <el-button size="small" type="primary" circle @click="execApp(scope.row)" :icon="Terminal" />
-              <el-button class="ml-0.5rem" size="small" circle @click="editApp(scope.row)" :icon="Edit" />
+              <el-button class="ml-[0.5rem]" size="small" circle @click="editApp(scope.row)" :icon="Edit" />
 
               <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                 <template #reference>
                   <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
-                    class="wl-1rem" />
+                    class="wl-[1rem]" />
                 </template>
                 <p>Are you sure to delete this app?</p>
-                <span class="ml-0.5rem">
+                <span class="ml-[0.5rem]">
                   <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                   <el-button size="small" type="danger" @click="deleteApp(scope.row)">confirm</el-button>
                 </span>
               </el-popover>
-              <el-dropdown class="ml-0.5rem" trigger="click">
+              <el-dropdown class="ml-[0.5rem]" trigger="click">
                 <el-button size="small" circle :icon="More" />
                 <el-dialog v-model="showLog" top="5vh" width="98%" title="View Log">
                   <CodeEditor height="60vh" :value="logs" mode="log" readOnly light></CodeEditor>

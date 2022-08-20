@@ -1,12 +1,12 @@
 <template>
   <div class="w-full justify-center">
-    <div class="flex flex-col h-full px-4rem py-2rem space-y-1rem">
+    <div class="flex flex-col h-full px-[4rem] py-[2rem] space-y-[1rem]">
       <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-        <div class="flex w-full h-5rem bg-white items-center">
-          <ListView class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-          <span class="m-0.75rem text-2xl font-600">RBAC Policies</span>
+        <div class="flex w-full h-[5rem] bg-white items-center">
+          <ListView class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-[0.75rem] text-2xl font-600">RBAC Policies</span>
         </div>
-        <div class="flex h-3rem items-center pl-1rem">
+        <div class="flex h-[3rem] items-center pl-[1rem]">
           <el-radio-group v-model="currentTab">
             <el-radio-button v-for="(tab, index) in policyTabs" plain :label="index">{{ tab.name }}</el-radio-button>
           </el-radio-group>
@@ -15,7 +15,7 @@
 
       <el-card class="h-max w-full">
         <div class="flex flex-col w-full" v-for="(tab, index) in policyTabs">
-          <Policy class="w-full mx-1rem" v-if="currentTab == index" :ptype="tab.ptype" :labels="tab.labels" />
+          <Policy class="w-full mx-[1rem]" v-if="currentTab == index" :ptype="tab.ptype" :labels="tab.labels" />
         </div>
       </el-card>
     </div>

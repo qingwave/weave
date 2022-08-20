@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full flex justify-center">
-    <div class="flex flex-col w-full px-4rem py-2rem space-y-1rem">
+    <div class="flex flex-col w-full px-[4rem] py-[2rem] space-y-[1rem]">
       <el-dialog v-model="showUpdate" top="5vh" title="Update User" width="50%">
         <el-form ref="updateFormRef" :model="updatedUser" label-position="top" label-width="auto">
           <el-form-item label="Name" prop="name">
@@ -20,12 +20,12 @@
       </el-dialog>
 
       <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-        <div class="flex w-full h-5rem bg-white items-center">
-          <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-          <span class="m-0.75rem text-2xl font-600">User Info</span>
+        <div class="flex w-full h-[5rem] bg-white items-center">
+          <User class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-[0.75rem] text-2xl font-600">User Info</span>
         </div>
-        <div class="flex h-3rem items-center">
-          <el-button class="ml-1rem" plain @Click="showUpdate = true">Update</el-button>
+        <div class="flex h-[3rem] items-center">
+          <el-button class="ml-[1rem]" plain @Click="showUpdate = true">Update</el-button>
         </div>
       </div>
 

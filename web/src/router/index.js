@@ -104,6 +104,11 @@ const routes = [
         component: () => import('views/others/WebCode.vue')
       },
       {
+        path: '/markdown',
+        name: 'MarkDownEditor',
+        component: () => import('views/others/MarkDownEditor.vue')
+      },
+      {
         path: '/404',
         name: '404',
         component: () => import('views/others/404.vue')

@@ -2,8 +2,8 @@
   <el-header>
     <el-row class="flex h-full w-full" justify="center" align="middle">
       <el-col :span="4" class="flex text-center items-center content-center">
-            <img class="w-2.5rem mx-0.5rem" src="@/assets/weave.png" />
-            <span class="font-bold font-mono text-2xl pl-0.5rem">Weave</span>
+            <img class="w-[2.5rem] mx-[0.5rem]" src="@/assets/weave.png" />
+            <span class="font-bold font-mono text-2xl pl-[0.5rem]">Weave</span>
       </el-col>
       <el-col :span="14" class="flex-col text-right content-center">
         <el-menu mode="horizontal" class="font-bold" background-color="#f1f5f9" active-text-color="#000000">
@@ -15,7 +15,7 @@
           </el-menu-item>
         </el-menu>
       </el-col>
-      <el-col :span="6" class="text-right pr-1rem space-x-1rem">
+      <el-col :span="6" class="text-right pr-[1rem] space-x-[1rem]">
         <el-button link @click="notImplement('Search')">
           <search theme="outline" size="18" fill="#333" />
         </el-button>
@@ -30,7 +30,7 @@
             <me v-else theme="two-tone" size="18" :fill="['#333', '#50e3c2']" />
           </el-button>
           <template #dropdown>
-            <span class="flex items-center content-center text-center mt-1rem mb-0.5rem mx-4 font-bold text-l">
+            <span class="flex items-center content-center text-center mt-[1rem] mb-[0.5rem] mx-4 font-bold text-l">
               <sun theme="two-tone" size="24" :fill="['#333', '#f8e71c']" />
               <span class="ml-2">Hi {{ user.name }}</span>
             </span>

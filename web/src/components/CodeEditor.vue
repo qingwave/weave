@@ -1,11 +1,12 @@
 <template>
   <Codemirror :value="props.value" :options="cmOptions" border placeholder="yaml code here" :height="props.height"
-    @change="onChange" />
+    @change="onChange" @scroll="onScroll"/>
 </template>
 
 <script setup>
 import Codemirror from "codemirror-editor-vue3";
 import "codemirror/mode/yaml/yaml.js";
+import "codemirror/mode/markdown/markdown.js";
 import "codemirror/theme/monokai.css";
 import "codemirror/addon/fold/brace-fold.js";
 import "codemirror/addon/fold/foldcode.js";
@@ -29,10 +30,14 @@ const props = defineProps({
   readOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['change']);
+const emit = defineEmits(['change', 'scroll']);
 
 const onChange = (val, cm) => {
   emit("change", val, cm)
+}
+
+const onScroll = (cm) => {
+  emit("scroll", cm)
 }
 
 const cmOptions = ref({
@@ -41,7 +46,7 @@ const cmOptions = ref({
   lineNumbers: true,
   smartIndent: true,
   indentUnit: 2,
-  foldGutter: true,
+  scrollbarStyle: null,
   lint: true,
   styleActiveLine: true,
   readOnly: props.readOnly,
