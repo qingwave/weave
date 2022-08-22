@@ -105,7 +105,7 @@ const routes = [
       },
       {
         path: '/markdown',
-        name: 'MarkDownEditor',
+        name: 'MarkDown',
         component: () => import('views/others/MarkDownEditor.vue')
       },
       {
@@ -128,7 +128,20 @@ const routes = [
     path: '/oauth',
     name: 'OAuth',
     component: () => import("views/auth/OAuth.vue")
-  }
+  },
+  {
+    path: '/docs',
+    name: 'Document',
+    component: () => import("views/doc/List.vue"),
+    redirect: '/docs/introduce',
+    children: [
+      {
+        path: ':page',
+        name: 'Detail',
+        component: () => import('views/doc/Detail.vue')
+      }
+    ]
+  },
 ]
 
 const router = createRouter({

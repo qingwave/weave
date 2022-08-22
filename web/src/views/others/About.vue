@@ -8,12 +8,8 @@
 import { githubInfo } from '@/config.js';
 import MarkDown from 'components/MarkDown.vue';
 
-const msg = `Weave is server template write by golang and vue. <br > 
-The backend support multi-function, contains gin, postgres, redis, gorm, jwt and so on; <br >
-The frontend support vue, element-plus, vite and so on.`
-
 const data = `
-# #About
+# About
 
 Weave is server template write by golang and vue.
 

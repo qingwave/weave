@@ -6,12 +6,12 @@
             <span class="font-bold font-mono text-2xl pl-[0.5rem]">Weave</span>
       </el-col>
       <el-col :span="14" class="flex-col text-right content-center">
-        <el-menu mode="horizontal" class="font-bold" background-color="#f1f5f9" active-text-color="#000000">
+        <el-menu mode="horizontal" class="font-bold" active-text-color="#000000">
           <el-menu-item index="1">
             <router-link to="/">Home</router-link>
           </el-menu-item>
           <el-menu-item index="2">
-            <router-link to="/about">Document</router-link>
+            <router-link to="/docs">Document</router-link>
           </el-menu-item>
         </el-menu>
       </el-col>
@@ -31,7 +31,7 @@
           </el-button>
           <template #dropdown>
             <span class="flex items-center content-center text-center mt-[1rem] mb-[0.5rem] mx-4 font-bold text-l">
-              <sun theme="two-tone" size="24" :fill="['#333', '#f8e71c']" />
+              <SunOne theme="two-tone" size="24" :fill="['#333', '#f8e71c']" />
               <span class="ml-2">Hi {{ user.name }}</span>
             </span>
             <el-dropdown-menu>
@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { Info, SettingOne, Logout, Sun, Search, GithubOne, Me } from '@icon-park/vue-next';
+import { Info, SettingOne, Logout, SunOne, Search, GithubOne, Me } from '@icon-park/vue-next';
 import { getUser, delUser } from '@/utils';
 import request from '@/axios';
 import { ElMessage, ElNotification } from "element-plus";

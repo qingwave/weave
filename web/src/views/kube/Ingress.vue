@@ -20,8 +20,8 @@
         </el-dialog>
 
         <div class="flex flex-col h-full px-[4rem] py-[2rem] space-y-[1rem]">
-            <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-                <div class="flex w-full h-[5rem] bg-white items-center">
+            <div class="flex flex-col overflow-hidden rounded-lg shadow-lg border">
+                <div class="flex w-full h-[5rem] items-center">
                     <NetworkDrive class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
                     <span class="m-[0.75rem] text-2xl font-600">Ingresses</span>
                 </div>

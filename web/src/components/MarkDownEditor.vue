@@ -4,7 +4,7 @@
             <CodeEditor ref="editorRef" class="text-base" height="100%" mode="text/x-markdown" light :value="data" @change="onChange" 
                  @scroll="escroll" @mousewheel="sid=1"></CodeEditor>
         </div>
-        <div ref="mdRef" class="w-1/2 border rounded overflow-y-scroll bg-white" @scroll="scroll" @mousewheel="sid=2">
+        <div ref="mdRef" class="w-1/2 border rounded overflow-y-scroll" @scroll="scroll" @mousewheel="sid=2">
             <MarkDown class="m-4 h-full" :data=content></MarkDown>
         </div>
     </div>

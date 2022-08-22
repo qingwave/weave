@@ -3,7 +3,6 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-// import styleImport, {ElementPlusResolve} from 'vite-plugin-style-import'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import prismjs from "vite-plugin-prismjs";
 
@@ -38,10 +37,7 @@ export default defineConfig({
       resolvers: [
         ElementPlusResolver({ importStyle: "sass" }),
       ],
-    }),
-    // styleImport({
-    //   resolves: [ElementPlusResolve()],
-    // })
+    })
   ],
   server: {
     host: "127.0.0.1",

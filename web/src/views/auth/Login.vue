@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full login-bg">
+  <div class="h-full login-bg bg-slate-50">
     <div class="flex h-full justify-center items-center">
       <div class="h-max min-w-[16rem] w-1/4 max-w-[24rem] text-center items-center">
         <div class="inline-flex mt-4 mb-8 items-center">
@@ -70,7 +70,6 @@
 
 <style scoped>
 .login-bg {
-  background-color: #f1f5f9;
   background-image: url('@/assets/login-bg.svg');
   background-repeat: no-repeat;
   background-size: 100% auto;

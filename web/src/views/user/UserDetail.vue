@@ -19,12 +19,12 @@
         </template>
       </el-dialog>
 
-      <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-        <div class="flex w-full h-[5rem] bg-white items-center">
+      <div class="flex flex-col overflow-hidden rounded-lg shadow-lg border">
+        <div class="flex w-full h-[5rem] items-center">
           <User class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
           <span class="m-[0.75rem] text-2xl font-600">User Info</span>
         </div>
-        <div class="flex h-[3rem] items-center">
+        <div class="flex h-[3rem] items-center bg-slate-100">
           <el-button class="ml-[1rem]" plain @Click="showUpdate = true">Update</el-button>
         </div>
       </div>

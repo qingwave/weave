@@ -2,15 +2,15 @@
   <div class="flex w-full">
     <div class="flex flex-col w-full px-[4rem] py-[2rem] space-y-[1rem]">
 
-      <div class="flex overflow-hidden rounded-lg shadow">
-        <div class="flex w-full h-[5rem] bg-white items-center">
+      <div class="flex overflow-hidden rounded-lg shadow-lg border">
+        <div class="flex w-full h-[5rem] items-center">
           <Dashboard class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
           <span class="m-[0.75rem] text-2xl font-600">Dashboard</span>
         </div>
       </div>
       
       <div class="flex w-full space-x-[1rem]">
-        <div class="flex w-1/3 h-[10rem] bg-white rounded-md" v-for="(item) in cards" :key="item.name">
+        <div class="flex w-1/3 h-[10rem] rounded-md shadow border hover:shadow-xl" v-for="(item) in cards" :key="item.name">
           <div class="flex w-full h-full px-[3rem] items-center">
             <div class="flex-col w-6/10">
               <div class="text-gray-500">{{ item.name }}</div>
@@ -29,16 +29,16 @@
       </div>
 
       <div class="flex w-full space-x-[1rem]">
-        <div class="w-1/2 h-[20rem] bg-white rounded-md">
+        <div class="w-1/2 h-[20rem] rounded-md shadow border hover:shadow-xl">
           <v-chart class="w-full h-full" :option="gaugeOption" />
         </div>
 
-        <div class="w-1/2 h-[20rem] bg-white rounded-md">
+        <div class="w-1/2 h-[20rem] rounded-md shadow border hover:shadow-xl">
           <v-chart class="w-full h-full" :option="pieOption" />
         </div>
       </div>
 
-      <div class="flex w-full h-[20rem] bg-white rounded-md">
+      <div class="flex w-full h-[20rem] rounded-md shadow border hover:shadow-xl">
         <v-chart class="w-full h-full" :option="lineOption" />
       </div>
 
