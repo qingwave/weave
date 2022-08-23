@@ -24,7 +24,7 @@
             </div>
 
             <div class="w-full overflow-y-scroll">
-                <router-view :key=route.fullPath />
+                <router-view :key=route.path />
             </div>
         </div>
     </div>
