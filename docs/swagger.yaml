@@ -131,6 +131,15 @@ definitions:
       token:
         type: string
     type: object
+  model.Like:
+    properties:
+      id:
+        type: integer
+      postId:
+        type: integer
+      userId:
+        type: integer
+    type: object
   model.Policy:
     properties:
       action:
@@ -163,7 +172,9 @@ definitions:
       id:
         type: integer
       likes:
-        type: integer
+        items:
+          $ref: '#/definitions/model.Like'
+        type: array
       name:
         type: string
       summary:
@@ -1046,6 +1057,47 @@ paths:
       security:
       - JWT: []
       summary: Update post
+      tags:
+      - post
+  /api/v1/posts/{id}/like:
+    delete:
+      description: Delete Like
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete Like
+      tags:
+      - post
+    post:
+      description: Add Like
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add Like
       tags:
       - post
   /api/v1/users:

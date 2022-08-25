@@ -34,7 +34,7 @@ func (p *postService) Get(id string) (*model.Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	return p.postRepository.GetPostByID(uint(pid))
+	return p.postRepository.IncView(uint(pid))
 }
 
 func (p *postService) Update(id string, post *model.Post) (*model.Post, error) {
@@ -71,6 +71,24 @@ func (p *postService) GetCategories(id string) ([]model.Category, error) {
 	}
 
 	return p.postRepository.GetCategories(&model.Post{ID: uint(pid)})
+}
+
+func (p *postService) AddLike(user *model.User, id string) error {
+	pid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	return p.postRepository.AddLike(uint(pid), user.ID)
+}
+
+func (p *postService) DelLike(user *model.User, id string) error {
+	pid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	return p.postRepository.DelLike(uint(pid), user.ID)
 }
 
 const summaryLen = 128

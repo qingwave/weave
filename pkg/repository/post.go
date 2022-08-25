@@ -49,7 +49,7 @@ func (p *postRepository) GetCategories(post *model.Post) ([]model.Category, erro
 
 func (p *postRepository) GetPostByID(id uint) (*model.Post, error) {
 	post := new(model.Post)
-	if err := p.db.Joins("Creator").First(post, id).Error; err != nil {
+	if err := p.db.Select("posts.*, users.*, tags.*, counnt(likes) as likes").Joins("Creator").Preload("Tags", "Categories").Joins("left join likes on likes.post_id = posts.id").Where("id = ?", id).Scan(post).Error; err != nil {
 		return nil, err
 	}
 
@@ -74,6 +74,28 @@ func (p *postRepository) Delete(id uint) error {
 	return p.db.Delete(&model.Post{}, id).Error
 }
 
+func (p *postRepository) IncView(id uint) (*model.Post, error) {
+	post := &model.Post{ID: id}
+	err := p.db.Model(post).Clauses(clause.Returning{}).UpdateColumn("views", gorm.Expr("views + 1")).Error
+	return post, err
+}
+
+func (p *postRepository) AddLike(pid, uid uint) error {
+	like := &model.Like{PostID: pid, UserID: uid}
+	return p.db.Create(like).Error
+}
+
+func (p *postRepository) DelLike(pid, uid uint) error {
+	like := &model.Like{PostID: pid, UserID: uid}
+	return p.db.Delete(like).Error
+}
+
+func (p *postRepository) CountLike(id uint) (int64, error) {
+	var count int64
+	err := p.db.Model(&model.Post{ID: id}).Count(&count).Error
+	return count, err
+}
+
 func (p *postRepository) Migrate() error {
-	return p.db.AutoMigrate(&model.Post{})
+	return p.db.AutoMigrate(&model.Post{}, &model.Like{}, &model.Tag{}, &model.Category{})
 }

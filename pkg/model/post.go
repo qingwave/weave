@@ -16,9 +16,11 @@ type Post struct {
 	Tags       []Tag      `json:"tags"  gorm:"many2many:tag_posts"`
 	Categories []Category `json:"categories" gorm:"many2many:category_posts"`
 
-	PostInfo
+	Views uint `json:"views" gorm:"type:uint"`
 
 	BaseModel
+
+	Likes uint `json:"likes" gorm:"-"`
 }
 
 type Tag struct {
@@ -31,7 +33,10 @@ type Category struct {
 	Name string `json:"name" gorm:"size:256;not null;unique"`
 }
 
-type PostInfo struct {
-	Likes uint `json:"likes" gorm:"type:uint"`
-	Views uint `json:"views" gorm:"type:uint"`
+type Like struct {
+	ID     uint
+	UserID uint `json:"userId" gorm:"uniqueIndex:user_post"`
+	User   User `json:"-" gorm:"foreignKey:UserID"`
+	PostID uint `json:"postId" gorm:"uniqueIndex:user_post"`
+	Post   Post `json:"-" gorm:"foreignKey:PostID"`
 }

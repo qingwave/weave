@@ -34,4 +34,6 @@ type PostService interface {
 	Delete(id string) error
 	GetTags(id string) ([]model.Tag, error)
 	GetCategories(id string) ([]model.Category, error)
+	AddLike(user *model.User, id string) error
+	DelLike(user *model.User, id string) error
 }

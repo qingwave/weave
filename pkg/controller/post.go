@@ -151,12 +151,60 @@ func (p *PostController) Delete(c *gin.Context) {
 	common.ResponseSuccess(c, nil)
 }
 
+// @Summary Add Like
+// @Description Add Like
+// @Produce json
+// @Tags post
+// @Security JWT
+// @Param id path int true "post id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/posts/{id}/like [post]
+func (p *PostController) AddLike(c *gin.Context) {
+	user := common.GetUser(c)
+	if user == nil {
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to get user"))
+		return
+	}
+
+	if err := p.postService.AddLike(user, c.Param("id")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, nil)
+}
+
+// @Summary Delete Like
+// @Description Delete Like
+// @Produce json
+// @Tags post
+// @Security JWT
+// @Param id path int true "post id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/posts/{id}/like [delete]
+func (p *PostController) DelLike(c *gin.Context) {
+	user := common.GetUser(c)
+	if user == nil {
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to get user"))
+		return
+	}
+
+	if err := p.postService.DelLike(user, c.Param("id")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, nil)
+}
+
 func (p *PostController) RegisterRoute(api *gin.RouterGroup) {
 	api.GET("/posts", p.List)
 	api.POST("/posts", p.Create)
 	api.GET("/posts/:id", p.Get)
 	api.PUT("/posts/:id", p.Update)
 	api.DELETE("/posts/:id", p.Delete)
+	api.POST("/posts/:id/like", p.AddLike)
+	api.DELETE("/posts/:id/like", p.DelLike)
 }
 
 func (p *PostController) Name() string {
