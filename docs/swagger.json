@@ -1447,13 +1447,13 @@
                 "authType": {
                     "type": "string"
                 },
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 },
                 "url": {
@@ -1576,7 +1576,7 @@
         "model.Group": {
             "type": "object",
             "properties": {
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "creatorId": {
@@ -1591,7 +1591,7 @@
                 "name": {
                     "type": "string"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 },
                 "updaterId": {
@@ -1671,7 +1671,7 @@
                 "avatar": {
                     "type": "string"
                 },
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "email": {
@@ -1689,7 +1689,7 @@
                 "name": {
                     "type": "string"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 }
             }

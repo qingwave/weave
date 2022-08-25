@@ -25,3 +25,13 @@ type GroupService interface {
 	AddUser(user *model.UserRole, gid string) error
 	DelUser(user *model.UserRole, gid string) error
 }
+
+type PostService interface {
+	List() ([]model.Post, error)
+	Create(*model.User, *model.Post) (*model.Post, error)
+	Get(id string) (*model.Post, error)
+	Update(id string, post *model.Post) (*model.Post, error)
+	Delete(id string) error
+	GetTags(id string) ([]model.Tag, error)
+	GetCategories(id string) ([]model.Category, error)
+}

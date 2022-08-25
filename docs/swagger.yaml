@@ -14,11 +14,11 @@ definitions:
         type: string
       authType:
         type: string
-      createAt:
+      createdAt:
         type: string
       id:
         type: integer
-      updateAt:
+      updatedAt:
         type: string
       url:
         type: string
@@ -98,7 +98,7 @@ definitions:
     type: object
   model.Group:
     properties:
-      createAt:
+      createdAt:
         type: string
       creatorId:
         type: integer
@@ -108,7 +108,7 @@ definitions:
         type: integer
       name:
         type: string
-      updateAt:
+      updatedAt:
         type: string
       updaterId:
         type: integer
@@ -160,7 +160,7 @@ definitions:
         type: array
       avatar:
         type: string
-      createAt:
+      createdAt:
         type: string
       email:
         type: string
@@ -172,7 +172,7 @@ definitions:
         type: integer
       name:
         type: string
-      updateAt:
+      updatedAt:
         type: string
     type: object
   model.UserRole:

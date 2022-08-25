@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-row w-full h-full">
-        <div class="w-1/2 h-full border rounded">
-            <CodeEditor ref="editorRef" class="text-base" height="100%" mode="text/x-markdown" light :value="data" @change="onChange" 
-                 @scroll="escroll" @mousewheel="sid=1"></CodeEditor>
+    <div class="flex flex-row w-full h-auto overflow-x-hidden">
+        <div class="w-1/2 max-h-full border rounded">
+            <CodeEditor v-model="content" class="text-base max-w-full" height="100%" mode="text/x-markdown" light :value="content"
+                @change="onChange"></CodeEditor>
         </div>
-        <div ref="mdRef" class="w-1/2 border rounded overflow-y-scroll" @scroll="scroll" @mousewheel="sid=2">
-            <MarkDown class="m-4 h-full" :data=content></MarkDown>
+        <div class="w-1/2 border rounded max-h-full">
+            <MarkDown ref="mdRef" class="p-4" :data=content></MarkDown>
         </div>
     </div>
 </template>
@@ -13,7 +13,7 @@
 <script setup>
 import MarkDown from './MarkDown.vue'
 import CodeEditor from './CodeEditor.vue';
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     data: { type: String },
@@ -21,32 +21,19 @@ const props = defineProps({
 
 const content = ref(props.data);
 
-const onChange= (val, cm) => {
-    content.value = val
-}
-
-const editor = ref()
-
-const editorRef = ref()
-const mdRef = ref()
-
-const sid = ref(0)
-
-const escroll = (cm) => {
-    editor.value = cm
-    if ( sid.value == 1) {
-        let info = cm.getScrollInfo()
-        mdRef.value.scrollTop = info.top * mdRef.value.offsetHeight / (info.height - info.clientHeight)
+watch(() => props.data, 
+    (val) => {
+        content.value = val
     }
+)
+
+const onChange = (v, cm) => {
+    content.value = v
 }
 
-const scroll = () => {
-    if ( sid.value == 2 ) {
-        if (editor.value) {
-            editor.value.scrollTo(0, mdRef.value.scrollTop)
-        }
-    }
-}
+defineExpose({
+    content,
+})
 
 </script>
 

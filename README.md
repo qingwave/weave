@@ -48,7 +48,8 @@ Server support features:
 - Request rate limit, server level or user ip
 - Redis cache
 - RBAC, support by casbin
-- Container application management, support docker and kubernetes 
+- Container application management, support docker and kubernetes
+- Post management
 
 Frontend support features:
 - Vue3 supported
@@ -59,6 +60,7 @@ Frontend support features:
 - Windi CSS
 - OAuth Login
 - Web code editor, support by codemirror
+- MarkDown preview and editor
 
 TODOs
 - [x] Redis cache
@@ -159,6 +161,12 @@ App page
 
 Webshell page
 ![webshell](./document/img/webshell.png)
+
+Blog list
+![Blog](./document/img/blog.png)
+
+Article
+![article](./document/img/document.png)
 
 ### Documents
 - [Config](./config/app.yaml), your can enable docker/kubernetes in config

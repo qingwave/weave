@@ -1,6 +1,6 @@
 <template>
-  <Codemirror :value="props.value" :options="cmOptions" border placeholder="yaml code here" :height="props.height"
-    @change="onChange" @scroll="onScroll"/>
+  <Codemirror :value="data" :options="cmOptions" border placeholder="yaml code here" :height="props.height"
+    @change="onChange"/>
 </template>
 
 <script setup>
@@ -18,7 +18,7 @@ import "codemirror/addon/lint/lint.js";
 import "codemirror/addon/lint/lint.css";
 import "codemirror/addon/lint/yaml-lint.js";
 import yaml from 'js-yaml';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 window.jsyaml = yaml;
 
@@ -30,14 +30,19 @@ const props = defineProps({
   readOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['change', 'scroll']);
+const data = ref(props.value)
+
+const emit = defineEmits(['update:modelValue', 'change']);
+
+watch( () => props.value,
+  (val) => {
+    data.value = val
+  }
+)
 
 const onChange = (val, cm) => {
+  emit('update:modelValue', val)
   emit("change", val, cm)
-}
-
-const onScroll = (cm) => {
-  emit("scroll", cm)
 }
 
 const cmOptions = ref({

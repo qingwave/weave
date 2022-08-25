@@ -1454,13 +1454,13 @@ const docTemplate = `{
                 "authType": {
                     "type": "string"
                 },
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 },
                 "url": {
@@ -1583,7 +1583,7 @@ const docTemplate = `{
         "model.Group": {
             "type": "object",
             "properties": {
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "creatorId": {
@@ -1598,7 +1598,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 },
                 "updaterId": {
@@ -1678,7 +1678,7 @@ const docTemplate = `{
                 "avatar": {
                     "type": "string"
                 },
-                "createAt": {
+                "createdAt": {
                     "type": "string"
                 },
                 "email": {
@@ -1696,7 +1696,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "updateAt": {
+                "updatedAt": {
                     "type": "string"
                 }
             }

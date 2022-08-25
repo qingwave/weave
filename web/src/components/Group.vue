@@ -38,7 +38,7 @@
         </template>
       </el-dialog>
 
-      <div class="flex overflow-hidden rounded-lg shadow-lg border">
+      <div class="flex overflow-hidden rounded-md shadow-md border">
         <div class="flex w-full h-[5rem] items-center">
           <Peoples class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
           <span class="m-[0.75rem] text-2xl font-600">Groups</span>
@@ -68,7 +68,7 @@
           </el-table-column>
           <el-table-column prop="describe" label="Describe" />
           <el-table-column prop="creatorId" label="Creator" />
-          <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
+          <el-table-column prop="createdAt" label="CreateAt" min-width="120px" />
           <el-table-column label="Operation" min-width="120px">
             <template #default="scope">
               <el-button size="small" circle @click="editGroup(scope.row)" :icon="Edit" />

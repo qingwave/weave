@@ -14,7 +14,7 @@
 <script setup>
 import MarkDown from 'components/MarkDown.vue';
 import axios from "axios";
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import fm from 'front-matter';
 
 const props = defineProps({
@@ -26,28 +26,48 @@ const date = ref(props.config.date)
 const data = ref("")
 
 const parse = (content) => {
+  if (!content) {
+    return
+  }
+
   let page = fm(content)
-  data.value = page.body.replace(/#.+\n/, '').toString()
+  data.value = page.body.replace(/#.+\n/, '')
 
   if (!title.value) {
     title.value = page.attributes.title
   }
 
   if (!date.value && page.attributes.date) {
-    date.value = (new Date(page.attributes.date)).toLocaleDateString('en', { year: "numeric", month: "short", day: "numeric" })
+    date.value = page.attributes.date
+  }
+
+  if (date.value) {
+    date.value = (new Date(date.value)).toLocaleDateString('en', { year: "numeric", month: "short", day: "numeric" })
+  }
+}
+
+watch(
+  () => props.config,
+  (val) => {
+    getData(val)
+  }
+)
+
+const getData = (config) => {
+  title.value = config.title
+  date.value = config.date
+
+  if (config.content) {
+    parse(config.content)
+  } else if (config.url) {
+    axios.get(config.url).then((response) => {
+      parse(response.data)
+    })
   }
 }
 
 onMounted(
-  () => {
-    if (props.config.url) {
-      axios.get(props.config.url).then((response) => {
-        parse(response.data)
-      })
-    } else {
-      parse(props.config.content)
-    }
-  }
+  () => getData(props.config)
 )
 
 </script>

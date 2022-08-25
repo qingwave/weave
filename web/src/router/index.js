@@ -137,8 +137,36 @@ const routes = [
     children: [
       {
         path: ':page',
-        name: 'Detail',
+        name: 'DocDetail',
         component: () => import('views/doc/Detail.vue')
+      }
+    ]
+  },
+  {
+    path: '/posts',
+    name: 'Post',
+    component: () => import('views/post/Home.vue'),
+    redirect: '/posts/list',
+    children: [
+      {
+        path: 'editor',
+        name: 'Editor',
+        component: () => import('views/post/Editor.vue')
+      },
+      {
+        path: 'editor/:id',
+        name: 'Draft',
+        component: () => import('views/post/Editor.vue')
+      },
+      {
+        path: 'list',
+        name: 'PostList',
+        component: () => import('views/post/List.vue')
+      },
+      {
+        path: ':post',
+        name: 'PostDetail',
+        component: () => import('views/post/Detail.vue')
       }
     ]
   },

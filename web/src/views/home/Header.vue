@@ -13,6 +13,9 @@
           <el-menu-item index="2">
             <router-link to="/docs">Document</router-link>
           </el-menu-item>
+          <el-menu-item index="3">
+            <router-link to="/posts">Post</router-link>
+          </el-menu-item>
         </el-menu>
       </el-col>
       <el-col :span="6" class="text-right pr-[1rem] space-x-[1rem]">

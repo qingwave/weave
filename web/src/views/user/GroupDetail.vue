@@ -12,7 +12,7 @@
         <el-descriptions-item label="Name">{{ group.name }}</el-descriptions-item>
         <el-descriptions-item label="Describe">{{ group.describe }}</el-descriptions-item>
         <el-descriptions-item label="CreatorId">{{ group.creatorId }}</el-descriptions-item>
-        <el-descriptions-item label="CreateAt">{{ group.createAt }}</el-descriptions-item>
+        <el-descriptions-item label="CreateAt">{{ group.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="Remarks" v-show="tag">
           <el-tag size="small">{{ tag }}</el-tag>
         </el-descriptions-item>

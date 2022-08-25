@@ -92,8 +92,9 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	containerController := controller.NewContainerController(conClient)
 	rbacController := controller.NewRbacController()
 	kubeController := kubecontroller.NewKubeControllers(kubeClient)
+	postController := controller.NewPostController(service.NewPostService(repository.Post()))
 
-	controllers := []controller.Controller{userController, groupController, authController, rbacController}
+	controllers := []controller.Controller{userController, groupController, authController, rbacController, postController}
 	if conf.Docker.Enable {
 		controllers = append(controllers, containerController)
 	}

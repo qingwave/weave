@@ -27,7 +27,7 @@ require (
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.3.5
-	gorm.io/gorm v1.23.5
+	gorm.io/gorm v1.23.8
 	k8s.io/api v0.24.1
 	k8s.io/apiextensions-apiserver v0.24.0
 	k8s.io/apimachinery v0.24.1

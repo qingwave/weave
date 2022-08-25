@@ -19,7 +19,7 @@
         </template>
       </el-dialog>
 
-      <div class="flex flex-col overflow-hidden rounded-lg shadow-lg border">
+      <div class="flex flex-col overflow-hidden rounded-md shadow-md border">
         <div class="flex w-full h-[5rem] items-center">
           <User class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
           <span class="m-[0.75rem] text-2xl font-600">User Info</span>
@@ -33,7 +33,7 @@
           <el-descriptions :model="user" size="large" :column=1>
             <el-descriptions-item label="Name">{{ user.name }}</el-descriptions-item>
             <el-descriptions-item label="Email">{{ user.email }}</el-descriptions-item>
-            <el-descriptions-item label="CreateAt">{{ user.createAt }}</el-descriptions-item>
+            <el-descriptions-item label="CreateAt">{{ user.createdAt }}</el-descriptions-item>
             <div v-for="auth in user.authInfos">
               <el-descriptions-item :label="auth.authType">
                 {{ auth.authId }}

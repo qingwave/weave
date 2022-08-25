@@ -5,6 +5,7 @@ import "github.com/qingwave/weave/pkg/model"
 type Repository interface {
 	User() UserRepository
 	Group() GroupRepository
+	Post() PostRepository
 	Migrant
 }
 
@@ -36,5 +37,17 @@ type GroupRepository interface {
 	GetUsers(*model.Group) (model.Users, error)
 	AddUser(user *model.User, group *model.Group) error
 	DelUser(user *model.User, group *model.Group) error
+	Migrate() error
+}
+
+type PostRepository interface {
+	GetPostByID(uint) (*model.Post, error)
+	GetPostByName(string) (*model.Post, error)
+	List() ([]model.Post, error)
+	Create(*model.User, *model.Post) (*model.Post, error)
+	Update(*model.Post) (*model.Post, error)
+	Delete(uint) error
+	GetTags(*model.Post) ([]model.Tag, error)
+	GetCategories(*model.Post) ([]model.Category, error)
 	Migrate() error
 }
