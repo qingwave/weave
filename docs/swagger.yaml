@@ -38,6 +38,13 @@ definitions:
       setCookie:
         type: boolean
     type: object
+  model.Category:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   model.Container:
     properties:
       address:
@@ -137,6 +144,44 @@ definitions:
           type: string
         type: array
       type:
+        type: string
+    type: object
+  model.Post:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/model.Category'
+        type: array
+      content:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/model.User'
+      creatorId:
+        type: integer
+      id:
+        type: integer
+      likes:
+        type: integer
+      name:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      updatedAt:
+        type: string
+      views:
+        type: integer
+    type: object
+  model.Tag:
+    properties:
+      id:
+        type: integer
+      name:
         type: string
     type: object
   model.UpdatedUser:
@@ -874,6 +919,135 @@ paths:
       summary: Handle rbac policy
       tags:
       - rbac
+  /api/v1/posts:
+    get:
+      description: List post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Post'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List post
+      tags:
+      - post
+    post:
+      consumes:
+      - application/json
+      description: Create post and storage
+      parameters:
+      - description: post info
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/model.Post'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Create post
+      tags:
+      - post
+  /api/v1/posts/{id}:
+    delete:
+      description: Delete post
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete post
+      tags:
+      - post
+    get:
+      description: Get post
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Get post
+      tags:
+      - post
+    put:
+      consumes:
+      - application/json
+      description: Update post and storage
+      parameters:
+      - description: post info
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdatedUser'
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Update post
+      tags:
+      - post
   /api/v1/users:
     get:
       description: List user and storage

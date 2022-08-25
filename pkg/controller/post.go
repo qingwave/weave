@@ -63,7 +63,7 @@ func (p *PostController) Get(c *gin.Context) {
 // @Produce json
 // @Tags post
 // @Security JWT
-// @Param post body model.CreatedPost true "post info"
+// @Param post body model.Post true "post info"
 // @Success 200 {object} common.Response{data=model.Post}
 // @Router /api/v1/posts [post]
 func (p *PostController) Create(c *gin.Context) {
