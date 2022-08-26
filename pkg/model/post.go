@@ -17,10 +17,9 @@ type Post struct {
 	Categories []Category `json:"categories" gorm:"many2many:category_posts"`
 
 	Views uint `json:"views" gorm:"type:uint"`
+	Likes uint `json:"likes" gorm:"-"`
 
 	BaseModel
-
-	Likes uint `json:"likes" gorm:"-"`
 }
 
 type Tag struct {

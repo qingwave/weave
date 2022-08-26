@@ -34,7 +34,12 @@ func (p *postService) Get(id string) (*model.Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	return p.postRepository.IncView(uint(pid))
+
+	if err := p.postRepository.IncView(uint(pid)); err != nil {
+		return nil, err
+	}
+
+	return p.postRepository.GetPostByID(uint(pid))
 }
 
 func (p *postService) Update(id string, post *model.Post) (*model.Post, error) {

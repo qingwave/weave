@@ -49,7 +49,7 @@ type PostRepository interface {
 	Delete(uint) error
 	GetTags(*model.Post) ([]model.Tag, error)
 	GetCategories(*model.Post) ([]model.Category, error)
-	IncView(id uint) (*model.Post, error)
+	IncView(id uint) error
 	AddLike(pid, uid uint) error
 	DelLike(pid, uid uint) error
 	Migrate() error

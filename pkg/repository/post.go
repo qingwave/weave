@@ -22,9 +22,34 @@ func newPostRepository(db *gorm.DB, rdb *database.RedisDB) PostRepository {
 
 func (p *postRepository) List() ([]model.Post, error) {
 	posts := make([]model.Post, 0)
-	if err := p.db.Omit("content").Order(clause.OrderByColumn{Column: clause.Column{Name: "created_at"}, Desc: true}).Find(&posts).Error; err != nil {
+	if err := p.db.Omit("content").Preload("Creator").Preload("Tags").Preload("Categories").Order(clause.OrderByColumn{Column: clause.Column{Name: "created_at"}, Desc: true}).Find(&posts).Error; err != nil {
 		return nil, err
 	}
+
+	ids := make([]uint, len(posts))
+	for i, p := range posts {
+		ids[i] = p.ID
+	}
+
+	type result struct {
+		ID    uint
+		Likes uint
+	}
+
+	results := []result{}
+	if err := p.db.Model(&model.Like{}).Select("post_id as id, count(likes.post_id) as likes").Where("post_id in ?", ids).Group("post_id").Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	resMap := make(map[uint]uint, len(results))
+	for _, r := range results {
+		resMap[r.ID] = r.Likes
+	}
+
+	for i := range posts {
+		posts[i].Likes = resMap[posts[i].ID]
+	}
+
 	return posts, nil
 }
 
@@ -49,9 +74,16 @@ func (p *postRepository) GetCategories(post *model.Post) ([]model.Category, erro
 
 func (p *postRepository) GetPostByID(id uint) (*model.Post, error) {
 	post := new(model.Post)
-	if err := p.db.Select("posts.*, users.*, tags.*, counnt(likes) as likes").Joins("Creator").Preload("Tags", "Categories").Joins("left join likes on likes.post_id = posts.id").Where("id = ?", id).Scan(post).Error; err != nil {
+	if err := p.db.Preload("Creator").Preload("Tags").Preload("Categories").First(post, id).Error; err != nil {
 		return nil, err
 	}
+
+	likes, err := p.CountLike(id)
+	if err != nil {
+		return nil, err
+	}
+
+	post.Likes = uint(likes)
 
 	return post, nil
 }
@@ -66,7 +98,7 @@ func (p *postRepository) GetPostByName(name string) (*model.Post, error) {
 }
 
 func (p *postRepository) Update(post *model.Post) (*model.Post, error) {
-	err := p.db.Model(post).Updates(post).Error
+	err := p.db.Model(post).Omit("views", "creator_id").Updates(post).Error
 	return post, err
 }
 
@@ -74,10 +106,9 @@ func (p *postRepository) Delete(id uint) error {
 	return p.db.Delete(&model.Post{}, id).Error
 }
 
-func (p *postRepository) IncView(id uint) (*model.Post, error) {
+func (p *postRepository) IncView(id uint) error {
 	post := &model.Post{ID: id}
-	err := p.db.Model(post).Clauses(clause.Returning{}).UpdateColumn("views", gorm.Expr("views + 1")).Error
-	return post, err
+	return p.db.Model(post).UpdateColumn("views", gorm.Expr("views + 1")).Error
 }
 
 func (p *postRepository) AddLike(pid, uid uint) error {
@@ -92,7 +123,7 @@ func (p *postRepository) DelLike(pid, uid uint) error {
 
 func (p *postRepository) CountLike(id uint) (int64, error) {
 	var count int64
-	err := p.db.Model(&model.Post{ID: id}).Count(&count).Error
+	err := p.db.Model(&model.Like{}).Where("post_id = ?", id).Count(&count).Error
 	return count, err
 }
 
