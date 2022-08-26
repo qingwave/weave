@@ -1,7 +1,7 @@
 <template>
-  <div class="h-full login-bg">
+  <div class="h-full login-bg bg-slate-50">
     <div class="flex h-full justify-center items-center">
-      <div class="h-max min-w-16rem w-1/4 max-w-24rem text-center items-center">
+      <div class="h-max min-w-[16rem] w-1/4 max-w-[24rem] text-center items-center">
         <div class="inline-flex mt-4 mb-8 items-center">
           <img src="@/assets/weave.png" class="h-12 mr-2" />
           <h1 class="font-bold text-4xl font-mono">Weave</h1>
@@ -27,14 +27,14 @@
             </el-form>
 
             <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
-            <div class="w-full flex mt-0.25rem">
-              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous login" size="large" />
+            <div class="w-full flex mt-[0.25rem]">
+              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous Login" size="large" />
               <div class="w-1/2 text-right">
                 <el-button link @click="showLogin=false">SIGN UP</el-button>
               </div>
             </div>
             
-            <div class="my-0.5rem">
+            <div class="my-[0.5rem]">
               <el-button link @click="oauthLogin('github')">
                 <Github theme="outline" size="30" fill="#333" />
               </el-button>
@@ -59,7 +59,7 @@
             </el-form>
             
             <el-button class="w-full" type="primary" size="large" @click="register(registerFormRef)">SIGN UP</el-button>
-            <div class="mt-0.25rem text-right">
+            <div class="mt-[0.25rem] text-right">
               <el-button link @click="showLogin=true">SIGN IN</el-button>
             </div>
           </div>
@@ -70,7 +70,6 @@
 
 <style scoped>
 .login-bg {
-  background-color: #f1f5f9;
   background-image: url('@/assets/login-bg.svg');
   background-repeat: no-repeat;
   background-size: 100% auto;

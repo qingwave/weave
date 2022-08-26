@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
 	_ "github.com/qingwave/weave/docs"
 	"github.com/qingwave/weave/pkg/authentication"
 	"github.com/qingwave/weave/pkg/authentication/oauth"
@@ -44,12 +45,12 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 
 	db, err := database.NewPostgres(&conf.DB)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "db init failed")
 	}
 
 	rdb, err := database.NewRedisClient(&conf.Redis)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "redis client failed")
 	}
 
 	var conClient *docker.Client
@@ -92,8 +93,9 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 	containerController := controller.NewContainerController(conClient)
 	rbacController := controller.NewRbacController()
 	kubeController := kubecontroller.NewKubeControllers(kubeClient)
+	postController := controller.NewPostController(service.NewPostService(repository.Post()))
 
-	controllers := []controller.Controller{userController, groupController, authController, rbacController}
+	controllers := []controller.Controller{userController, groupController, authController, rbacController, postController}
 	if conf.Docker.Enable {
 		controllers = append(controllers, containerController)
 	}

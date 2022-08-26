@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col px-4rem py-2rem space-y-1rem">
+    <div class="flex flex-col px-[4rem] py-[2rem] space-y-[1rem]">
         <el-card header="Yaml Editor">
             <CodeEditor height="60vh" :value="data"></CodeEditor>
         </el-card>
@@ -85,4 +85,5 @@ const log = ref(`
 2022/05/30 07:21:55 [notice] 1#1: start worker process 49
 2022/05/30 07:21:55 [notice] 1#1: start worker process 50
 `)
+
 </script>

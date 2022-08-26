@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-row w-full space-x-2rem">
+    <div class="flex flex-row w-full space-x-[2rem]">
         <el-input v-model="search" placeholder="Type to search">
             <template #prefix>
                 <el-icon>
@@ -35,7 +35,7 @@
             </span>
         </template>
     </el-dialog>
-    <el-table :data="filterPolicies" class="w-full mb-2rem">
+    <el-table :data="filterPolicies" class="w-full mb-[2rem]">
         <el-table-column v-for="label, i in props.labels" :label="label">
             <template #default="scope">
                 <span>{{ scope.row[i] }}</span>
@@ -47,10 +47,10 @@
                 <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                     <template #reference>
                         <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
-                            class="wl-1rem" />
+                            class="wl-[1rem]" />
                     </template>
                     <p>Are you sure to delete this policy?</p>
-                    <div class="my-0.5rem">
+                    <div class="my-[0.5rem]">
                         <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                         <el-button size="small" type="danger" @click="deletePolicy(scope.row)">confirm</el-button>
                     </div>

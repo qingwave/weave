@@ -3,9 +3,8 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-// import styleImport, {ElementPlusResolve} from 'vite-plugin-style-import'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import WindiCSS from 'vite-plugin-windicss'
+import prismjs from "vite-plugin-prismjs";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,26 +16,28 @@ export default defineConfig({
     }
   },
   css: {
-		preprocessorOptions: {
-			scss: {
-				additionalData: `@use "@/styles/element.scss" as *;`,
-			},
-		},
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/styles/element.scss" as *;`,
+      },
+    },
   },
   plugins: [
     vue(),
-    WindiCSS(),
+    prismjs({
+      languages: ["json", "js", "go", "bash", "yaml", "markup"],
+      plugins: ["line-numbers"],
+      theme: "solarizedlight",
+      css: true,
+    }),
     AutoImport({
-      resolvers: [ElementPlusResolver({importStyle: "sass"})],
+      resolvers: [ElementPlusResolver({ importStyle: "sass" })],
     }),
     Components({
       resolvers: [
-        ElementPlusResolver({importStyle: "sass"}),
+        ElementPlusResolver({ importStyle: "sass" }),
       ],
-    }),
-    // styleImport({
-    //   resolves: [ElementPlusResolve()],
-    // })
+    })
   ],
   server: {
     host: "127.0.0.1",

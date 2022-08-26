@@ -1,11 +1,12 @@
 <template>
-  <Codemirror :value="props.value" :options="cmOptions" border placeholder="yaml code here" :height="props.height"
-    @change="onChange" />
+  <Codemirror :value="data" :options="cmOptions" border placeholder="yaml code here" :height="props.height"
+    @change="onChange"/>
 </template>
 
 <script setup>
 import Codemirror from "codemirror-editor-vue3";
 import "codemirror/mode/yaml/yaml.js";
+import "codemirror/mode/markdown/markdown.js";
 import "codemirror/theme/monokai.css";
 import "codemirror/addon/fold/brace-fold.js";
 import "codemirror/addon/fold/foldcode.js";
@@ -17,7 +18,7 @@ import "codemirror/addon/lint/lint.js";
 import "codemirror/addon/lint/lint.css";
 import "codemirror/addon/lint/yaml-lint.js";
 import yaml from 'js-yaml';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 window.jsyaml = yaml;
 
@@ -29,9 +30,18 @@ const props = defineProps({
   readOnly: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['change']);
+const data = ref(props.value)
+
+const emit = defineEmits(['update:modelValue', 'change']);
+
+watch( () => props.value,
+  (val) => {
+    data.value = val
+  }
+)
 
 const onChange = (val, cm) => {
+  emit('update:modelValue', val)
   emit("change", val, cm)
 }
 
@@ -41,7 +51,7 @@ const cmOptions = ref({
   lineNumbers: true,
   smartIndent: true,
   indentUnit: 2,
-  foldGutter: true,
+  scrollbarStyle: null,
   lint: true,
   styleActiveLine: true,
   readOnly: props.readOnly,

@@ -14,11 +14,11 @@ definitions:
         type: string
       authType:
         type: string
-      createAt:
+      createdAt:
         type: string
       id:
         type: integer
-      updateAt:
+      updatedAt:
         type: string
       url:
         type: string
@@ -37,6 +37,34 @@ definitions:
         type: string
       setCookie:
         type: boolean
+    type: object
+  model.Category:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.Comment:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      parent:
+        $ref: '#/definitions/model.Comment'
+      parentId:
+        type: integer
+      postId:
+        type: integer
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+      userId:
+        type: integer
     type: object
   model.Container:
     properties:
@@ -98,7 +126,7 @@ definitions:
     type: object
   model.Group:
     properties:
-      createAt:
+      createdAt:
         type: string
       creatorId:
         type: integer
@@ -108,7 +136,7 @@ definitions:
         type: integer
       name:
         type: string
-      updateAt:
+      updatedAt:
         type: string
       updaterId:
         type: integer
@@ -139,6 +167,50 @@ definitions:
       type:
         type: string
     type: object
+  model.Post:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/model.Category'
+        type: array
+      comments:
+        items:
+          $ref: '#/definitions/model.Comment'
+        type: array
+      content:
+        type: string
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/model.User'
+      creatorId:
+        type: integer
+      id:
+        type: integer
+      likes:
+        type: integer
+      name:
+        type: string
+      summary:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/model.Tag'
+        type: array
+      updatedAt:
+        type: string
+      userLiked:
+        type: boolean
+      views:
+        type: integer
+    type: object
+  model.Tag:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   model.UpdatedUser:
     properties:
       authInfos:
@@ -160,7 +232,7 @@ definitions:
         type: array
       avatar:
         type: string
-      createAt:
+      createdAt:
         type: string
       email:
         type: string
@@ -172,7 +244,7 @@ definitions:
         type: integer
       name:
         type: string
-      updateAt:
+      updatedAt:
         type: string
     type: object
   model.UserRole:
@@ -874,6 +946,223 @@ paths:
       summary: Handle rbac policy
       tags:
       - rbac
+  /api/v1/posts:
+    get:
+      description: List post
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Post'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List post
+      tags:
+      - post
+    post:
+      consumes:
+      - application/json
+      description: Create post and storage
+      parameters:
+      - description: post info
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/model.Post'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Create post
+      tags:
+      - post
+  /api/v1/posts/{id}:
+    delete:
+      description: Delete post
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete post
+      tags:
+      - post
+    get:
+      description: Get post
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Get post
+      tags:
+      - post
+    put:
+      consumes:
+      - application/json
+      description: Update post and storage
+      parameters:
+      - description: post info
+        in: body
+        name: post
+        required: true
+        schema:
+          $ref: '#/definitions/model.UpdatedUser'
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Post'
+              type: object
+      security:
+      - JWT: []
+      summary: Update post
+      tags:
+      - post
+  /api/v1/posts/{id}/comment:
+    post:
+      description: Add Comment
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add Comment
+      tags:
+      - post
+  /api/v1/posts/{id}/comment/${cid}:
+    delete:
+      description: Delete Comment
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: comment id
+        in: path
+        name: cid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete Comment
+      tags:
+      - post
+  /api/v1/posts/{id}/like:
+    delete:
+      description: Delete Like
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete Like
+      tags:
+      - post
+    post:
+      description: Add Like
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add Like
+      tags:
+      - post
   /api/v1/users:
     get:
       description: List user and storage

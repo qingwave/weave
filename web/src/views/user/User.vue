@@ -1,6 +1,6 @@
 <template>
   <div class="w-full flex justify-center">
-    <div class="flex flex-col w-full h-full px-4rem py-2rem space-y-1rem">
+    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
       <el-dialog v-model="showUpdate" top="5vh" title="Update User" width="50%">
         <el-form ref="updateFormRef" :model="updatedUser" label-position="top" label-width="auto">
           <el-form-item label="Name" prop="name">
@@ -19,10 +19,10 @@
         </template>
       </el-dialog>
 
-      <div class="flex overflow-hidden rounded-lg shadow-lg">
-        <div class="flex w-full h-5rem bg-white items-center">
-          <User class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-          <span class="m-0.75rem text-2xl font-600">Users</span>
+      <div class="flex overflow-hidden rounded-md shadow-md border">
+        <div class="flex w-full h-[5rem] items-center">
+          <User class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+          <span class="m-[0.75rem] text-2xl font-600">Users</span>
         </div>
       </div>
 
@@ -47,17 +47,17 @@
             </template>
           </el-table-column>
           <el-table-column prop="email" label="Email" />
-          <el-table-column prop="createAt" label="CreateAt" min-width="120px" />
+          <el-table-column prop="createdAt" label="CreateAt" min-width="120px" />
           <el-table-column label="Operation" min-width="120px">
             <template #default="scope">
               <el-button size="small" circle @click="editUser(scope.row)" :icon="Edit"></el-button>
               <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                 <template #reference>
                   <el-button size="small" type="danger" @click="showDelete = scope.$index" :icon="Delete" circle
-                    class="wl-1rem" />
+                    class="wl-[1rem]" />
                 </template>
                 <p>Are you sure to delete this user?</p>
-                <div class="my-0.5rem">
+                <div class="my-[0.5rem]">
                   <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                   <el-button size="small" type="danger" @click="deleteUser(scope.row)">confirm</el-button>
                 </div>

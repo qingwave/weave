@@ -1,5 +1,5 @@
 <template>
-  <el-breadcrumb class="py-1rem px-2rem" separator="<" v-show="show()">
+  <el-breadcrumb class="py-[1rem] px-[2rem]" separator="<" v-show="show()">
     <el-breadcrumb-item v-for="(item, index) in list" :to="{path: item.path}" :key="index" >{{item.name}}</el-breadcrumb-item>
   </el-breadcrumb>
 </template>

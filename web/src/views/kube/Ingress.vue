@@ -19,17 +19,17 @@
             </template>
         </el-dialog>
 
-        <div class="flex flex-col h-full px-4rem py-2rem space-y-1rem">
-            <div class="flex flex-col overflow-hidden rounded-lg shadow-lg">
-                <div class="flex w-full h-5rem bg-white items-center">
-                    <NetworkDrive class="ml-1rem" theme="filled" size="42" fill="#94A3B8" />
-                    <span class="m-0.75rem text-2xl font-600">Ingresses</span>
+        <div class="flex flex-col h-full px-[4rem] py-[2rem] space-y-[1rem]">
+            <div class="flex flex-col overflow-hidden rounded-md shadow-md border">
+                <div class="flex w-full h-[5rem] items-center">
+                    <NetworkDrive class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />
+                    <span class="m-[0.75rem] text-2xl font-600">Ingresses</span>
                 </div>
             </div>
 
             <el-card class="h-max flex-row">
                 <template #header>
-                    <div class="flex w-full space-x-2rem">
+                    <div class="flex w-full space-x-[2rem]">
                         <el-select class="w-1/3" v-model="currentNamespace" filterable
                             placeholder="please select namespace">
                             <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" />
@@ -59,16 +59,16 @@
                     <el-table-column prop="metadata.creationTimestamp" label="StartAt" sortable min-width="120px" />
                     <el-table-column label="Operation" min-width="120px">
                         <template #default="scope">
-                            <div class="space-x-0.75rem">
+                            <div class="space-x-[0.75rem]">
                                 <el-button class="" size="small" circle @click="editIngress(scope.row)" :icon="Edit" />
 
                                 <el-popover :visible="showDelete == scope.$index" placement="top" :width="180">
                                     <template #reference>
                                         <el-button size="small" type="danger" @click="showDelete = scope.$index"
-                                            :icon="Delete" circle class="wl-1rem" />
+                                            :icon="Delete" circle class="wl-[1rem]" />
                                     </template>
                                     <p>Are you sure to delete this app?</p>
-                                    <div class="ml-0.5rem">
+                                    <div class="ml-[0.5rem]">
                                         <el-button size="small" text @click="showDelete = -1">cancel</el-button>
                                         <el-button size="small" type="danger" @click="deleteIngress(scope.row)">confirm
                                         </el-button>

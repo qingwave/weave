@@ -104,6 +104,11 @@ const routes = [
         component: () => import('views/others/WebCode.vue')
       },
       {
+        path: '/markdown',
+        name: 'MarkDown',
+        component: () => import('views/others/MarkDownEditor.vue')
+      },
+      {
         path: '/404',
         name: '404',
         component: () => import('views/others/404.vue')
@@ -123,7 +128,48 @@ const routes = [
     path: '/oauth',
     name: 'OAuth',
     component: () => import("views/auth/OAuth.vue")
-  }
+  },
+  {
+    path: '/docs',
+    name: 'Document',
+    component: () => import("views/doc/List.vue"),
+    redirect: '/docs/introduce',
+    children: [
+      {
+        path: ':page',
+        name: 'DocDetail',
+        component: () => import('views/doc/Detail.vue')
+      }
+    ]
+  },
+  {
+    path: '/posts',
+    name: 'Post',
+    component: () => import('views/post/Home.vue'),
+    redirect: '/posts/list',
+    children: [
+      {
+        path: 'editor',
+        name: 'Editor',
+        component: () => import('views/post/Editor.vue')
+      },
+      {
+        path: 'editor/:id',
+        name: 'Draft',
+        component: () => import('views/post/Editor.vue')
+      },
+      {
+        path: 'list',
+        name: 'PostList',
+        component: () => import('views/post/List.vue')
+      },
+      {
+        path: ':post',
+        name: 'PostDetail',
+        component: () => import('views/post/Detail.vue')
+      }
+    ]
+  },
 ]
 
 const router = createRouter({

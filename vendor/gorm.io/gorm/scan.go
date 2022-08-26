@@ -66,18 +66,23 @@ func (db *DB) scanIntoStruct(rows Rows, reflectValue reflect.Value, values []int
 	db.RowsAffected++
 	db.AddError(rows.Scan(values...))
 
+	joinedSchemaMap := make(map[*schema.Field]interface{}, 0)
 	for idx, field := range fields {
 		if field != nil {
 			if len(joinFields) == 0 || joinFields[idx][0] == nil {
 				db.AddError(field.Set(db.Statement.Context, reflectValue, values[idx]))
 			} else {
-				relValue := joinFields[idx][0].ReflectValueOf(db.Statement.Context, reflectValue)
-				if relValue.Kind() == reflect.Ptr && relValue.IsNil() {
-					if value := reflect.ValueOf(values[idx]).Elem(); value.Kind() == reflect.Ptr && value.IsNil() {
-						continue
-					}
+				joinSchema := joinFields[idx][0]
+				relValue := joinSchema.ReflectValueOf(db.Statement.Context, reflectValue)
+				if relValue.Kind() == reflect.Ptr {
+					if _, ok := joinedSchemaMap[joinSchema]; !ok {
+						if value := reflect.ValueOf(values[idx]).Elem(); value.Kind() == reflect.Ptr && value.IsNil() {
+							continue
+						}
 
-					relValue.Set(reflect.New(relValue.Type().Elem()))
+						relValue.Set(reflect.New(relValue.Type().Elem()))
+						joinedSchemaMap[joinSchema] = nil
+					}
 				}
 				db.AddError(joinFields[idx][1].Set(db.Statement.Context, relValue, values[idx]))
 			}
@@ -193,14 +198,21 @@ func Scan(rows Rows, db *DB, mode ScanMode) {
 
 			// Not Pluck
 			if sch != nil {
+				schFieldsCount := len(sch.Fields)
 				for idx, column := range columns {
 					if field := sch.LookUpField(column); field != nil && field.Readable {
 						if curIndex, ok := selectedColumnsMap[column]; ok {
-							for fieldIndex, selectField := range sch.Fields[curIndex+1:] {
-								if selectField.DBName == column && selectField.Readable {
-									selectedColumnsMap[column] = curIndex + fieldIndex + 1
-									fields[idx] = selectField
-									break
+							fields[idx] = field // handle duplicate fields
+							offset := curIndex + 1
+							// handle sch inconsistent with database
+							// like Raw(`...`).Scan
+							if schFieldsCount > offset {
+								for fieldIndex, selectField := range sch.Fields[offset:] {
+									if selectField.DBName == column && selectField.Readable {
+										selectedColumnsMap[column] = curIndex + fieldIndex + 1
+										fields[idx] = selectField
+										break
+									}
 								}
 							}
 						} else {
@@ -230,6 +242,7 @@ func Scan(rows Rows, db *DB, mode ScanMode) {
 		switch reflectValue.Kind() {
 		case reflect.Slice, reflect.Array:
 			var elem reflect.Value
+			recyclableStruct := reflect.New(reflectValueType)
 
 			if !update || reflectValue.Len() == 0 {
 				update = false
@@ -254,7 +267,11 @@ func Scan(rows Rows, db *DB, mode ScanMode) {
 						}
 					}
 				} else {
-					elem = reflect.New(reflectValueType)
+					if isPtr && db.RowsAffected > 0 {
+						elem = reflect.New(reflectValueType)
+					} else {
+						elem = recyclableStruct
+					}
 				}
 
 				db.scanIntoStruct(rows, elem, values, fields, joinFields)
