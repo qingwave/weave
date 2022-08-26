@@ -49,7 +49,13 @@ func (p *PostController) List(c *gin.Context) {
 // @Success 200 {object} common.Response{data=model.Post}
 // @Router /api/v1/posts/{id} [get]
 func (p *PostController) Get(c *gin.Context) {
-	post, err := p.postService.Get(c.Param("id"))
+	user := common.GetUser(c)
+	if user == nil {
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to get user"))
+		return
+	}
+
+	post, err := p.postService.Get(user, c.Param("id"))
 	if err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -197,6 +203,54 @@ func (p *PostController) DelLike(c *gin.Context) {
 	common.ResponseSuccess(c, nil)
 }
 
+// @Summary Add Comment
+// @Description Add Comment
+// @Produce json
+// @Tags post
+// @Security JWT
+// @Param id path int true "post id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/posts/{id}/comment [post]
+func (p *PostController) AddComment(c *gin.Context) {
+	user := common.GetUser(c)
+	if user == nil {
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to get user"))
+		return
+	}
+
+	comment := &model.Comment{}
+	if err := c.Bind(comment); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to get comment: %v", err))
+		return
+	}
+
+	comment, err := p.postService.AddComment(user, c.Param("id"), comment)
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, comment)
+}
+
+// @Summary Delete Comment
+// @Description Delete Comment
+// @Produce json
+// @Tags post
+// @Security JWT
+// @Param id path int true "post id"
+// @Param cid path int true "comment id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/posts/{id}/comment/${cid} [delete]
+func (p *PostController) DelComment(c *gin.Context) {
+	if err := p.postService.DelComment(c.Param("cid")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, nil)
+}
+
 func (p *PostController) RegisterRoute(api *gin.RouterGroup) {
 	api.GET("/posts", p.List)
 	api.POST("/posts", p.Create)
@@ -205,6 +259,8 @@ func (p *PostController) RegisterRoute(api *gin.RouterGroup) {
 	api.DELETE("/posts/:id", p.Delete)
 	api.POST("/posts/:id/like", p.AddLike)
 	api.DELETE("/posts/:id/like", p.DelLike)
+	api.POST("/posts/:id/comment", p.AddComment)
+	api.DELETE("/posts/:id/comment/:cid", p.DelLike)
 }
 
 func (p *PostController) Name() string {

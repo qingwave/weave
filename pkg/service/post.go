@@ -29,7 +29,7 @@ func (p *postService) Create(user *model.User, post *model.Post) (*model.Post, e
 	return p.postRepository.Create(user, post)
 }
 
-func (p *postService) Get(id string) (*model.Post, error) {
+func (p *postService) Get(user *model.User, id string) (*model.Post, error) {
 	pid, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,14 @@ func (p *postService) Get(id string) (*model.Post, error) {
 		return nil, err
 	}
 
-	return p.postRepository.GetPostByID(uint(pid))
+	post, err := p.postRepository.GetPostByID(uint(pid))
+	if err != nil {
+		return nil, err
+	}
+
+	post.UserLiked, _ = p.postRepository.GetLike(uint(pid), user.ID)
+
+	return post, nil
 }
 
 func (p *postService) Update(id string, post *model.Post) (*model.Post, error) {
@@ -94,6 +101,22 @@ func (p *postService) DelLike(user *model.User, id string) error {
 	}
 
 	return p.postRepository.DelLike(uint(pid), user.ID)
+}
+
+func (p *postService) AddComment(user *model.User, id string, comment *model.Comment) (*model.Comment, error) {
+	pid, err := strconv.Atoi(id)
+	if err != nil {
+		return nil, err
+	}
+
+	comment.PostID = uint(pid)
+	comment.UserID = user.ID
+
+	return p.postRepository.AddComment(comment)
+}
+
+func (p *postService) DelComment(id string) error {
+	return p.postRepository.DelComment(id)
 }
 
 const summaryLen = 128

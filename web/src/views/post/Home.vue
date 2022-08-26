@@ -1,9 +1,9 @@
 <template>
     <div class="flex flex-col w-full h-full">
-        <Header class="w-full h-full" />
-            <div class="w-full h-full overflow-y-scroll">
-                <router-view :key=route.path />
-            </div>
+        <Header class="w-full" />
+        <div class="w-full h-full overflow-y-scroll">
+            <router-view :key=route.path />
+        </div>
     </div>
 </template>
 

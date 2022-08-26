@@ -52,5 +52,10 @@ type PostRepository interface {
 	IncView(id uint) error
 	AddLike(pid, uid uint) error
 	DelLike(pid, uid uint) error
+	GetLike(pid, uid uint) (bool, error)
+	GetLikeByUser(uid uint) ([]model.Like, error)
+	AddComment(comment *model.Comment) (*model.Comment, error)
+	DelComment(id string) error
+	ListComment(pid string) ([]model.Comment, error)
 	Migrate() error
 }

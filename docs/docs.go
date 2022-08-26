@@ -1385,6 +1385,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/posts/{id}/comment": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Add Comment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "post"
+                ],
+                "summary": "Add Comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "post id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/common.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/posts/{id}/comment/${cid}": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Delete Comment",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "post"
+                ],
+                "summary": "Delete Comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "post id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "comment id",
+                        "name": "cid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/common.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/posts/{id}/like": {
             "post": {
                 "security": [
@@ -1791,6 +1866,38 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Comment": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "parent": {
+                    "$ref": "#/definitions/model.Comment"
+                },
+                "parentId": {
+                    "type": "integer"
+                },
+                "postId": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/model.User"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.Container": {
             "type": "object",
             "properties": {
@@ -1923,20 +2030,6 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Like": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "postId": {
-                    "type": "integer"
-                },
-                "userId": {
-                    "type": "integer"
-                }
-            }
-        },
         "model.Policy": {
             "type": "object",
             "properties": {
@@ -1969,6 +2062,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/model.Category"
                     }
                 },
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Comment"
+                    }
+                },
                 "content": {
                     "type": "string"
                 },
@@ -1985,10 +2084,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "likes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Like"
-                    }
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -2004,6 +2100,9 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "type": "string"
+                },
+                "userLiked": {
+                    "type": "boolean"
                 },
                 "views": {
                     "type": "integer"

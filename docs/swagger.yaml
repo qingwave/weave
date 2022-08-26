@@ -45,6 +45,27 @@ definitions:
       name:
         type: string
     type: object
+  model.Comment:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: integer
+      parent:
+        $ref: '#/definitions/model.Comment'
+      parentId:
+        type: integer
+      postId:
+        type: integer
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+      userId:
+        type: integer
+    type: object
   model.Container:
     properties:
       address:
@@ -131,15 +152,6 @@ definitions:
       token:
         type: string
     type: object
-  model.Like:
-    properties:
-      id:
-        type: integer
-      postId:
-        type: integer
-      userId:
-        type: integer
-    type: object
   model.Policy:
     properties:
       action:
@@ -161,6 +173,10 @@ definitions:
         items:
           $ref: '#/definitions/model.Category'
         type: array
+      comments:
+        items:
+          $ref: '#/definitions/model.Comment'
+        type: array
       content:
         type: string
       createdAt:
@@ -172,9 +188,7 @@ definitions:
       id:
         type: integer
       likes:
-        items:
-          $ref: '#/definitions/model.Like'
-        type: array
+        type: integer
       name:
         type: string
       summary:
@@ -185,6 +199,8 @@ definitions:
         type: array
       updatedAt:
         type: string
+      userLiked:
+        type: boolean
       views:
         type: integer
     type: object
@@ -1057,6 +1073,53 @@ paths:
       security:
       - JWT: []
       summary: Update post
+      tags:
+      - post
+  /api/v1/posts/{id}/comment:
+    post:
+      description: Add Comment
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add Comment
+      tags:
+      - post
+  /api/v1/posts/{id}/comment/${cid}:
+    delete:
+      description: Delete Comment
+      parameters:
+      - description: post id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: comment id
+        in: path
+        name: cid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete Comment
       tags:
       - post
   /api/v1/posts/{id}/like:

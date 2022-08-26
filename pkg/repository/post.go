@@ -74,7 +74,7 @@ func (p *postRepository) GetCategories(post *model.Post) ([]model.Category, erro
 
 func (p *postRepository) GetPostByID(id uint) (*model.Post, error) {
 	post := new(model.Post)
-	if err := p.db.Preload("Creator").Preload("Tags").Preload("Categories").First(post, id).Error; err != nil {
+	if err := p.db.Preload("Creator").Preload("Tags").Preload("Categories").Preload("Comments.User").Preload("Comments").First(post, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -117,8 +117,7 @@ func (p *postRepository) AddLike(pid, uid uint) error {
 }
 
 func (p *postRepository) DelLike(pid, uid uint) error {
-	like := &model.Like{PostID: pid, UserID: uid}
-	return p.db.Delete(like).Error
+	return p.db.Where("post_id = ? and user_id = ?", pid, uid).Delete(&model.Like{}).Error
 }
 
 func (p *postRepository) CountLike(id uint) (int64, error) {
@@ -127,6 +126,33 @@ func (p *postRepository) CountLike(id uint) (int64, error) {
 	return count, err
 }
 
+func (p *postRepository) GetLike(pid, uid uint) (bool, error) {
+	var count int64
+	err := p.db.Model(&model.Like{}).Where("post_id = ? and user_id = ?", pid, uid).Count(&count).Error
+	return count > 0, err
+}
+
+func (p *postRepository) GetLikeByUser(uid uint) ([]model.Like, error) {
+	likes := make([]model.Like, 0)
+	err := p.db.Model(&model.Like{}).Where("user_id = ?", uid).Find(&likes).Error
+	return likes, err
+}
+
+func (p *postRepository) AddComment(comment *model.Comment) (*model.Comment, error) {
+	err := p.db.Create(comment).Error
+	return comment, err
+}
+
+func (p *postRepository) DelComment(id string) error {
+	return p.db.Delete(&model.Comment{}, id).Error
+}
+
+func (p *postRepository) ListComment(pid string) ([]model.Comment, error) {
+	comments := make([]model.Comment, 0)
+	err := p.db.Where("post_id = ?", pid).Find(comments).Error
+	return comments, err
+}
+
 func (p *postRepository) Migrate() error {
-	return p.db.AutoMigrate(&model.Post{}, &model.Like{}, &model.Tag{}, &model.Category{})
+	return p.db.AutoMigrate(&model.Post{}, &model.Like{}, &model.Tag{}, &model.Category{}, &model.Comment{})
 }
