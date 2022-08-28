@@ -170,6 +170,7 @@ const addComment = () => {
     userId: user.id,
     content: commentText.value
   }).then((response) => {
+    commentText.value = ""
     comments.value.push(response.data.data)
   })
 }

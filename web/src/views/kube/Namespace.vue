@@ -1,23 +1,23 @@
 <template>
   <div class="w-full flex justify-center">
-    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
-      <el-dialog v-model="showCreate" title="Create Namespace" width="50%">
-        <el-form :model="newNamespace" label-position="top" label-width="auto">
-          <el-form-item label="Name" prop="group" required>
-            <el-select class="w-full" v-model="newNamespace.group" filterable placeholder="please select related group">
-              <el-option v-for="(g, index) in groups" :label="getNsLabel(g)" :value="index" />
-            </el-select>
-            <span class="text-gray-400">Select related group, will created a new namespace with group name</span>
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button type="primary" @click="createNamespace">Confirm</el-button>
-            <el-button @click="showCreate = false">Cancel</el-button>
-          </span>
-        </template>
-      </el-dialog>
+    <el-dialog v-model="showCreate" title="Create Namespace" width="50%">
+      <el-form :model="newNamespace" label-position="top" label-width="auto">
+        <el-form-item label="Name" prop="group" required>
+          <el-select class="w-full" v-model="newNamespace.group" filterable placeholder="please select related group">
+            <el-option v-for="(g, index) in groups" :label="getNsLabel(g)" :value="index" />
+          </el-select>
+          <span class="text-gray-400">Select related group, will created a new namespace with group name</span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="createNamespace">Confirm</el-button>
+          <el-button @click="showCreate = false">Cancel</el-button>
+        </span>
+      </template>
+    </el-dialog>
 
+    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
       <div class="flex overflow-hidden rounded-md shadow-md border">
         <div class="flex w-full h-[5rem] items-center">
           <BookmarkThree class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />

@@ -1,7 +1,6 @@
 <template>
   <div class="w-full flex justify-center">
-    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
-      <el-dialog v-model="showCreate" top="5vh" title="Create Group" width="50%">
+    <el-dialog v-model="showCreate" top="5vh" title="Create Group" width="50%">
         <el-form ref="createFormRef" :model="newGroup" label-position="top" label-width="auto">
           <el-form-item label="Name" prop="name" required>
             <el-input v-model="newGroup.name" />
@@ -38,6 +37,7 @@
         </template>
       </el-dialog>
 
+    <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
       <div class="flex overflow-hidden rounded-md shadow-md border">
         <div class="flex w-full h-[5rem] items-center">
           <Peoples class="ml-[1rem]" theme="filled" size="42" fill="#94A3B8" />

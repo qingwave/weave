@@ -1,12 +1,29 @@
 <template>
   <el-header>
+    <el-dialog v-model="showSearch" :showClose=false append-to-body>
+      <template #header="{ close, titleId, titleClass }">
+        <div class="w-full overflow-hidden divide-y">
+        <div class="flex items-center h-12">
+          <div class="grid place-items-center h-full w-12 text-slate-500">
+            <search theme="outline" size="18" fill="#64748b" />
+          </div>
+
+          <input class="peer h-full w-full outline-none text-sm text-slate-500 pr-2" type="text"
+            placeholder="Search something.." />
+          
+          <el-button text bg size="small" class="text-slate-500" @click="close"> ESC </el-button>
+        </div>
+        <div style="{border-top-width: 1px}"></div>
+      </div>
+      </template>
+    </el-dialog>
     <el-row class="flex h-full w-full" justify="center" align="middle">
       <el-col :span="4" class="flex text-center items-center content-center">
-            <img class="w-[2.5rem] mx-[0.5rem]" src="@/assets/weave.png" />
-            <span class="font-bold font-mono text-2xl pl-[0.5rem]">Weave</span>
+        <img class="w-[2.5rem] mx-[0.5rem]" src="@/assets/weave.png" />
+        <span class="font-semibold font-mono text-2xl pl-[0.5rem]">Weave</span>
       </el-col>
       <el-col :span="14" class="flex-col text-right content-center">
-        <el-menu mode="horizontal" class="font-bold" active-text-color="#000000">
+        <el-menu mode="horizontal" class="font-semibold" active-text-color="#000000">
           <el-menu-item index="1">
             <router-link to="/">Home</router-link>
           </el-menu-item>
@@ -19,7 +36,7 @@
         </el-menu>
       </el-col>
       <el-col :span="6" class="text-right pr-[1rem] space-x-[1rem]">
-        <el-button link @click="notImplement('Search')">
+        <el-button link @click="showSearch = true">
           <search theme="outline" size="18" fill="#333" />
         </el-button>
         <el-button link>
@@ -33,7 +50,7 @@
             <me v-else theme="two-tone" size="18" :fill="['#333', '#50e3c2']" />
           </el-button>
           <template #dropdown>
-            <span class="flex items-center content-center text-center mt-[1rem] mb-[0.5rem] mx-4 font-bold text-l">
+            <span class="flex items-center content-center text-center mt-[1rem] mb-[0.5rem] mx-4 font-semibold text-l">
               <SunOne theme="two-tone" size="24" :fill="['#333', '#f8e71c']" />
               <span class="ml-2">Hi {{ user.name }}</span>
             </span>
@@ -67,6 +84,7 @@ import request from '@/axios';
 import { ElMessage, ElNotification } from "element-plus";
 import { useRouter } from 'vue-router';
 import { githubInfo } from '@/config.js';
+import { ref } from 'vue';
 
 const user = getUser();
 const router = useRouter();
@@ -80,6 +98,7 @@ function logout() {
       showClose: true,
       duration: 1500,
     })
+    delUser()
     router.push('/login');
   }).catch((error) => {
     console.log(error)
@@ -98,6 +117,8 @@ function notImplement(name) {
     duration: 1000,
   })
 }
+
+const showSearch = ref(false)
 
 </script>
 
