@@ -17,7 +17,7 @@ const (
 type CustomClaims struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type JWTService struct {
@@ -43,10 +43,10 @@ func (s *JWTService) CreateToken(user *model.User) (string, error) {
 		CustomClaims{
 			Name: user.Name,
 			ID:   user.ID,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: time.Now().Unix() + s.expireDuration,
-				NotBefore: time.Now().Unix() - 1000,
-				Id:        strconv.Itoa(int(user.ID)),
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: &jwt.NumericDate{Time: time.Unix(time.Now().Unix()+s.expireDuration, 0)},
+				NotBefore: &jwt.NumericDate{Time: time.Unix(time.Now().Unix()-1000, 0)},
+				ID:        strconv.Itoa(int(user.ID)),
 				Issuer:    s.issuer,
 			},
 		},
