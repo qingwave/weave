@@ -148,6 +148,10 @@ const login = async (form) => {
         password: loginUser.password,
         setCookie: true,
       }).then((response) => {
+        setUser({
+          name: loginUser.name,
+        })
+        localStorage.setItem('token',"bearer "+response.data.data.token)
         success()
       })
     } else {

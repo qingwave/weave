@@ -3,8 +3,8 @@ import { ElMessage } from "element-plus"
 import { getUser } from "@/utils"
 
 // vite proxy, need not cors
-// axios.defaults.baseURL = "http://127.0.0.1:8080";
-// axios.defaults.withCredentials = true;
+axios.defaults.baseURL = "http://192.168.30.134:8080";
+axios.defaults.withCredentials = true;
 
 const user = getUser()
 
@@ -21,6 +21,8 @@ request.interceptors.request.use(config => {
     if ( user != null && user.name == anonymous) {
         return Promise.reject(anonymous)
     }
+    const token=localStorage.getItem('token')
+    token?config.headers.Authorization=token:null;
     return config
 }, error => {
     return Promise.reject(error)
