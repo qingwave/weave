@@ -1,6 +1,3 @@
-# github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-## explicit
-github.com/Knetic/govaluate
 # github.com/KyleBanks/depth v1.2.1
 ## explicit
 github.com/KyleBanks/depth
@@ -20,36 +17,12 @@ github.com/beorn7/perks/quantile
 # github.com/bombsimon/logrusr/v2 v2.0.1
 ## explicit; go 1.13
 github.com/bombsimon/logrusr/v2
-# github.com/casbin/casbin/v2 v2.47.1
-## explicit; go 1.13
-github.com/casbin/casbin/v2
-github.com/casbin/casbin/v2/config
-github.com/casbin/casbin/v2/effector
-github.com/casbin/casbin/v2/errors
-github.com/casbin/casbin/v2/log
-github.com/casbin/casbin/v2/model
-github.com/casbin/casbin/v2/persist
-github.com/casbin/casbin/v2/persist/cache
-github.com/casbin/casbin/v2/persist/file-adapter
-github.com/casbin/casbin/v2/rbac
-github.com/casbin/casbin/v2/rbac/default-role-manager
-github.com/casbin/casbin/v2/util
-# github.com/casbin/gorm-adapter/v3 v3.7.1
-## explicit; go 1.14
-github.com/casbin/gorm-adapter/v3
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/denisenkom/go-mssqldb v0.12.0
-## explicit; go 1.11
-github.com/denisenkom/go-mssqldb
-github.com/denisenkom/go-mssqldb/internal/cp
-github.com/denisenkom/go-mssqldb/internal/decimal
-github.com/denisenkom/go-mssqldb/internal/querytext
-github.com/denisenkom/go-mssqldb/msdsn
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
 ## explicit
 github.com/dgryski/go-rendezvous
@@ -105,12 +78,6 @@ github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/internal/bytesconv
 github.com/gin-gonic/gin/internal/json
 github.com/gin-gonic/gin/render
-# github.com/glebarez/go-sqlite v1.16.0
-## explicit; go 1.16
-github.com/glebarez/go-sqlite
-# github.com/glebarez/sqlite v1.4.3
-## explicit; go 1.16
-github.com/glebarez/sqlite
 # github.com/go-logr/logr v1.2.2
 ## explicit; go 1.16
 github.com/go-logr/logr
@@ -147,9 +114,6 @@ github.com/go-redis/redis/v8/internal/pool
 github.com/go-redis/redis/v8/internal/proto
 github.com/go-redis/redis/v8/internal/rand
 github.com/go-redis/redis/v8/internal/util
-# github.com/go-sql-driver/mysql v1.6.0
-## explicit; go 1.10
-github.com/go-sql-driver/mysql
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/proto
@@ -157,12 +121,6 @@ github.com/gogo/protobuf/sortkeys
 # github.com/golang-jwt/jwt/v4 v4.2.0
 ## explicit; go 1.15
 github.com/golang-jwt/jwt/v4
-# github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9
-## explicit
-github.com/golang-sql/civil
-# github.com/golang-sql/sqlexp v0.0.0-20170517235910-f1bb20e5a188
-## explicit
-github.com/golang-sql/sqlexp
 # github.com/golang/protobuf v1.5.2
 ## explicit; go 1.9
 github.com/golang/protobuf/proto
@@ -189,7 +147,6 @@ github.com/google/go-cmp/cmp/internal/value
 github.com/google/gofuzz
 # github.com/google/uuid v1.3.0
 ## explicit
-github.com/google/uuid
 # github.com/gorilla/websocket v1.4.2
 ## explicit; go 1.12
 github.com/gorilla/websocket
@@ -303,9 +260,6 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0
-## explicit; go 1.12
-github.com/remyoudompheng/bigfft
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
@@ -331,7 +285,6 @@ github.com/ugorji/go/codec
 ## explicit; go 1.17
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
-golang.org/x/crypto/md4
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/sha3
 # golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4
@@ -438,15 +391,9 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
 gopkg.in/yaml.v3
-# gorm.io/driver/mysql v1.3.3
-## explicit; go 1.14
-gorm.io/driver/mysql
 # gorm.io/driver/postgres v1.3.5
 ## explicit; go 1.14
 gorm.io/driver/postgres
-# gorm.io/driver/sqlserver v1.3.2
-## explicit; go 1.14
-gorm.io/driver/sqlserver
 # gorm.io/gorm v1.23.8
 ## explicit; go 1.14
 gorm.io/gorm
@@ -456,9 +403,6 @@ gorm.io/gorm/logger
 gorm.io/gorm/migrator
 gorm.io/gorm/schema
 gorm.io/gorm/utils
-# gorm.io/plugin/dbresolver v1.1.0
-## explicit; go 1.14
-gorm.io/plugin/dbresolver
 # k8s.io/api v0.24.1
 ## explicit; go 1.16
 k8s.io/api/admissionregistration/v1
@@ -623,43 +567,6 @@ k8s.io/utils/net
 k8s.io/utils/pointer
 k8s.io/utils/strings/slices
 k8s.io/utils/trace
-# modernc.org/libc v1.15.1
-## explicit; go 1.16
-modernc.org/libc
-modernc.org/libc/errno
-modernc.org/libc/fcntl
-modernc.org/libc/fts
-modernc.org/libc/grp
-modernc.org/libc/honnef.co/go/netdb
-modernc.org/libc/langinfo
-modernc.org/libc/limits
-modernc.org/libc/netdb
-modernc.org/libc/netinet/in
-modernc.org/libc/poll
-modernc.org/libc/pthread
-modernc.org/libc/pwd
-modernc.org/libc/signal
-modernc.org/libc/stdio
-modernc.org/libc/stdlib
-modernc.org/libc/sys/socket
-modernc.org/libc/sys/stat
-modernc.org/libc/sys/types
-modernc.org/libc/termios
-modernc.org/libc/time
-modernc.org/libc/unistd
-modernc.org/libc/utime
-modernc.org/libc/uuid
-modernc.org/libc/uuid/uuid
-modernc.org/libc/wctype
-# modernc.org/mathutil v1.4.1
-## explicit; go 1.13
-modernc.org/mathutil
-# modernc.org/memory v1.0.7
-## explicit; go 1.16
-modernc.org/memory
-# modernc.org/sqlite v1.16.0
-## explicit; go 1.16
-modernc.org/sqlite/lib
 # sigs.k8s.io/controller-runtime v0.12.1
 ## explicit; go 1.17
 sigs.k8s.io/controller-runtime/pkg/cache

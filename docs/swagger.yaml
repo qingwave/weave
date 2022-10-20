@@ -136,6 +136,10 @@ definitions:
         type: integer
       name:
         type: string
+      roles:
+        items:
+          $ref: '#/definitions/model.Role'
+        type: array
       updatedAt:
         type: string
       updaterId:
@@ -150,21 +154,6 @@ definitions:
       describe:
         type: string
       token:
-        type: string
-    type: object
-  model.Policy:
-    properties:
-      action:
-        type: string
-      oldPolicy:
-        items:
-          type: string
-        type: array
-      policy:
-        items:
-          type: string
-        type: array
-      type:
         type: string
     type: object
   model.Post:
@@ -203,6 +192,34 @@ definitions:
         type: boolean
       views:
         type: integer
+    type: object
+  model.Role:
+    properties:
+      groupId:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+      namespace:
+        $ref: '#/definitions/model.Group'
+      rules:
+        items:
+          $ref: '#/definitions/model.Rule'
+        type: array
+      scope:
+        type: string
+    type: object
+  model.Rule:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      operation:
+        type: string
+      resource:
+        type: string
     type: object
   model.Tag:
     properties:
@@ -244,16 +261,11 @@ definitions:
         type: integer
       name:
         type: string
+      roles:
+        items:
+          $ref: '#/definitions/model.Role'
+        type: array
       updatedAt:
-        type: string
-    type: object
-  model.UserRole:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      role:
         type: string
     type: object
 host: localhost:8080
@@ -705,7 +717,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.UserRole'
+          $ref: '#/definitions/model.User'
       - description: user name
         in: query
         name: name
@@ -761,7 +773,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/model.UserRole'
+          $ref: '#/definitions/model.User'
       produces:
       - application/json
       responses:
@@ -896,56 +908,6 @@ paths:
       summary: Update kube resource
       tags:
       - k8s
-  /api/v1/policies:
-    get:
-      description: List rbac policy
-      parameters:
-      - description: 'ptype: p/g/g2'
-        in: query
-        name: ptype
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/common.Response'
-            - properties:
-                data:
-                  items:
-                    type: string
-                  type: array
-              type: object
-      security:
-      - JWT: []
-      summary: List rbac policy
-      tags:
-      - rbac
-    post:
-      consumes:
-      - application/json
-      description: Handle rbac policy and storage
-      parameters:
-      - description: rbac policy info
-        in: body
-        name: policy
-        required: true
-        schema:
-          $ref: '#/definitions/model.Policy'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/common.Response'
-      security:
-      - JWT: []
-      summary: Handle rbac policy
-      tags:
-      - rbac
   /api/v1/posts:
     get:
       description: List post
@@ -1163,6 +1125,126 @@ paths:
       summary: Add Like
       tags:
       - post
+  /api/v1/roles:
+    get:
+      description: List rbac role
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Role'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List rbac role
+      tags:
+      - rbac
+    post:
+      consumes:
+      - application/json
+      description: Create rbac role
+      parameters:
+      - description: rbac role info
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/model.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Create rbac role
+      tags:
+      - rbac
+  /api/v1/roles/:id:
+    put:
+      consumes:
+      - application/json
+      description: Update rbac role
+      parameters:
+      - description: rbac role info
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/model.Role'
+      - description: role id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Update rbac role
+      tags:
+      - rbac
+  /api/v1/roles/{id}:
+    delete:
+      description: Delete role
+      parameters:
+      - description: role id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete role
+      tags:
+      - role
+    get:
+      description: Get role
+      parameters:
+      - description: role id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Role'
+              type: object
+      security:
+      - JWT: []
+      summary: Get role
+      tags:
+      - role
   /api/v1/users:
     get:
       description: List user and storage

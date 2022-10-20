@@ -42,9 +42,10 @@ CREATE TABLE IF NOT EXISTS groups (
     deleted_at timestamp with time zone
 );
 
-INSERT INTO groups (name, describe, created_at) VALUES
-    ('root', 'weave system group', LOCALTIMESTAMP),
-    ('tenant', 'weave tenant group', LOCALTIMESTAMP);
+INSERT INTO groups (name, kind, describe, created_at) VALUES
+    ('root', 'system', 'weave system group', LOCALTIMESTAMP),
+    ('system:authenticated', 'system', 'system group contains all authenticated user', LOCALTIMESTAMP),
+    ('system:unauthenticated', 'system', 'system group contains all unauthenticated user', LOCALTIMESTAMP)  ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS user_groups(
     group_id BIGINT NOT NULL REFERENCES groups(id),
@@ -52,6 +53,58 @@ CREATE TABLE IF NOT EXISTS user_groups(
     PRIMARY KEY(group_id, user_id)
 );
 
-insert into user_groups (group_id, user_id)
-    select  g.id, u.id from users as u, groups as g 
-    where (u.name='admin' and g.name='root') or (u.name='demo' and g.name='tenant');
+INSERT INTO user_groups (group_id, user_id)
+    SELECT  g.id, u.id FROM users AS u, groups AS g 
+    WHERE (u.name='admin' AND g.name='root') ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS resources (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name varchar(256) NOT NULL,
+    scope varchar(100),
+    kind varchar(100)
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    name varchar(100) NOT NULL UNIQUE,
+    scope varchar(100),
+    namespace varchar(100)
+);
+
+INSERT INTO roles (name, scope) VALUES
+    ('cluster-admin', 'cluster'),
+    ('authenticated', 'cluster'),
+    ('unauthenticated', 'cluster');
+
+CREATE TABLE IF NOT EXISTS rules (
+    id BIGSERIAL PRIMARY KEY NOT NULL,
+    role_id bigint REFERENCES roles(id) on UPDATE CASCADE on DELETE CASCADE,
+    resource varchar(100),
+    operation varchar(100)
+);
+
+CREATE UNIQUE INDEX idx_role_rule
+ON rules(role_id, resource, operation);
+
+INSERT INTO rules (role_id, resource, operation) VALUES
+  ((SELECT id FROM roles WHERE name = 'cluster-admin'), '*', '*'),
+  ((SELECT id FROM roles WHERE name = 'authenticated'), 'users', '*'),
+  ((SELECT id FROM roles WHERE name = 'authenticated'), 'auth', '*'),
+  ((SELECT id FROM roles WHERE name = 'unauthenticated'), 'auth', 'create');
+
+CREATE TABLE IF NOT EXISTS user_roles(
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    role_id BIGINT NOT NULL REFERENCES roles(id),
+    PRIMARY KEY(user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS group_roles(
+    group_id BIGINT NOT NULL REFERENCES groups(id),
+    role_id BIGINT NOT NULL REFERENCES roles(id),
+    PRIMARY KEY(group_id, role_id)
+);
+
+INSERT INTO group_roles (group_id, role_id) VALUES
+    ((SELECT id FROM groups WHERE name = 'root'), (SELECT id FROM roles WHERE name = 'cluster-admin')),
+    ((SELECT id FROM groups WHERE name = 'system:authenticated'), (SELECT id FROM roles WHERE name = 'authenticated')),
+    ((SELECT id FROM groups WHERE name = 'system:unauthenticated'), (SELECT id FROM roles WHERE name = 'unauthenticated'));

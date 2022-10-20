@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/qingwave/weave/pkg/authorization"
 	"github.com/qingwave/weave/pkg/model"
 	"github.com/qingwave/weave/pkg/repository"
 )
@@ -12,6 +11,7 @@ import (
 type groupService struct {
 	userRepository  repository.UserRepository
 	groupRepository repository.GroupRepository
+	rbacRepository  repository.RBACRepository
 }
 
 func NewGroupService(groupRepository repository.GroupRepository, userRepository repository.UserRepository) GroupService {
@@ -22,16 +22,6 @@ func NewGroupService(groupRepository repository.GroupRepository, userRepository 
 }
 
 func (g *groupService) List() ([]model.Group, error) {
-	// names, err := authorization.Enforcer.GetAllDomains()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// groups := make([]model.Group, 0)
-	// for _, name := range names {
-	// 	groups = append(groups, model.Group{Name: name})
-	// }
-	// return groups, nil
-
 	return g.groupRepository.List()
 }
 
@@ -41,15 +31,8 @@ func (g *groupService) Create(user *model.User, group *model.Group) (*model.Grou
 		return nil, err
 	}
 
-	// add tenant policy
-	authorization.Enforcer.AddPolicies([][]string{
-		{authorization.AdminRole, group.Name, "tenant_sys_resource", "*", "get,update,delete"},
-		{authorization.AdminRole, group.Name, "tenant_resource", "*", "*"},
-		{authorization.EditRole, group.Name, "tenant_resource", "*", "*"},
-		{authorization.ViewRole, group.Name, "tenant_resource", "*", "get,list"},
-	})
-
-	if _, err := authorization.Enforcer.AddGroupingPolicy(user.Name, authorization.AdminRole, group.Name); err != nil {
+	// create default rbac, and set role binding
+	if err := g.createDefaultRoles(group); err != nil {
 		return nil, err
 	}
 
@@ -78,92 +61,89 @@ func (g *groupService) Delete(id string) error {
 	if err != nil {
 		return err
 	}
-	group, err := g.groupRepository.GetGroupByID(uint(gid))
-	if err != nil {
-		return err
-	}
-	for _, val := range authorization.DefaultGroups {
-		if val == group.Name {
-			return fmt.Errorf("system group %s cannot be deleted", val)
-		}
-	}
-	if _, err := authorization.Enforcer.DeleteDomains(group.Name); err != nil {
-		return err
-	}
+
 	return g.groupRepository.Delete(uint(gid))
 }
 
-func (g *groupService) GetUsers(id string) ([]model.UserRole, error) {
-	group, err := g.Get(id)
+func (g *groupService) GetUsers(id string) (model.Users, error) {
+	gid, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
 	}
 
-	users := make([]model.UserRole, 0)
-	for _, role := range authorization.DefaultRoles {
-		for _, user := range authorization.Enforcer.GetUsersForRoleInDomain(role, group.Name) {
-			users = append(users, model.UserRole{
-				Name: user,
-				Role: role,
-			})
+	return g.groupRepository.GetUsers(&model.Group{ID: uint(gid)})
+}
+
+func (g *groupService) AddUser(user *model.User, id string) error {
+	var err error
+	if user.ID == 0 {
+		return fmt.Errorf("invaild user info")
+	}
+
+	gid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	return g.groupRepository.AddUser(user, &model.Group{ID: uint(gid)})
+}
+
+func (g *groupService) DelUser(user *model.User, id string) error {
+	var err error
+	if user.ID == 0 {
+		return fmt.Errorf("invaild user info")
+	}
+
+	gid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	return g.groupRepository.DelUser(user, &model.Group{ID: uint(gid)})
+}
+
+func (g *groupService) createDefaultRoles(group *model.Group) error {
+	roles := []model.Role{
+		{
+			Name:      fmt.Sprintf("ns-%s-%s", group.Name, "admin"),
+			Scope:     model.NamespaceScope,
+			Namespace: group.Name,
+			Rules: []model.Rule{
+				{
+					Resource:  model.All,
+					Operation: model.All,
+				},
+			},
+		},
+		{
+			Name:      fmt.Sprintf("ns-%s-%s", group.Name, "edit"),
+			Scope:     model.NamespaceScope,
+			Namespace: group.Name,
+			Rules: []model.Rule{
+				{
+					Resource:  model.All,
+					Operation: model.EditOperation,
+				},
+			},
+		},
+		{
+			Name:      fmt.Sprintf("ns-%s-%s", group.Name, "view"),
+			Scope:     model.NamespaceScope,
+			Namespace: group.Name,
+			Rules: []model.Rule{
+				{
+					Resource:  model.All,
+					Operation: model.ViewOperation,
+				},
+			},
+		},
+	}
+
+	for i := range roles {
+		if _, err := g.rbacRepository.CreateRole(&roles[i]); err != nil {
+			return err
 		}
 	}
 
-	return users, nil
-}
-
-func (g *groupService) AddUser(ur *model.UserRole, id string) error {
-	var err error
-	if ur.ID == 0 && ur.Name == "" || ur.Role == "" {
-		return fmt.Errorf("invaild user info")
-	}
-
-	user := ur.GetUser()
-	if ur.Name == "" {
-		user, err = g.userRepository.GetUserByID(ur.ID)
-	} else if ur.ID == 0 {
-		user, err = g.userRepository.GetUserByName(ur.Name)
-	}
-	if err != nil {
-		return err
-	}
-
-	group, err := g.Get(id)
-	if err != nil {
-		return err
-	}
-
-	g.groupRepository.AddUser(user, group)
-	_, err = authorization.Enforcer.AddGroupingPolicy(user.Name, ur.Role, group.Name)
-
-	return err
-}
-
-func (g *groupService) DelUser(ur *model.UserRole, id string) error {
-	var err error
-	if ur.ID == 0 && ur.Name == "" {
-		return fmt.Errorf("invaild user info")
-	}
-
-	user := ur.GetUser()
-	if ur.Name == "" {
-		user, err = g.userRepository.GetUserByID(ur.ID)
-	} else if ur.ID == 0 {
-		user, err = g.userRepository.GetUserByName(ur.Name)
-	}
-	if err != nil {
-		return err
-	}
-
-	group, err := g.Get(id)
-	if err != nil {
-		return err
-	}
-
-	ok, err := authorization.Enforcer.RemoveGroupingPolicy(user.Name, ur.Role, group.Name)
-	if ok && len(authorization.Enforcer.GetRolesForUserInDomain(user.Name, group.Name)) == 0 {
-		g.groupRepository.DelUser(user, group)
-	}
-
-	return err
+	return g.groupRepository.RoleBinding(&roles[0], group)
 }

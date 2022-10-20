@@ -1,11 +1,20 @@
 package repository
 
-import "github.com/qingwave/weave/pkg/model"
+import (
+	"context"
+
+	"github.com/qingwave/weave/pkg/model"
+	"gorm.io/gorm/clause"
+)
 
 type Repository interface {
 	User() UserRepository
 	Group() GroupRepository
 	Post() PostRepository
+	RBAC() RBACRepository
+	Close() error
+	Ping(ctx context.Context) error
+	Init() error
 	Migrant
 }
 
@@ -32,11 +41,16 @@ type GroupRepository interface {
 	GetGroupByName(string) (*model.Group, error)
 	List() ([]model.Group, error)
 	Create(*model.User, *model.Group) (*model.Group, error)
+	CreateGroups(groups []model.Group, conds ...clause.Expression) error
 	Update(*model.Group) (*model.Group, error)
 	Delete(uint) error
 	GetUsers(*model.Group) (model.Users, error)
 	AddUser(user *model.User, group *model.Group) error
 	DelUser(user *model.User, group *model.Group) error
+	AddRole(role *model.Role, group *model.Group) error
+	DelRole(role *model.Role, group *model.Group) error
+	UpdateRole(role *model.Role, group *model.Group) error
+	RoleBinding(role *model.Role, group *model.Group) error
 	Migrate() error
 }
 
@@ -57,5 +71,20 @@ type PostRepository interface {
 	AddComment(comment *model.Comment) (*model.Comment, error)
 	DelComment(id string) error
 	ListComment(pid string) ([]model.Comment, error)
+	Migrate() error
+}
+
+type RBACRepository interface {
+	ListRoles() ([]model.Role, error)
+	ListResources() ([]model.Resource, error)
+	CreateRole(role *model.Role) (*model.Role, error)
+	CreateResource(resource *model.Resource) (*model.Resource, error)
+	CreateResources(resources []model.Resource, conds ...clause.Expression) error
+	GetRole(id int) (*model.Role, error)
+	GetResource(id int) (*model.Resource, error)
+	GetRoleByName(name string) (*model.Role, error)
+	UpdateRole(role *model.Role) (*model.Role, error)
+	DeleteRole(id uint) error
+	DeleteResource(id uint) error
 	Migrate() error
 }

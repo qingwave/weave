@@ -176,11 +176,11 @@ func (g *GroupController) GetUsers(c *gin.Context) {
 // @Tags group
 // @Security JWT
 // @Param id path int true "group id"
-// @Param user body model.UserRole true "user info"
+// @Param user body model.User true "user info"
 // @Success 200 {object} common.Response
 // @Router /api/v1/groups/{id}/users [post]
 func (g *GroupController) AddUser(c *gin.Context) {
-	user := new(model.UserRole)
+	user := new(model.User)
 	if err := c.BindJSON(user); err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
@@ -200,15 +200,14 @@ func (g *GroupController) AddUser(c *gin.Context) {
 // @Tags group
 // @Security JWT
 // @Param id path int true "group id"
-// @Param user body model.UserRole true "user info"
+// @Param user body model.User true "user info"
 // @Param name    query     string  true  "user name"
 // @Param name    query     string  true  "user role"
 // @Success 200 {object} common.Response
 // @Router /api/v1/groups/{id}/users [delete]
 func (g *GroupController) DelUser(c *gin.Context) {
-	user := new(model.UserRole)
+	user := new(model.User)
 	user.Name = c.Query("name")
-	user.Role = c.Query("role")
 
 	if err := g.groupService.DelUser(user, c.Param("id")); err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)

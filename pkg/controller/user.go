@@ -104,7 +104,7 @@ func (u *UserController) Create(c *gin.Context) {
 // @Router /api/v1/users/{id} [put]
 func (u *UserController) Update(c *gin.Context) {
 	user := common.GetUser(c)
-	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsRootAdmin(user)) {
+	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsClusterAdmin(user)) {
 		common.ResponseFailed(c, http.StatusForbidden, nil)
 		return
 	}
@@ -138,7 +138,7 @@ func (u *UserController) Update(c *gin.Context) {
 // @Router /api/v1/users/{id} [delete]
 func (u *UserController) Delete(c *gin.Context) {
 	user := common.GetUser(c)
-	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsRootAdmin(user)) {
+	if user == nil || (strconv.Itoa(int(user.ID)) != c.Param("id") && !authorization.IsClusterAdmin(user)) {
 		common.ResponseFailed(c, http.StatusForbidden, nil)
 		return
 	}

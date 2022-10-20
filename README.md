@@ -102,7 +102,7 @@ Login, get jwt token
 ```bash
 curl -XPOST http://localhost:8080/api/v1/auth/token -d '{"name": "zhang3", "password": "123456"}'
 ```
-Response as follows, set token in `Authorization Header`
+Response as follows, set token in `Authorization` Header
 ```json
 {
   "code": 200,

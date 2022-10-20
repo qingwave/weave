@@ -29,7 +29,7 @@ func newUserRepository(db *gorm.DB, rdb *database.RedisDB) UserRepository {
 
 func (u *userRepository) List() (model.Users, error) {
 	users := make(model.Users, 0)
-	if err := u.db.Preload(model.UserAuthInfoAssociation).Order("name").Find(&users).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).Preload(model.GroupAssociation).Preload("Roles").Order("name").Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -65,12 +65,13 @@ func (u *userRepository) Delete(user *model.User) error {
 }
 
 func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
-	if user := u.getCacheUser(id); user != nil {
-		return user, nil
-	}
+	// TODO HSet not support expire, avoid roles and groups inconsistent
+	// if user := u.getCacheUser(id); user != nil {
+	// 	return user, nil
+	// }
 
 	user := new(model.User)
-	if err := u.db.Preload(model.UserAuthInfoAssociation).First(user, id).Error; err != nil {
+	if err := u.db.Omit("Password").Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Groups.Roles.Rules").Preload("Roles").Preload("Roles.Rules").First(user, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -92,7 +93,7 @@ func (u *userRepository) GetUserByAuthID(authType, authID string) (*model.User, 
 
 func (u *userRepository) GetUserByName(name string) (*model.User, error) {
 	user := new(model.User)
-	if err := u.db.Preload(model.UserAuthInfoAssociation).Where("name = ?", name).First(user).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Groups.Roles.Rules").Preload("Roles").Preload("Roles.Rules").Where("name = ?", name).First(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

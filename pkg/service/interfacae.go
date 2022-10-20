@@ -21,9 +21,9 @@ type GroupService interface {
 	Get(string) (*model.Group, error)
 	Update(string, *model.Group) (*model.Group, error)
 	Delete(string) error
-	GetUsers(gid string) ([]model.UserRole, error)
-	AddUser(user *model.UserRole, gid string) error
-	DelUser(user *model.UserRole, gid string) error
+	GetUsers(gid string) (model.Users, error)
+	AddUser(user *model.User, gid string) error
+	DelUser(user *model.User, gid string) error
 }
 
 type PostService interface {
@@ -38,4 +38,12 @@ type PostService interface {
 	DelLike(user *model.User, pid string) error
 	AddComment(user *model.User, pid string, comment *model.Comment) (*model.Comment, error)
 	DelComment(id string) error
+}
+
+type RBACService interface {
+	List() ([]model.Role, error)
+	Create(role *model.Role) (*model.Role, error)
+	Get(id string) (*model.Role, error)
+	Update(id string, role *model.Role) (*model.Role, error)
+	Delete(id string) error
 }

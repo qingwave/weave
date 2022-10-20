@@ -50,5 +50,7 @@ func main() {
 		logger.Fatalf("Init server failed: %v", err)
 	}
 
-	s.Run()
+	if err := s.Run(); err != nil {
+		logger.Fatalf("Run server failed: %v", err)
+	}
 }

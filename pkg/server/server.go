@@ -34,7 +34,6 @@ import (
 	"github.com/sirupsen/logrus"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"gorm.io/gorm"
 )
 
 func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
@@ -78,22 +77,27 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		}
 	}
 
-	if err := authorization.InitAuthorization(db, conf.AuthConfig); err != nil {
+	if err := repository.Init(); err != nil {
 		return nil, err
 	}
 
 	userService := service.NewUserService(repository.User())
 	groupService := service.NewGroupService(repository.Group(), repository.User())
 	jwtService := authentication.NewJWTService(conf.Server.JWTSecret)
+	rbacService := service.NewRBACService(repository.RBAC())
 	oauthManager := oauth.NewOAuthManager(conf.OAuthConfig)
 
 	userController := controller.NewUserController(userService)
 	groupController := controller.NewGroupController(groupService)
 	authController := controller.NewAuthController(userService, jwtService, oauthManager)
 	containerController := controller.NewContainerController(conClient)
-	rbacController := controller.NewRbacController()
-	kubeController := kubecontroller.NewKubeControllers(kubeClient)
+	rbacController := controller.NewRbacController(rbacService)
+	kubeController := kubecontroller.NewKubeControllers(kubeClient, groupService)
 	postController := controller.NewPostController(service.NewPostService(repository.Post()))
+
+	if err := authorization.InitAuthorization(repository); err != nil {
+		return nil, err
+	}
 
 	controllers := []controller.Controller{userController, groupController, authController, rbacController, postController}
 	if conf.Docker.Enable {
@@ -113,7 +117,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		middleware.CORSMiddleware(),
 		middleware.RequestInfoMiddleware(&request.RequestInfoFactory{APIPrefixes: set.NewString("api")}),
 		middleware.LogMiddleware(logger, "/"),
-		middleware.AuthenticationMiddleware(jwtService),
+		middleware.AuthenticationMiddleware(jwtService, repository.User()),
 		middleware.AuthorizationMiddleware(),
 		middleware.TraceMiddleware(),
 	)
@@ -124,8 +128,7 @@ func New(conf *config.Config, logger *logrus.Logger) (*Server, error) {
 		engine:          e,
 		config:          conf,
 		logger:          logger,
-		db:              db,
-		rdb:             rdb,
+		repository:      repository,
 		containerClient: conClient,
 		kubeClient:      kubeClient,
 		controllers:     controllers,
@@ -137,23 +140,22 @@ type Server struct {
 	config *config.Config
 	logger *logrus.Logger
 
-	db              *gorm.DB
-	rdb             *database.RedisDB
 	containerClient *docker.Client
 	kubeClient      *kubernetes.KubeClient
+	repository      repository.Repository
 
 	controllers []controller.Controller
 }
 
 // graceful shutdown
-func (s *Server) Run() {
+func (s *Server) Run() error {
 	defer s.Close()
 
 	s.initRouter()
 
 	if s.kubeClient != nil {
 		if err := s.kubeClient.StartCache(); err != nil {
-			s.logger.Fatalf("failed to start kubernetes cache")
+			return err
 		}
 	}
 
@@ -180,17 +182,18 @@ func (s *Server) Run() {
 	ch := <-sig
 	s.logger.Infof("Receive signal: %s", ch)
 
-	server.Shutdown(ctx)
+	return server.Shutdown(ctx)
 }
 
 func (s *Server) Close() {
-	s.rdb.Close()
-	db, _ := s.db.DB()
-	if db != nil {
-		db.Close()
+	if err := s.repository.Close(); err != nil {
+		s.logger.Warnf("failed to close repository, %v", err)
 	}
+
 	if s.containerClient != nil {
-		s.containerClient.Close()
+		if err := s.containerClient.Close(); err != nil {
+			s.logger.Warnf("failed to close container client, %v", err)
+		}
 	}
 }
 
@@ -228,9 +231,8 @@ func (s *Server) getRoutes() []string {
 }
 
 type ServerStatus struct {
-	Ping  bool `json:"ping"`
-	DB    bool `json:"db"`
-	Redis bool `json:"redis"`
+	Ping         bool `json:"ping"`
+	DBRepository bool `json:"dbRepository"`
 }
 
 func (s *Server) Ping() *ServerStatus {
@@ -239,24 +241,8 @@ func (s *Server) Ping() *ServerStatus {
 	ctx, cannel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cannel()
 
-	db, err := s.db.DB()
-	if err == nil {
-		err = db.PingContext(ctx)
-		if err == nil {
-			status.DB = true
-		}
-	}
-	if err != nil {
-		logrus.Warnf("check db failed: %v", err)
-	}
-
-	if s.rdb != nil {
-		_, err := s.rdb.Ping(ctx).Result()
-		if err == nil {
-			status.Redis = true
-		} else {
-			logrus.Warnf("check redis failed: %v", err)
-		}
+	if err := s.repository.Ping(ctx); err == nil {
+		status.DBRepository = true
 	}
 
 	return status

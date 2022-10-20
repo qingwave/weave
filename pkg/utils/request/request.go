@@ -12,6 +12,15 @@ const (
 	NamespaceRoot = "root"
 )
 
+const (
+	GetOperation    = "get"
+	ListOperation   = "list"
+	CreateOperation = "create"
+	UpdateOperation = "update"
+	PatchOperation  = "patch"
+	DeleteOperation = "delete"
+)
+
 type RequestInfoResolver interface {
 	NewRequestInfo(req *http.Request) (*RequestInfo, error)
 }
@@ -91,15 +100,15 @@ func (r *RequestInfoFactory) NewRequestInfo(req *http.Request) (*RequestInfo, er
 
 	switch req.Method {
 	case "POST":
-		requestInfo.Verb = "create"
+		requestInfo.Verb = CreateOperation
 	case "GET", "HEAD":
-		requestInfo.Verb = "get"
+		requestInfo.Verb = GetOperation
 	case "PUT":
-		requestInfo.Verb = "update"
+		requestInfo.Verb = UpdateOperation
 	case "PATCH":
-		requestInfo.Verb = "patch"
+		requestInfo.Verb = PatchOperation
 	case "DELETE":
-		requestInfo.Verb = "delete"
+		requestInfo.Verb = DeleteOperation
 	default:
 		requestInfo.Verb = ""
 	}
@@ -135,8 +144,8 @@ func (r *RequestInfoFactory) NewRequestInfo(req *http.Request) (*RequestInfo, er
 	}
 
 	// if there's no name on the request and we thought it was a get before, then the actual verb is a list or a watch
-	if len(requestInfo.Name) == 0 && requestInfo.Verb == "get" {
-		requestInfo.Verb = "list"
+	if len(requestInfo.Name) == 0 && requestInfo.Verb == GetOperation {
+		requestInfo.Verb = ListOperation
 	}
 
 	return &requestInfo, nil

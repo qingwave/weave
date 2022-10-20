@@ -109,6 +109,8 @@ func (u *userService) Auth(auser *model.AuthUser) (*model.User, error) {
 		return nil, err
 	}
 
+	user.Password = ""
+
 	return user, nil
 }
 
