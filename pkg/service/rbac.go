@@ -5,6 +5,7 @@ import (
 
 	"github.com/qingwave/weave/pkg/model"
 	"github.com/qingwave/weave/pkg/repository"
+	"github.com/qingwave/weave/pkg/utils/request"
 )
 
 type rbacService struct {
@@ -18,11 +19,11 @@ func NewRBACService(rbacRepository repository.RBACRepository) RBACService {
 }
 
 func (rbac *rbacService) List() ([]model.Role, error) {
-	return rbac.rbacRepository.ListRoles()
+	return rbac.rbacRepository.List()
 }
 
 func (rbac *rbacService) Create(role *model.Role) (*model.Role, error) {
-	return rbac.rbacRepository.CreateRole(role)
+	return rbac.rbacRepository.Create(role)
 }
 
 func (rbac *rbacService) Get(id string) (*model.Role, error) {
@@ -30,7 +31,7 @@ func (rbac *rbacService) Get(id string) (*model.Role, error) {
 	if err != nil {
 		return nil, err
 	}
-	return rbac.rbacRepository.GetRole(rid)
+	return rbac.rbacRepository.GetRoleByID(rid)
 }
 
 func (rbac *rbacService) Update(id string, role *model.Role) (*model.Role, error) {
@@ -39,7 +40,7 @@ func (rbac *rbacService) Update(id string, role *model.Role) (*model.Role, error
 		return nil, err
 	}
 	role.ID = uint(rid)
-	return rbac.rbacRepository.UpdateRole(role)
+	return rbac.rbacRepository.Update(role)
 }
 
 func (rbac *rbacService) Delete(id string) error {
@@ -48,5 +49,26 @@ func (rbac *rbacService) Delete(id string) error {
 		return err
 	}
 
-	return rbac.rbacRepository.DeleteRole(uint(rid))
+	return rbac.rbacRepository.Delete(uint(rid))
+}
+
+func (rbac *rbacService) ListResources() ([]model.Resource, error) {
+	return rbac.rbacRepository.ListResources()
+}
+
+func (rbac *rbacService) ListOperations() ([]model.Operation, error) {
+	return []model.Operation{
+		model.AllOperation,
+		model.EditOperation,
+		model.ViewOperation,
+		request.CreateOperation,
+		request.PatchOperation,
+		request.UpdateOperation,
+		request.GetOperation,
+		request.ListOperation,
+		request.DeleteOperation,
+		"log",
+		"exec",
+		"proxy",
+	}, nil
 }

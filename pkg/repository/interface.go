@@ -32,6 +32,8 @@ type UserRepository interface {
 	Delete(*model.User) error
 	AddAuthInfo(authInfo *model.AuthInfo) error
 	DelAuthInfo(authInfo *model.AuthInfo) error
+	AddRole(role *model.Role, user *model.User) error
+	DelRole(role *model.Role, user *model.User) error
 	GetGroups(*model.User) ([]model.Group, error)
 	Migrate() error
 }
@@ -49,7 +51,6 @@ type GroupRepository interface {
 	DelUser(user *model.User, group *model.Group) error
 	AddRole(role *model.Role, group *model.Group) error
 	DelRole(role *model.Role, group *model.Group) error
-	UpdateRole(role *model.Role, group *model.Group) error
 	RoleBinding(role *model.Role, group *model.Group) error
 	Migrate() error
 }
@@ -75,16 +76,16 @@ type PostRepository interface {
 }
 
 type RBACRepository interface {
-	ListRoles() ([]model.Role, error)
+	List() ([]model.Role, error)
 	ListResources() ([]model.Resource, error)
-	CreateRole(role *model.Role) (*model.Role, error)
+	Create(role *model.Role) (*model.Role, error)
 	CreateResource(resource *model.Resource) (*model.Resource, error)
 	CreateResources(resources []model.Resource, conds ...clause.Expression) error
-	GetRole(id int) (*model.Role, error)
+	GetRoleByID(id int) (*model.Role, error)
 	GetResource(id int) (*model.Resource, error)
 	GetRoleByName(name string) (*model.Role, error)
-	UpdateRole(role *model.Role) (*model.Role, error)
-	DeleteRole(id uint) error
+	Update(role *model.Role) (*model.Role, error)
+	Delete(id uint) error
 	DeleteResource(id uint) error
 	Migrate() error
 }

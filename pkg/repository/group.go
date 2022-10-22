@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	groupUpdateFields = []string{"Describe", "Roles", "Rules", "UpdaterId"}
+	groupUpdateFields = []string{"Describe", "Roles", "UpdaterId"}
 )
 
 type groupRepository struct {
@@ -26,7 +26,7 @@ func newGroupRepository(db *gorm.DB, rdb *database.RedisDB) GroupRepository {
 
 func (g *groupRepository) List() ([]model.Group, error) {
 	groups := make([]model.Group, 0)
-	if err := g.db.Order("name").Find(&groups).Error; err != nil {
+	if err := g.db.Order("name").Preload("Roles").Find(&groups).Error; err != nil {
 		return nil, err
 	}
 	return groups, nil
@@ -79,20 +79,9 @@ func (g *groupRepository) DelRole(role *model.Role, group *model.Group) error {
 	return g.db.Model(group).Association("Roles").Delete(role)
 }
 
-func (g *groupRepository) UpdateRole(role *model.Role, group *model.Group) error {
-	var err error
-	if group.ID == 0 {
-		group, err = g.GetGroupByName(group.Name)
-	}
-	if err != nil {
-		return err
-	}
-	return g.db.Model(group).Association("Roles").Replace(role)
-}
-
 func (g *groupRepository) GetGroupByID(id uint) (*model.Group, error) {
 	group := new(model.Group)
-	if err := g.db.Preload("Users").Preload("Roles").Preload("Roles.Rules").First(group, id).Error; err != nil {
+	if err := g.db.Preload("Users").Preload("Roles").First(group, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -101,7 +90,7 @@ func (g *groupRepository) GetGroupByID(id uint) (*model.Group, error) {
 
 func (g *groupRepository) GetGroupByName(name string) (*model.Group, error) {
 	group := new(model.Group)
-	if err := g.db.Preload("Users").Preload("Roles").Preload("Roles.Rules").Where("name = ?", name).First(group).Error; err != nil {
+	if err := g.db.Preload("Users").Preload("Roles").Where("name = ?", name).First(group).Error; err != nil {
 		return nil, err
 	}
 

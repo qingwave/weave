@@ -8,14 +8,16 @@
         </div>
         <div class="flex h-[3rem] items-center pl-[1rem] bg-slate-100">
           <el-radio-group v-model="currentTab">
-            <el-radio-button v-for="(tab, index) in policyTabs" plain :label="index">{{ tab.name }}</el-radio-button>
+            <el-radio-button v-for="(tab, index) in rbacTabs" plain :label="index" v-bind:key="tab">{{ tab.name }}</el-radio-button>
           </el-radio-group>
         </div>
       </div>
 
       <el-card class="h-max w-full">
-        <div class="flex flex-col w-full" v-for="(tab, index) in policyTabs">
-          <Policy class="w-full mx-[1rem]" v-if="currentTab == index" :ptype="tab.ptype" :labels="tab.labels" />
+        <div class="flex flex-col w-full">
+          <template v-for="(tab, index) in rbacTabs">
+            <component v-if="currentTab == index" :is="tab.component" v-bind:key="index" :resource=tab.resource :subject=tab.subject />
+          </template>
         </div>
       </el-card>
     </div>
@@ -23,29 +25,32 @@
 </template>
 
 <style scoped>
+
 </style>
 
 <script setup>
 import { ref } from 'vue';
-import Policy from '@/components/Policy.vue';
+import Role from './Role.vue';
+import RoleBinding from './RoleBinding.vue';
 import { ListView } from '@icon-park/vue-next';
 
-const policyTabs = [
+const rbacTabs = [
   {
-    name: "Policy",
-    ptype: "p",
-    labels: ["Role", "Group", "Resource", "ResourceName", "Action"]
+    name: "Roles",
+    component: Role
   },
   {
-    name: "UserRole",
-    ptype: "g",
-    labels: ["User", "Role", "Group"]
+    name: "GroupRoleBinding",
+    component: RoleBinding,
+    resource: "groups",
+    subject: "Group"
   },
   {
-    name: "ResourceGroup",
-    ptype: "g2",
-    labels: ["Resource", "ResourceGroup"]
-  },
+    name: "UserRoleBinding",
+    component: RoleBinding,
+    resource: "users",
+    subject: "User"
+  }
 ]
 
 const currentTab = ref(0);

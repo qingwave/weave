@@ -20,20 +20,12 @@ func newRBACRepository(db *gorm.DB, rdb *database.RedisDB) RBACRepository {
 	}
 }
 
-func (rbac *rbacRepository) ListRoles() ([]model.Role, error) {
+func (rbac *rbacRepository) List() ([]model.Role, error) {
 	roles := make([]model.Role, 0)
-	if err := rbac.db.Order("name").Preload("Rules").Find(&roles).Error; err != nil {
+	if err := rbac.db.Find(&roles).Error; err != nil {
 		return nil, err
 	}
 	return roles, nil
-}
-
-func (rbac *rbacRepository) ListRules() ([]model.Rule, error) {
-	rules := make([]model.Rule, 0)
-	if err := rbac.db.Order("name").Preload("Resources").Find(&rules).Error; err != nil {
-		return nil, err
-	}
-	return rules, nil
 }
 
 func (rbac *rbacRepository) ListResources() ([]model.Resource, error) {
@@ -44,14 +36,9 @@ func (rbac *rbacRepository) ListResources() ([]model.Resource, error) {
 	return resources, nil
 }
 
-func (rbac *rbacRepository) CreateRole(role *model.Role) (*model.Role, error) {
+func (rbac *rbacRepository) Create(role *model.Role) (*model.Role, error) {
 	err := rbac.db.Create(role).Error
 	return role, err
-}
-
-func (rbac *rbacRepository) CreateRule(rule *model.Rule) (*model.Rule, error) {
-	err := rbac.db.Create(rule).Error
-	return rule, err
 }
 
 func (rbac *rbacRepository) CreateResource(resource *model.Resource) (*model.Resource, error) {
@@ -64,16 +51,10 @@ func (rbac *rbacRepository) CreateResources(resources []model.Resource, conds ..
 	return err
 }
 
-func (rbac *rbacRepository) GetRole(id int) (*model.Role, error) {
+func (rbac *rbacRepository) GetRoleByID(id int) (*model.Role, error) {
 	role := &model.Role{}
 	err := rbac.db.First(role, id).Error
 	return role, err
-}
-
-func (rbac *rbacRepository) GetRule(id int) (*model.Rule, error) {
-	rule := &model.Rule{}
-	err := rbac.db.First(rule, id).Error
-	return rule, err
 }
 
 func (rbac *rbacRepository) GetResource(id int) (*model.Resource, error) {
@@ -91,17 +72,13 @@ func (rbac *rbacRepository) GetRoleByName(name string) (*model.Role, error) {
 	return role, nil
 }
 
-func (rbac *rbacRepository) UpdateRole(role *model.Role) (*model.Role, error) {
-	err := rbac.db.Model(role).Updates(role).Error
+func (rbac *rbacRepository) Update(role *model.Role) (*model.Role, error) {
+	err := rbac.db.Updates(role).Error
 	return role, err
 }
 
-func (rbac *rbacRepository) DeleteRole(id uint) error {
+func (rbac *rbacRepository) Delete(id uint) error {
 	return rbac.db.Delete(&model.Role{}, id).Error
-}
-
-func (rbac *rbacRepository) DeleteRule(id uint) error {
-	return rbac.db.Delete(&model.Rule{}, id).Error
 }
 
 func (rbac *rbacRepository) DeleteResource(id uint) error {
@@ -109,5 +86,5 @@ func (rbac *rbacRepository) DeleteResource(id uint) error {
 }
 
 func (rbac *rbacRepository) Migrate() error {
-	return rbac.db.AutoMigrate(&model.Role{}, &model.Rule{}, &model.Resource{})
+	return rbac.db.AutoMigrate(&model.Role{}, &model.Resource{})
 }

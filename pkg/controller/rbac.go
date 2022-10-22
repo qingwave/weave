@@ -63,7 +63,7 @@ func (rbac *RBACController) Create(c *gin.Context) {
 // @Summary Get role
 // @Description Get role
 // @Produce json
-// @Tags role
+// @Tags rbac
 // @Security JWT
 // @Param id path int true "role id"
 // @Success 200 {object} common.Response{data=model.Role}
@@ -107,7 +107,7 @@ func (rbac *RBACController) Update(c *gin.Context) {
 // @Summary Delete role
 // @Description Delete role
 // @Produce json
-// @Tags role
+// @Tags rbac
 // @Security JWT
 // @Param id path int true "role id"
 // @Success 200 {object} common.Response
@@ -121,12 +121,48 @@ func (rbac *RBACController) Delete(c *gin.Context) {
 	common.ResponseSuccess(c, nil)
 }
 
+// @Summary List resources
+// @Description List resources
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Success 200 {object} common.Response{data=[]model.Resource}
+// @Router /api/v1/resources [get]
+func (rbac *RBACController) ListResources(c *gin.Context) {
+	data, err := rbac.rbacService.ListResources()
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, data)
+}
+
+// @Summary List operations
+// @Description List operations
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Success 200 {object} common.Response{data=[]model.Operation}
+// @Router /api/v1/operations [get]
+func (rbac *RBACController) ListOperations(c *gin.Context) {
+	data, err := rbac.rbacService.ListOperations()
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, data)
+}
+
 func (rbac *RBACController) RegisterRoute(api *gin.RouterGroup) {
 	api.GET("/roles", rbac.List)
 	api.POST("/roles", rbac.Create)
 	api.GET("/roles/:id", rbac.Get)
 	api.PUT("/roles/:id", rbac.Update)
 	api.DELETE("/roles/:id", rbac.Delete)
+	api.GET("/resources", rbac.ListResources)
+	api.GET("/operations", rbac.ListOperations)
 }
 
 func (rbac *RBACController) Name() string {

@@ -1,6 +1,10 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+
 	"github.com/qingwave/weave/pkg/utils/request"
 	"github.com/qingwave/weave/pkg/utils/set"
 )
@@ -21,7 +25,7 @@ type Role struct {
 	Name      string `json:"name" gorm:"size:100;not null;unique"`
 	Scope     Scope  `json:"scope" gorm:"size:100"`
 	Namespace string `json:"namespace"  gorm:"size:100"`
-	Rules     []Rule `json:"rules" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Rules     Rules  `json:"rules" gorm:"type:json"`
 }
 
 const (
@@ -51,10 +55,27 @@ func (op Operation) Contain(verb string) bool {
 }
 
 type Rule struct {
-	ID        uint      `json:"id" gorm:"autoIncrement;primaryKey"`
-	RoleID    uint      `json:"roleId" gorm:"index:idx_role_rule,unique"`
-	Resource  string    `json:"resource" gorm:"size:100;index:idx_role_rule,unique"`
-	Operation Operation `json:"operation" gorm:"size:100;index:idx_role_rule,unique"`
+	Resource  string    `json:"resource"`
+	Operation Operation `json:"operation"`
+}
+
+type Rules []Rule
+
+func (r *Rules) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	}
+
+	result := Rules{}
+	err := json.Unmarshal(bytes, &result)
+	*r = result
+	return err
+}
+
+func (r Rules) Value() (driver.Value, error) {
+	b, err := json.Marshal(r)
+	return string(b), err
 }
 
 const (

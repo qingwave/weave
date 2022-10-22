@@ -136,17 +136,34 @@ func (u *userService) GetGroups(id string) ([]model.Group, error) {
 	}
 
 	return u.userRepository.GetGroups(user)
+}
 
-	// items, err := authorization.Enforcer.GetDomainsForUser(user.Name)
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (u *userService) AddRole(id, rid string) error {
+	uid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
 
-	// groups := make([]model.Group, 0)
-	// for _, item := range items {
-	// 	groups = append(groups, model.Group{Name: item})
-	// }
-	// return groups, nil
+	roleId, err := strconv.Atoi(rid)
+	if err != nil {
+		return err
+	}
+
+	return u.userRepository.AddRole(&model.Role{ID: uint(roleId)}, &model.User{ID: uint(uid)})
+}
+
+func (u *userService) DelRole(id, rid string) error {
+	uid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	roleId, err := strconv.Atoi(rid)
+	if err != nil {
+		return err
+	}
+
+	return u.userRepository.DelRole(&model.Role{ID: uint(roleId)}, &model.User{ID: uint(uid)})
 }
 
 func (u *userService) getUserByID(id string) (*model.User, error) {

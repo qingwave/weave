@@ -13,6 +13,8 @@ type UserService interface {
 	Auth(*model.AuthUser) (*model.User, error)
 	Default(*model.User)
 	GetGroups(string) ([]model.Group, error)
+	AddRole(id, rid string) error
+	DelRole(id, rid string) error
 }
 
 type GroupService interface {
@@ -24,6 +26,8 @@ type GroupService interface {
 	GetUsers(gid string) (model.Users, error)
 	AddUser(user *model.User, gid string) error
 	DelUser(user *model.User, gid string) error
+	AddRole(id, rid string) error
+	DelRole(id, rid string) error
 }
 
 type PostService interface {
@@ -46,4 +50,6 @@ type RBACService interface {
 	Get(id string) (*model.Role, error)
 	Update(id string, role *model.Role) (*model.Role, error)
 	Delete(id string) error
+	ListResources() ([]model.Resource, error)
+	ListOperations() ([]model.Operation, error)
 }

@@ -102,6 +102,34 @@ func (g *groupService) DelUser(user *model.User, id string) error {
 	return g.groupRepository.DelUser(user, &model.Group{ID: uint(gid)})
 }
 
+func (g *groupService) AddRole(id, rid string) error {
+	gid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	roleId, err := strconv.Atoi(rid)
+	if err != nil {
+		return err
+	}
+
+	return g.groupRepository.AddRole(&model.Role{ID: uint(roleId)}, &model.Group{ID: uint(gid)})
+}
+
+func (g *groupService) DelRole(id, rid string) error {
+	gid, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	roleId, err := strconv.Atoi(rid)
+	if err != nil {
+		return err
+	}
+
+	return g.groupRepository.DelRole(&model.Role{ID: uint(roleId)}, &model.Group{ID: uint(gid)})
+}
+
 func (g *groupService) createDefaultRoles(group *model.Group) error {
 	roles := []model.Role{
 		{
@@ -140,7 +168,7 @@ func (g *groupService) createDefaultRoles(group *model.Group) error {
 	}
 
 	for i := range roles {
-		if _, err := g.rbacRepository.CreateRole(&roles[i]); err != nil {
+		if _, err := g.rbacRepository.Create(&roles[i]); err != nil {
 			return err
 		}
 	}

@@ -195,6 +195,17 @@ definitions:
       views:
         type: integer
     type: object
+  model.Resource:
+    properties:
+      id:
+        type: integer
+      kind:
+        type: string
+      name:
+        type: string
+      scope:
+        type: string
+    type: object
   model.Role:
     properties:
       id:
@@ -212,14 +223,10 @@ definitions:
     type: object
   model.Rule:
     properties:
-      id:
-        type: integer
       operation:
         type: string
       resource:
         type: string
-      roleId:
-        type: integer
     type: object
   model.Tag:
     properties:
@@ -703,6 +710,57 @@ paths:
       summary: Update group
       tags:
       - group
+  /api/v1/groups/{id}/roles/{rid}:
+    delete:
+      description: delete role from group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: role id
+        in: path
+        name: rid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete role
+      tags:
+      - group
+    post:
+      description: Add role to group
+      parameters:
+      - description: group id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: role id
+        in: path
+        name: rid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add role
+      tags:
+      - group
   /api/v1/groups/{id}/users:
     delete:
       description: Delete user from group
@@ -908,6 +966,28 @@ paths:
       summary: Update kube resource
       tags:
       - k8s
+  /api/v1/operations:
+    get:
+      description: List operations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    type: string
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List operations
+      tags:
+      - rbac
   /api/v1/posts:
     get:
       description: List post
@@ -1125,6 +1205,28 @@ paths:
       summary: Add Like
       tags:
       - post
+  /api/v1/resources:
+    get:
+      description: List resources
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Resource'
+                  type: array
+              type: object
+      security:
+      - JWT: []
+      summary: List resources
+      tags:
+      - rbac
   /api/v1/roles:
     get:
       description: List rbac role
@@ -1219,7 +1321,7 @@ paths:
       - JWT: []
       summary: Delete role
       tags:
-      - role
+      - rbac
     get:
       description: Get role
       parameters:
@@ -1244,7 +1346,7 @@ paths:
       - JWT: []
       summary: Get role
       tags:
-      - role
+      - rbac
   /api/v1/users:
     get:
       description: List user and storage
@@ -1395,6 +1497,57 @@ paths:
       summary: Get groups
       tags:
       - group
+  /api/v1/users/{id}/roles/{rid}:
+    delete:
+      description: delete role from user
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: role id
+        in: path
+        name: rid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Delete role
+      tags:
+      - user
+    post:
+      description: Add role to user
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: role id
+        in: path
+        name: rid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/common.Response'
+      security:
+      - JWT: []
+      summary: Add role
+      tags:
+      - user
   /index:
     get:
       produces:

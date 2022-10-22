@@ -169,6 +169,42 @@ func (u *UserController) GetGroups(c *gin.Context) {
 	common.ResponseSuccess(c, groups)
 }
 
+// @Summary Add role
+// @Description Add role to user
+// @Produce json
+// @Tags user
+// @Security JWT
+// @Param id path int true "user id"
+// @Param rid path int true "role id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/users/{id}/roles/{rid} [post]
+func (u *UserController) AddRole(c *gin.Context) {
+	if err := u.userService.AddRole(c.Param("id"), c.Param("rid")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, nil)
+}
+
+// @Summary Delete role
+// @Description delete role from user
+// @Produce json
+// @Tags user
+// @Security JWT
+// @Param id path int true "user id"
+// @Param rid path int true "role id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/users/{id}/roles/{rid} [delete]
+func (u *UserController) DelRole(c *gin.Context) {
+	if err := u.userService.DelRole(c.Param("id"), c.Param("rid")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, nil)
+}
+
 func (u *UserController) RegisterRoute(api *gin.RouterGroup) {
 	api.GET("/users", u.List)
 	api.POST("/users", u.Create)
@@ -176,6 +212,8 @@ func (u *UserController) RegisterRoute(api *gin.RouterGroup) {
 	api.PUT("/users/:id", u.Update)
 	api.DELETE("/users/:id", u.Delete)
 	api.GET("/users/:id/groups", u.GetGroups)
+	api.POST("/users/:id/roles/:rid", u.AddRole)
+	api.DELETE("/users/:id/roles/:rid", u.DelRole)
 }
 
 func (u *UserController) Name() string {

@@ -1,6 +1,8 @@
 package authorization
 
 import (
+	"fmt"
+
 	"github.com/qingwave/weave/pkg/model"
 	"github.com/qingwave/weave/pkg/repository"
 	"github.com/qingwave/weave/pkg/utils/request"
@@ -46,6 +48,8 @@ func Authorize(user *model.User, ri *request.RequestInfo) (bool, error) {
 	for _, g := range user.Groups {
 		roles = append(roles, g.Roles...)
 	}
+
+	fmt.Printf("xxxx %+v\n", roles)
 
 	for _, role := range roles {
 		if ri.Namespace == "" && role.Scope == model.NamespaceScope {

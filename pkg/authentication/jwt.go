@@ -30,7 +30,7 @@ func NewJWTService(secret string) *JWTService {
 	return &JWTService{
 		signKey:        []byte(secret),
 		issuer:         Issuer,
-		expireDuration: int64(24 * time.Hour.Seconds()),
+		expireDuration: int64(7 * 24 * time.Hour.Seconds()),
 	}
 }
 

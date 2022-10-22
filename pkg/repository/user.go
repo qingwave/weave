@@ -71,7 +71,7 @@ func (u *userRepository) GetUserByID(id uint) (*model.User, error) {
 	// }
 
 	user := new(model.User)
-	if err := u.db.Omit("Password").Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Groups.Roles.Rules").Preload("Roles").Preload("Roles.Rules").First(user, id).Error; err != nil {
+	if err := u.db.Omit("Password").Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Roles").First(user, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func (u *userRepository) GetUserByAuthID(authType, authID string) (*model.User, 
 
 func (u *userRepository) GetUserByName(name string) (*model.User, error) {
 	user := new(model.User)
-	if err := u.db.Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Groups.Roles.Rules").Preload("Roles").Preload("Roles.Rules").Where("name = ?", name).First(user).Error; err != nil {
+	if err := u.db.Preload(model.UserAuthInfoAssociation).Preload("Groups").Preload("Groups.Roles").Preload("Roles").Where("name = ?", name).First(user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -114,6 +114,14 @@ func (u *userRepository) DelAuthInfo(authInfo *model.AuthInfo) error {
 		return nil
 	}
 	return u.db.Delete(authInfo).Error
+}
+
+func (u *userRepository) AddRole(role *model.Role, user *model.User) error {
+	return u.db.Model(user).Association("Roles").Append(role)
+}
+
+func (u *userRepository) DelRole(role *model.Role, user *model.User) error {
+	return u.db.Model(user).Association("Roles").Delete(role)
 }
 
 func (u *userRepository) GetGroups(user *model.User) ([]model.Group, error) {
