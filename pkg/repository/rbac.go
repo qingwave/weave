@@ -22,7 +22,7 @@ func newRBACRepository(db *gorm.DB, rdb *database.RedisDB) RBACRepository {
 
 func (rbac *rbacRepository) ListRoles() ([]model.Role, error) {
 	roles := make([]model.Role, 0)
-	if err := rbac.db.Order("name").Preload("Rules").Preload("Namespaces").Find(&roles).Error; err != nil {
+	if err := rbac.db.Order("name").Preload("Rules").Find(&roles).Error; err != nil {
 		return nil, err
 	}
 	return roles, nil

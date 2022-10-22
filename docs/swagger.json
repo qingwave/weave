@@ -2111,6 +2111,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "kind": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2204,9 +2207,6 @@
         "model.Role": {
             "type": "object",
             "properties": {
-                "groupId": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -2214,7 +2214,7 @@
                     "type": "string"
                 },
                 "namespace": {
-                    "$ref": "#/definitions/model.Group"
+                    "type": "string"
                 },
                 "rules": {
                     "type": "array",
@@ -2233,14 +2233,14 @@
                 "id": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
-                },
                 "operation": {
                     "type": "string"
                 },
                 "resource": {
                     "type": "string"
+                },
+                "roleId": {
+                    "type": "integer"
                 }
             }
         },

@@ -2118,6 +2118,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "kind": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2211,9 +2214,6 @@ const docTemplate = `{
         "model.Role": {
             "type": "object",
             "properties": {
-                "groupId": {
-                    "type": "integer"
-                },
                 "id": {
                     "type": "integer"
                 },
@@ -2221,7 +2221,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "namespace": {
-                    "$ref": "#/definitions/model.Group"
+                    "type": "string"
                 },
                 "rules": {
                     "type": "array",
@@ -2240,14 +2240,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
-                },
                 "operation": {
                     "type": "string"
                 },
                 "resource": {
                     "type": "string"
+                },
+                "roleId": {
+                    "type": "integer"
                 }
             }
         },

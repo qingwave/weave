@@ -134,6 +134,8 @@ definitions:
         type: string
       id:
         type: integer
+      kind:
+        type: string
       name:
         type: string
       roles:
@@ -195,14 +197,12 @@ definitions:
     type: object
   model.Role:
     properties:
-      groupId:
-        type: integer
       id:
         type: integer
       name:
         type: string
       namespace:
-        $ref: '#/definitions/model.Group'
+        type: string
       rules:
         items:
           $ref: '#/definitions/model.Rule'
@@ -214,12 +214,12 @@ definitions:
     properties:
       id:
         type: integer
-      name:
-        type: string
       operation:
         type: string
       resource:
         type: string
+      roleId:
+        type: integer
     type: object
   model.Tag:
     properties:

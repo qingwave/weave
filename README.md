@@ -47,7 +47,7 @@ Server support features:
 - Authentication, support jwt
 - Request rate limit, server level or user ip
 - Redis cache
-- RBAC, support by casbin
+- RBAC supported
 - Container application management, support docker and kubernetes
 - Post management
 
@@ -76,6 +76,9 @@ TODOs
 Before starting, you should already install [golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) and [nodejs](https://nodejs.org/en/download/) in your develop env.
 ### Run server
 
+Env:
+- golang (1.18 or later)
+
 Install dependencies, postgresql, redis, swag 
 ```bash
 make init
@@ -99,8 +102,9 @@ curl -XPOST http://localhost:8080/api/v1/auth/user -d '{"name": "zhang3", "email
 ```
 
 Login, get jwt token
+> Only admin user can access any apis, other user need create RBAC policy
 ```bash
-curl -XPOST http://localhost:8080/api/v1/auth/token -d '{"name": "zhang3", "password": "123456"}'
+curl -XPOST http://localhost:8080/api/v1/auth/token -d '{"name": "admin", "password": "123456"}'
 ```
 Response as follows, set token in `Authorization` Header
 ```json
