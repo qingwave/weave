@@ -1,145 +1,91 @@
 package authorization
 
 import (
-	"os"
-	"strings"
+	"fmt"
 
-	"github.com/qingwave/weave/pkg/config"
 	"github.com/qingwave/weave/pkg/model"
-
-	"github.com/Knetic/govaluate"
-	"github.com/casbin/casbin/v2"
-	casbinmodel "github.com/casbin/casbin/v2/model"
-	fileadapter "github.com/casbin/casbin/v2/persist/file-adapter"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
+	"github.com/qingwave/weave/pkg/repository"
+	"github.com/qingwave/weave/pkg/utils/request"
 )
 
-var (
-	Enforcer *casbin.Enforcer
+var store repository.Repository
 
-	DefaultRoles  = []string{AdminRole, EditRole, ViewRole}
-	DefaultGroups = []string{RootGroup, TenantGroup}
-)
-
-const (
-	policyName      = `p`
-	groupPolicyName = `g`
-
-	AdminRole = `admin`
-	EditRole  = `edit`
-	ViewRole  = `view`
-
-	RootGroup   = `root`
-	TenantGroup = `tenant`
-)
-
-func InitAuthorization(db *gorm.DB, conf config.AuthenticationConfig) error {
-	a, err := gormadapter.NewAdapterByDBUseTableName(db, conf.AuthTablePrefix, conf.AuthTableName)
-	if err != nil {
-		return err
-	}
-
-	m, err := casbinmodel.NewModelFromFile(conf.AuthModelConfigFullName)
-	if err != nil {
-		return err
-	}
-
-	Enforcer, err = casbin.NewEnforcer(m, a)
-	if err != nil {
-		return err
-	}
-	Enforcer.EnableAutoSave(true)
-	Enforcer.AddFunction("wMatch", matchFunc(weaveMatch))
-
-	if err := Enforcer.LoadPolicy(); err != nil {
-		return err
-	}
-
-	if (conf.LoadDefaultPolicyAlways || len(Enforcer.GetPolicy()) == 0) && isFileExists(conf.AuthDefaultPolicyConfigFullName) {
-		fa := fileadapter.NewAdapter(conf.AuthDefaultPolicyConfigFullName)
-		fm := m.Copy()
-		if err := fa.LoadPolicy(fm); err != nil {
-			return err
-		}
-
-		// add policy
-		for ptype, assertion := range fm[policyName] {
-			for _, p := range assertion.Policy {
-				if !Enforcer.HasPolicy(p) {
-					if _, err := Enforcer.AddNamedPolicy(ptype, p); err != nil {
-						logrus.Infof("add policy %v failed: %v", p, err)
-					}
-				}
-			}
-		}
-
-		// add group policy
-		for ptype, assertion := range fm[groupPolicyName] {
-			for _, p := range assertion.Policy {
-				if !Enforcer.HasPolicy(p) {
-					if _, err := Enforcer.AddNamedGroupingPolicy(ptype, p); err != nil {
-						logrus.Infof("add group policy %v failed: %v", p, err)
-					}
-				}
-			}
-		}
-	}
-
+func InitAuthorization(repository repository.Repository) error {
+	store = repository
 	return nil
 }
 
-func Enforce(user string, namespace string, resource string, resourceName string, verb string) bool {
-	res, err := Enforcer.Enforce(user, namespace, resource, resourceName, verb)
-	if err != nil {
-		logrus.Warnf("failed to enforce user: %s, namespace: %s, resource: %s/%s, verb: %s, %v", user, namespace, resource, resourceName, verb, err)
-		return false
+func Authorize(user *model.User, ri *request.RequestInfo) (bool, error) {
+	if user == nil || ri == nil {
+		return false, nil
 	}
-	logrus.Infof("enforce user: %s, namespace: %s, resource: %s/%s, verb: %s, %t", user, namespace, resource, resourceName, verb, res)
 
-	return res
+	if user.ID == 0 {
+		group, err := store.Group().GetGroupByName(model.UnAuthenticatedGroup)
+		if err != nil {
+			return false, err
+		}
+		user.Groups = append(user.Groups, *group)
+	} else {
+		group, err := store.Group().GetGroupByName(model.AuthenticatedGroup)
+		if err != nil {
+			return false, err
+		}
+		user.Groups = append(user.Groups, *group)
+	}
+
+	var err error
+	if user.ID != 0 {
+		user, err = store.User().GetUserByID(user.ID)
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	roles := make([]model.Role, 0)
+	roles = append(roles, user.Roles...)
+	for _, g := range user.Groups {
+		roles = append(roles, g.Roles...)
+	}
+
+	fmt.Printf("xxxx %+v\n", roles)
+
+	for _, role := range roles {
+		if ri.Namespace == "" && role.Scope == model.NamespaceScope {
+			continue
+		}
+
+		if ri.Namespace != "" && (role.Scope == model.NamespaceScope && role.Namespace != ri.Namespace) {
+			continue
+		}
+
+		for _, rule := range role.Rules {
+			if (rule.Resource == model.All || rule.Resource == ri.Resource) && rule.Operation.Contain(ri.Verb) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
-func isFileExists(name string) bool {
-	f, err := os.Stat(name)
-	if err != nil {
-		return false
-	}
-	return !f.IsDir()
-}
-
-func weaveMatch(args ...interface{}) bool {
-	if len(args) < 2 {
+func IsClusterAdmin(user *model.User) bool {
+	if user == nil || user.Name == "" {
 		return false
 	}
 
-	key1 := args[0].(string)
-	key2 := args[1].(string)
-
-	if key2 == "*" {
-		return true
+	roles := make([]model.Role, 0)
+	roles = append(roles, user.Roles...)
+	for _, g := range user.Groups {
+		roles = append(roles, g.Roles...)
 	}
 
-	for _, key := range strings.Split(key2, ",") {
-		if key1 == key {
+	for _, role := range roles {
+		if role.Name == "cluster-admin" {
 			return true
 		}
 	}
 
-	return key1 == key2
-}
-
-func matchFunc(f func(args ...interface{}) bool) govaluate.ExpressionFunction {
-	return func(arguments ...interface{}) (interface{}, error) {
-		return f(arguments...), nil
-	}
-}
-
-func IsRootAdmin(user *model.User) bool {
-	if user == nil || user.Name == "" {
-		return false
-	}
-	ok, _ := Enforcer.HasRoleForUser(user.Name, AdminRole, RootGroup)
-	return ok
+	return false
 }

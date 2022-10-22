@@ -7,6 +7,7 @@ import (
 	"github.com/qingwave/weave/pkg/authorization"
 	"github.com/qingwave/weave/pkg/common"
 	"github.com/qingwave/weave/pkg/model"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,7 +28,16 @@ func AuthorizationMiddleware() gin.HandlerFunc {
 
 		if ri.IsResourceRequest {
 			resource := ri.Resource
-			ok := authorization.Enforce(user.Name, ri.Namespace, resource, ri.Name, ri.Verb)
+			ok, err := authorization.Authorize(user, ri)
+			if err != nil {
+				common.ResponseFailed(c, http.StatusInternalServerError, err)
+				c.Abort()
+				return
+			}
+
+			logrus.Infof("authorize user [%s(%d)], namespace [%s] resource [%s(%s)] verb [%s], result: %t",
+				user.Name, user.ID, ri.Namespace, ri.Resource, ri.Name, ri.Verb, ok)
+
 			if !ok {
 				if user.Name == "" {
 					common.ResponseFailed(c, http.StatusUnauthorized, nil)

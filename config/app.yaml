@@ -25,13 +25,6 @@ kubernetes:
   - "Pod.v1."
   - "Namespace.v1."
 
-authentication:
-  authModelConfigName: "auth_model.conf"
-  authDefaultPolicyConfig: "auth_default_policy.csv"
-  loadDefaultPolicyAlways: false
-  authTablePrefix: ""
-  authTableName: "auth_rules"
-
 db:
   port: 5432 
   host: "localhost"

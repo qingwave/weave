@@ -17,7 +17,7 @@
                     <el-form-item class="w-1/2" label="Namespace" prop="namespace" required>
                         <el-select class="w-full" v-model="newApp.namespace" filterable
                             placeholder="please select namespace">
-                            <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" />
+                            <el-option v-for="ns in namespaces" :label="ns.metadata.name" :value="ns.metadata.name" v-bind:key="ns.metadata.name"/>
                         </el-select>
                         <span class="text-gray-400">The application namespace</span>
                     </el-form-item>

@@ -1,22 +1,57 @@
 # Authentication
 
-Weave support RBAC access control model, supported by [Casbin](https://github.com/casbin/casbin).
+Weave support RBAC access control model.
 
-## Model
-Model file, find in [](../config/auth_model.conf):
-- Request Info: `sub, dom, obj, objName, act`
-  eg, `bob, group1, containers, *, get` means bob in group group1 request containers resource with verb get
-- Policy spec: `sub, dom, obj, objName, act`
-  eg, `p, edit, tenant, tenant_sys_resource, *, "get"` means edit role in tenant group can get all resources in tenant_sys_resource resource group
-- user role definition(`g`):  `user, role, group`, built-in roles contains `admin`, `edit`, `view` and cluster scope role `authenticated`, `unauthenticated`
-  eg, `alice, admin, group1` means alice is admin role in group1
-- resource role definition(`g2`): "resource, resource_group"
-- matchers: support wildcard and slice, especially,  support authenticated role
+## Role
+There is a example for cluster-admin role
+```json
+{
+      "id": 1,
+      "name": "cluster-admin",
+      "scope": "cluster",
+      "namespace": "",
+      "rules": [
+        {
+          "id": 1,
+          "roleId": 1,
+          "resource": "*",
+          "operation": "*"
+        }
+      ]
+}
+```
 
-## Policy
-There are some default policies, see [auth_default_policy](../config/auth_default_policy.csv)
+Role spec:
+- scope: contains `cluster` and `namespace`
+- namespace: if the scope is `namespace`, the namespace should be set with group name
+- rules: every role has many rules, one rule contains resource and operation
+- operation: 
+  - `*`: contains all operation
+  - `edit`: contains view and create, update, delete and patch operations
+  - `view`, 'contains get and list
+  - `get`, get a resource, api likes GET /api/v1/users/1
+  - `list`, get all resources, api likes GET /api/v1/users
+  - `create`, create a resource, api likes POST /api/v1/users
+  - `update`, update a resource with some spec, POST /api/v1/users/2
+  - `patch`, update a resource with all spec, PUT /api/v1/users/2
+  - `delete`, delete a resource, DELETE /apia/v1/users/2
+- resource: non-resource, likes /, /index, /healthz
+  - containers, containers/log, containers/exec
+  - users, users/groups, groups, groups/users
+  - auth, for login and logout
+  - posts, posts/like, posts/comment
+  - namespaces
+  - roles, rbac roles
+  - k8s resources, pods, deployments, services and so on
+  - some sub resources, `log`, `exec`, `proxy` for containers and pos 
 
-- `root` group is special built-in group contains administrators.
-- `root.admin` can operate all resources in the system.  
-- all user need have right to call auth(login/logout)
-- `authenticated` users can get users info and containers(modify it ondemand)
+## Default setting
+
+Default Groups
+- root, root group contains all cluster admin users, binding with a cluster-admin rool
+- system:authenticated, all authenticated users belong to authenticated group
+- system:unauthenticated, anonymous users belong to unauthenticated group, can access register user api
+
+Default user
+- admin, admin user belong to root group, is the cluster admin, can access all apis
+- demo, demo user without any roles, only can get non-resource api

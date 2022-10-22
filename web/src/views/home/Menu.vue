@@ -43,9 +43,9 @@ import {
   MoreFour, MenuFoldOne, MenuUnfoldOne, CategoryManagement,
   SailboatOne
 } from '@icon-park/vue-next';
-import { inRootGroup } from '@/utils';
+import { isAdmin } from '@/utils';
 
-const isRoot = inRootGroup();
+const isRoot = isAdmin();
 
 const isCollapse = ref(false);
 

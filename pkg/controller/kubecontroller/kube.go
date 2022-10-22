@@ -13,6 +13,7 @@ import (
 	"github.com/qingwave/weave/pkg/controller"
 	"github.com/qingwave/weave/pkg/library/kubernetes"
 	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
 	appsv1 "k8s.io/api/apps/v1"
@@ -34,19 +35,19 @@ const (
 )
 
 const (
-	kubeNamespace   = "namespaces"
+	KubeNamespace   = "namespaces"
 	KubeDeployment  = "deployments"
 	KubeStatefulset = "statefulsets"
-	kubeDaemonset   = "daemonsets"
-	kubePod         = "pods"
+	KubeDaemonset   = "daemonsets"
+	KubePod         = "pods"
 	KubeService     = "services"
 	KubeIngress     = "ingresses"
 )
 
 var (
 	resourceMap = map[string]KubeResource{
-		kubeNamespace: {
-			Name:         kubeNamespace,
+		KubeNamespace: {
+			Name:         KubeNamespace,
 			Object:       func() client.Object { return &corev1.Namespace{} },
 			ObjectList:   func() client.ObjectList { return &corev1.NamespaceList{} },
 			IsNamespaced: false,
@@ -63,14 +64,14 @@ var (
 			ObjectList:   func() client.ObjectList { return &appsv1.StatefulSetList{} },
 			IsNamespaced: true,
 		},
-		kubeDaemonset: {
-			Name:         kubeDaemonset,
+		KubeDaemonset: {
+			Name:         KubeDaemonset,
 			Object:       func() client.Object { return &appsv1.DaemonSet{} },
 			ObjectList:   func() client.ObjectList { return &appsv1.DaemonSetList{} },
 			IsNamespaced: true,
 		},
-		kubePod: {
-			Name:         kubePod,
+		KubePod: {
+			Name:         KubePod,
 			Object:       func() client.Object { return &corev1.Pod{} },
 			ObjectList:   func() client.ObjectList { return &corev1.PodList{} },
 			IsNamespaced: true,
@@ -97,8 +98,8 @@ type KubeResource struct {
 	IsNamespaced bool
 }
 
-func NewKubeControllers(client *kubernetes.KubeClient) controller.Controller {
-	kc := &KubeController{client: client}
+func NewKubeControllers(client *kubernetes.KubeClient, groupService service.GroupService) controller.Controller {
+	kc := &KubeController{client: client, groupService: groupService}
 	if client != nil {
 		kc.proxy = ProxyKubeAPIServer(client.GetConfig())
 	}
@@ -106,8 +107,9 @@ func NewKubeControllers(client *kubernetes.KubeClient) controller.Controller {
 }
 
 type KubeController struct {
-	client *kubernetes.KubeClient
-	proxy  gin.HandlerFunc
+	client       *kubernetes.KubeClient
+	proxy        gin.HandlerFunc
+	groupService service.GroupService
 }
 
 // @Summary Create kube resource
@@ -168,8 +170,8 @@ func (kc *KubeController) List(c *gin.Context) {
 
 	user := common.GetUser(c)
 	switch kubeResource.Name {
-	case kubeNamespace:
-		if !authorization.IsRootAdmin(user) {
+	case KubeNamespace:
+		if !authorization.IsClusterAdmin(user) {
 			if err := kc.listNamespacesByGroup(list.(*corev1.NamespaceList), user.Name); err != nil {
 				common.ResponseFailed(c, http.StatusInternalServerError, err)
 				return
@@ -181,14 +183,14 @@ func (kc *KubeController) List(c *gin.Context) {
 }
 
 func (kc *KubeController) listNamespacesByGroup(list *corev1.NamespaceList, user string) error {
-	groups, err := authorization.Enforcer.GetDomainsForUser(user)
+	groups, err := kc.groupService.List()
 	if err != nil {
 		return err
 	}
 
 	inGroup := func(name string) bool {
 		for _, g := range groups {
-			if g == name {
+			if g.Name == name {
 				return true
 			}
 		}
@@ -229,7 +231,7 @@ func (kc *KubeController) Update(c *gin.Context) {
 
 	namespace := c.Param("namespace")
 	name := c.Param("name")
-	if kubeResource.Name == kubeNamespace {
+	if kubeResource.Name == KubeNamespace {
 		name = namespace
 	}
 
@@ -438,7 +440,7 @@ func (kc *KubeController) RegisterRoute(api *gin.RouterGroup) {
 		res := resourceMap[kind]
 		resourcePath := fmt.Sprintf("/%s", kind)
 		resourceDetail := resourcePath + "/:name"
-		if kind == kubeNamespace {
+		if kind == KubeNamespace {
 			resourceDetail = resourcePath + "/:namespace"
 		} else if res.IsNamespaced {
 			resourcePath = fmt.Sprintf("/namespaces/:namespace/%s", kind)

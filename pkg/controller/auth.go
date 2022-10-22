@@ -6,7 +6,6 @@ import (
 
 	"github.com/qingwave/weave/pkg/authentication"
 	"github.com/qingwave/weave/pkg/authentication/oauth"
-	"github.com/qingwave/weave/pkg/authorization"
 	"github.com/qingwave/weave/pkg/common"
 	"github.com/qingwave/weave/pkg/model"
 	"github.com/qingwave/weave/pkg/service"
@@ -78,7 +77,7 @@ func (ac *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	userJson, err := json.Marshal(wrapRootInfo(*user))
+	userJson, err := json.Marshal(user)
 	if err != nil {
 		common.ResponseFailed(c, http.StatusInternalServerError, err)
 		return
@@ -144,14 +143,4 @@ func (ac *AuthController) RegisterRoute(api *gin.RouterGroup) {
 
 func (ac *AuthController) Name() string {
 	return "Authentication"
-}
-
-func wrapRootInfo(user model.User) *model.UserInfo {
-	ui := &model.UserInfo{User: user}
-	roles := authorization.Enforcer.GetRolesForUserInDomain(user.Name, authorization.RootGroup)
-	if len(roles) > 0 {
-		ui.InRoot = true
-		ui.Role = roles[0]
-	}
-	return ui
 }

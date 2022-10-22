@@ -1,134 +1,170 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/qingwave/weave/pkg/authorization"
 	"github.com/qingwave/weave/pkg/common"
 	"github.com/qingwave/weave/pkg/model"
+	"github.com/qingwave/weave/pkg/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-type RbacController struct{}
-
-func NewRbacController() Controller {
-	return &RbacController{}
+type RBACController struct {
+	rbacService service.RBACService
 }
 
-// @Summary List rbac policy
-// @Description List rbac policy
+func NewRbacController(rbacService service.RBACService) Controller {
+	return &RBACController{rbacService: rbacService}
+}
+
+// @Summary List rbac role
+// @Description List rbac role
 // @Produce json
 // @Tags rbac
 // @Security JWT
-// @Success 200 {object} common.Response{data=[]string}
-// @Param ptype    query     string  false  "ptype: p/g/g2"
-// @Router /api/v1/policies [get]
-func (rbac *RbacController) List(c *gin.Context) {
-	ptype := c.Query("ptype")
-	policies := make([][]string, 0)
-
-	switch ptype {
-	case model.DefaultPolicyType:
-		policies = authorization.Enforcer.GetPolicy()
-	case model.UserGroupPolicyType:
-		policies = authorization.Enforcer.GetGroupingPolicy()
-	case model.ResourcePolicyType:
-		policies = authorization.Enforcer.GetNamedGroupingPolicy(model.ResourcePolicyType)
-	default:
-		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("unsupported policy type: [%v]", ptype))
+// @Success 200 {object} common.Response{data=[]model.Role}
+// @Router /api/v1/roles [get]
+func (rbac *RBACController) List(c *gin.Context) {
+	roles, err := rbac.rbacService.List()
+	if err != nil {
+		common.ResponseFailed(c, http.StatusInternalServerError, err)
+		return
 	}
 
-	common.ResponseSuccess(c, policies)
+	common.ResponseSuccess(c, roles)
 }
 
-// @Summary Handle rbac policy
-// @Description Handle rbac policy and storage
+// @Summary Create rbac role
+// @Description Create rbac role
 // @Accept json
 // @Produce json
 // @Tags rbac
 // @Security JWT
-// @Param rbac policy body model.Policy true "rbac policy info"
+// @Param role body model.Role true "rbac role info"
 // @Success 200 {object} common.Response
-// @Router /api/v1/policies [post]
-func (rbac *RbacController) Handle(c *gin.Context) {
-	params := &model.Policy{}
-	if err := c.BindJSON(&params); err != nil {
+// @Router /api/v1/roles [post]
+func (rbac *RBACController) Create(c *gin.Context) {
+	role := &model.Role{}
+	if err := c.BindJSON(role); err != nil {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
 
-	var ok bool
-	var err error
-	switch params.Action {
-	case model.AddPolicyAction:
-		ok, err = addPolicy(params.Type, toInterfaceSlice(params.Policy))
-	case model.UpdatePolicyAction:
-		ok, err = updatePolicy(params.Type, params.OldPolicy, params.Policy)
-	case model.RemovePolicyAction:
-		ok, err = removePolicy(params.Type, toInterfaceSlice(params.Policy))
-	default:
-		err = fmt.Errorf("invaild action %s", params.Action)
+	role, err := rbac.rbacService.Create(role)
+	if err != nil {
+		common.ResponseFailed(c, http.StatusInternalServerError, err)
+		return
 	}
 
-	if err != nil || !ok {
-		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("failed to %s policy: %v", params.Action, err))
+	common.ResponseSuccess(c, role)
+}
+
+// @Summary Get role
+// @Description Get role
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Param id path int true "role id"
+// @Success 200 {object} common.Response{data=model.Role}
+// @Router /api/v1/roles/{id} [get]
+func (rbac *RBACController) Get(c *gin.Context) {
+	role, err := rbac.rbacService.Get(c.Param("id"))
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+	common.ResponseSuccess(c, role)
+}
+
+// @Summary Update rbac role
+// @Description Update rbac role
+// @Accept json
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Param role body model.Role true "rbac role info"
+// @Success 200 {object} common.Response
+// @Param id path int true "role id"
+// @Router /api/v1/roles/:id [put]
+func (rbac *RBACController) Update(c *gin.Context) {
+	role := &model.Role{}
+	if err := c.BindJSON(role); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	id := c.Param("id")
+	role, err := rbac.rbacService.Update(id, role)
+	if err != nil {
+		common.ResponseFailed(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	common.ResponseSuccess(c, role)
+}
+
+// @Summary Delete role
+// @Description Delete role
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Param id path int true "role id"
+// @Success 200 {object} common.Response
+// @Router /api/v1/roles/{id} [delete]
+func (rbac *RBACController) Delete(c *gin.Context) {
+	if err := rbac.rbacService.Delete(c.Param("id")); err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
 
 	common.ResponseSuccess(c, nil)
 }
 
-func (rbac *RbacController) RegisterRoute(api *gin.RouterGroup) {
-	api.GET("/policies", rbac.List)
-	api.POST("/policies", rbac.Handle)
+// @Summary List resources
+// @Description List resources
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Success 200 {object} common.Response{data=[]model.Resource}
+// @Router /api/v1/resources [get]
+func (rbac *RBACController) ListResources(c *gin.Context) {
+	data, err := rbac.rbacService.ListResources()
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, data)
 }
 
-func (rbac *RbacController) Name() string {
+// @Summary List operations
+// @Description List operations
+// @Produce json
+// @Tags rbac
+// @Security JWT
+// @Success 200 {object} common.Response{data=[]model.Operation}
+// @Router /api/v1/operations [get]
+func (rbac *RBACController) ListOperations(c *gin.Context) {
+	data, err := rbac.rbacService.ListOperations()
+	if err != nil {
+		common.ResponseFailed(c, http.StatusBadRequest, err)
+		return
+	}
+
+	common.ResponseSuccess(c, data)
+}
+
+func (rbac *RBACController) RegisterRoute(api *gin.RouterGroup) {
+	api.GET("/roles", rbac.List)
+	api.POST("/roles", rbac.Create)
+	api.GET("/roles/:id", rbac.Get)
+	api.PUT("/roles/:id", rbac.Update)
+	api.DELETE("/roles/:id", rbac.Delete)
+	api.GET("/resources", rbac.ListResources)
+	api.GET("/operations", rbac.ListOperations)
+}
+
+func (rbac *RBACController) Name() string {
 	return "RBAC"
-}
-
-func addPolicy(ptype string, policy []interface{}) (bool, error) {
-	switch ptype {
-	case model.DefaultPolicyType:
-		return authorization.Enforcer.AddPolicy(policy...)
-	case model.UserGroupPolicyType:
-		return authorization.Enforcer.AddGroupingPolicy(policy...)
-	case model.ResourcePolicyType:
-		return authorization.Enforcer.AddNamedGroupingPolicy(ptype, policy...)
-	}
-	return false, fmt.Errorf("unsupported policy type %s", ptype)
-}
-
-func removePolicy(ptype string, policy []interface{}) (bool, error) {
-	switch ptype {
-	case model.DefaultPolicyType:
-		return authorization.Enforcer.RemovePolicy(policy...)
-	case model.UserGroupPolicyType:
-		return authorization.Enforcer.RemoveGroupingPolicy(policy...)
-	case model.ResourcePolicyType:
-		return authorization.Enforcer.RemoveNamedGroupingPolicy(ptype, policy...)
-	}
-	return false, fmt.Errorf("unsupported policy type %s", ptype)
-}
-
-func updatePolicy(ptype string, old, new []string) (bool, error) {
-	switch ptype {
-	case model.DefaultPolicyType:
-		return authorization.Enforcer.UpdatePolicy(old, new)
-	case model.UserGroupPolicyType:
-		return authorization.Enforcer.UpdateGroupingPolicy(old, new)
-	case model.ResourcePolicyType:
-		return authorization.Enforcer.UpdateNamedGroupingPolicy(ptype, old, new)
-	}
-	return false, fmt.Errorf("unsupported policy type %s", ptype)
-}
-
-func toInterfaceSlice(params []string) []interface{} {
-	res := make([]interface{}, len(params))
-	for i, param := range params {
-		res[i] = param
-	}
-	return res
 }

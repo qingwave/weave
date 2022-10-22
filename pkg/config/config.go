@@ -2,8 +2,6 @@ package config
 
 import (
 	"os"
-	"path"
-	"path/filepath"
 
 	"github.com/qingwave/weave/pkg/utils/ratelimit"
 
@@ -15,7 +13,6 @@ type Config struct {
 	DB          DBConfig               `yaml:"db"`
 	Redis       RedisConfig            `yaml:"redis"`
 	OAuthConfig map[string]OAuthConfig `yaml:"oauth"`
-	AuthConfig  AuthenticationConfig   `yaml:"authentication"`
 	Docker      DockerConfig           `yaml:"docker"`
 	Kubernetes  KubeConfig             `yaml:"kubernetes"`
 }
@@ -51,16 +48,6 @@ type OAuthConfig struct {
 	ClientSecret string `yaml:"clientSecret"`
 }
 
-type AuthenticationConfig struct {
-	AuthModelConfigName             string `yaml:"authModelConfigName"`
-	AuthModelConfigFullName         string
-	AuthDefaultPolicyConfig         string `yaml:"authDefaultPolicyConfig"`
-	LoadDefaultPolicyAlways         bool   `yaml:"loadDefaultPolicyAlways"`
-	AuthDefaultPolicyConfigFullName string
-	AuthTablePrefix                 string `yaml:"authTablePrefix"`
-	AuthTableName                   string `yaml:"authTableName"`
-}
-
 type DockerConfig struct {
 	Enable bool   `yaml:"enable"`
 	Host   string `yaml:"host"`
@@ -83,10 +70,6 @@ func Parse(appConfig string) (*Config, error) {
 	if err := yaml.NewDecoder(file).Decode(&config); err != nil {
 		return nil, err
 	}
-
-	baseDir := filepath.Dir(appConfig)
-	config.AuthConfig.AuthModelConfigFullName = path.Join(baseDir, config.AuthConfig.AuthModelConfigName)
-	config.AuthConfig.AuthDefaultPolicyConfigFullName = path.Join(baseDir, config.AuthConfig.AuthDefaultPolicyConfig)
 
 	return config, nil
 }

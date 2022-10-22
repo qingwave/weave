@@ -4,6 +4,15 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+const (
+	KubeDeployment  = "deployments"
+	KubeStatefulset = "statefulsets"
+	KubeDaemonset   = "daemonsets"
+	KubePod         = "pods"
+	KubeService     = "services"
+	KubeIngress     = "ingresses"
+)
+
 type KubeBase struct {
 	Name        string            `json:"name"`
 	Namespace   string            `json:"namespace"`
@@ -16,9 +25,4 @@ type KubeApp struct {
 	Kind       string             `json:"kind"`
 	Replicas   *int32             `json:"replicas"`
 	Containers []corev1.Container `json:"containers"`
-}
-
-type KubeService struct {
-	KubeBase
-	corev1.ServiceSpec
 }

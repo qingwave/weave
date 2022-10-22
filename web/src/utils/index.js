@@ -43,10 +43,21 @@ export function delUser() {
     setCookie('loginUser', '', -1)
 }
 
-export function inRootGroup() {
-    let user = getUser()
-    if (user && user.inRoot) {
-        return user.inRoot
+export function isAdmin() {
+    let user = getUser();
+    let roles = new Array();
+    roles.push(...user.roles);
+    for (let g of user.groups) {
+        if (g.name == 'root') {
+            return true
+        }
+        roles.push(...g.roles)
+    }
+
+    for (let r of roles) {
+        if (r.name == 'cluster-admin') {
+            return true
+        }
     }
     return false
 }
