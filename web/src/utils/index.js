@@ -43,15 +43,35 @@ export function delUser() {
     setCookie('loginUser', '', -1)
 }
 
+const anonymousUser = "anonymous";
+export function setAnonymous() {
+    let user = {
+        name: anonymousUser,
+    }
+    setUser(user);
+    return user
+}
+
+export function isAnonymous(name) {
+    return name == anonymousUser
+}
+
 export function isAdmin() {
     let user = getUser();
     let roles = new Array();
-    roles.push(...user.roles);
-    for (let g of user.groups) {
-        if (g.name == 'root') {
-            return true
+    if (Array.isArray(user.roles)) {
+        roles.push(...user.roles);
+    }
+
+    if (Array.isArray(user.groups)) {
+        for (let g of user.groups) {
+            if (g.name == 'root') {
+                return true
+            }
+            if (Array.isArray(getItemIndex.roles)) {
+                roles.push(...g.roles)
+            }
         }
-        roles.push(...g.roles)
     }
 
     for (let r of roles) {

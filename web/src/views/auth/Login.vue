@@ -84,7 +84,7 @@ import { ref, reactive } from 'vue'
 import request from '@/axios'
 import { useRouter } from 'vue-router'
 import { redirectUri, authInfo } from '@/config.js'
-import { setUser } from '@/utils'
+import { setAnonymous } from '@/utils'
 
 const router = useRouter();
 
@@ -123,10 +123,12 @@ const login = async (form) => {
     return
   }
 
+  let name = loginUser.name;
+
   let success = function() {
     ElNotification.success({
           title: 'Login Success',
-          message: 'Hi~ ' + loginUser.name,
+          message: 'Hi~ ' + name,
           showClose: true,
           duration: 1500,
         })
@@ -134,10 +136,9 @@ const login = async (form) => {
   }
 
   if (anonymousLogin.value) {
-    setUser({
-      name: "anonymous",
-    })
-    success()
+    let user = setAnonymous();
+    name = user.name;
+    success();
     return
   }
 
