@@ -3,7 +3,7 @@ import { ElMessage } from "element-plus"
 import { getUser } from "@/utils"
 
 // vite proxy, need not cors
-// axios.defaults.baseURL = "http://127.0.0.1:8080";
+// axios.defaults.baseURL = "http://127.0.0.1:8081";
 // axios.defaults.withCredentials = true;
 
 const user = getUser()

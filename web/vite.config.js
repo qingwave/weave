@@ -5,6 +5,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import prismjs from "vite-plugin-prismjs";
+import fs from 'fs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -40,8 +41,13 @@ export default defineConfig({
     })
   ],
   server: {
-    host: "127.0.0.1",
+    host: "0.0.0.0",
     port: 8081,
+    https: {
+      ca: fs.readFileSync('../certs/root.crt'),
+      key: fs.readFileSync('../certs/frontend.key'),
+      cert: fs.readFileSync('../certs/frontend.crt')
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
