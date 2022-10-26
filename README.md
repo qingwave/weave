@@ -141,6 +141,8 @@ Container web shell
 ### Run UI
 Assume you have installed `Nodejs`, if not, install it by [nvm](https://github.com/nvm-sh/nvm#install--update-script)
 
+If your frontend deploy in the remote, please change `server.host` and `server.https` in [vite.config.js](./web/vite.config.js).
+
 ```bash
 cd web
 npm i

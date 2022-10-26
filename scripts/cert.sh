@@ -1,5 +1,9 @@
 #!/bin/bash
 
+CERTDIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )/../certs" && pwd )"
+
+pushd $CERTDIR
+
 base_subj="/C=CN/ST=Xi'an/L=Xi'an/O=weave/OU=weave"
 root_subj="${base_subj}/CN=root"
 frontend_subj="${base_subj}/CN=frontend"
@@ -23,3 +27,5 @@ openssl genrsa -out server.key 2048
 openssl req -new -key server.key -out server.csr -subj ${server_subj}
 
 openssl x509 -req -days 100000 -CA root.crt -CAkey root.key -in server.csr -out server.crt -CAcreateserial
+
+popd
