@@ -5,7 +5,13 @@
 [![codecov](https://codecov.io/gh/qingwave/weave/branch/master/graph/badge.svg?token=B93TcvKqA6)](https://codecov.io/gh/qingwave/weave)
 [![GitHub license](https://img.shields.io/github/license/qingwave/weave)](https://github.com/qingwave/weave/blob/master/LICENSE)
 
-Simple but functional Go+Vue application starter, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
+<img src="web/src/assets/weave.png" width="50px">
+
+---
+
+> English | [中文](README_zh.md)
+
+Weave is a Go + Vue3 application starter, simple but functional, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
 <table>
   <tr>
@@ -90,12 +96,19 @@ run locally
 make run
 ```
 
+run server in docker
+```bash
+# build image
+make docker-build-server
+# run server
+make docker-run-server
+```
+
 > For Windows, you can run script in [Makefile](./Makefile) manually
 
-See http://localhost:8080
-
 ### Test api
-See more in swagger http://localhost:8080/swagger/index.html#/
+See more api in http://localhost:8080/index
+See swagger http://localhost:8080/swagger/index.html#/
 
 Register user
 ```bash
@@ -125,25 +138,12 @@ token=xxx
 curl -X 'GET' 'http://localhost:8080/api/v1/users' -H "Authorization: Bearer $token"
 ```
 
-Container web shell
-1. login in swagger `http://localhost:8080/swagger/index.html#/auth/post_login`
-2. create container `http://localhost:8080/swagger/index.html#/user/post_api_v1_users`
-```json
-{
-  "cmd": [
-    "top"
-  ],
-  "image": "alpine",
-  "name": "myapp"
-}
-```
-3. open cloudshell `http://localhost:8080/api/v1/containers/{:containerid}/terminal`
-
 ### Run UI
 Assume you have installed `Nodejs`, if not, install it by [nvm](https://github.com/nvm-sh/nvm#install--update-script)
 
 If your frontend deploy in the remote, please change `server.host` and `server.https` in [vite.config.js](./web/vite.config.js).
 
+Run ui with command `make ui` or
 ```bash
 cd web
 npm i
@@ -157,24 +157,32 @@ or demo user `demo/123456`
 
 Explore in http://127.0.0.1:8081
 
+run frontend in docker
+```bash
+# build image
+make docker-build-ui
+# run frontend
+make docker-run-ui
+```
+
 More ui in [img](./document/img/)
 
-Login page
+- Login page
 ![login](./document/img/login.png)
 
-Dashboard page
+- Dashboard page
 ![dashboard](./document/img/dashboard.png)
 
-App page
+- App page
 ![app](./document/img/app.png)
 
-Webshell page
+- Webshell page
 ![webshell](./document/img/webshell.png)
 
-Blog list
+- Blog list
 ![Blog](./document/img/blog.png)
 
-Article
+- Article
 ![article](./document/img/document.png)
 
 ### Documents

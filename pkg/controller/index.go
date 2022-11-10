@@ -22,6 +22,7 @@ func Index(c *gin.Context) {
 			<li><a href="/swagger/index.html">swagger</a></li>
 			<li><a href="/metrics">metrics</a></li>
 			<li><a href="/healthz">healthz</a></li>
+			<li><a href="/">api list</a></li>
 	  	</ul>
 		<hr>
 		<center>Weave/1.0</center>
