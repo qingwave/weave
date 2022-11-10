@@ -46,6 +46,7 @@ Server support features:
 - Graceful shutdown
 - Authentication, support jwt
 - Request rate limit, server level or user ip
+- OAuth Login and store hashed password
 - Redis cache
 - RBAC supported
 - Container application management, support docker and kubernetes
@@ -151,6 +152,8 @@ npm run dev
 
 Default admin user `admin/123456`
 or demo user `demo/123456`
+
+> Only admin user can access all api, other user must config RBAC at first
 
 Explore in http://127.0.0.1:8081
 
