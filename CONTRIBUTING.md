@@ -11,3 +11,13 @@
 Run `make` to build and test.
 
 Run the command  `make test` to test the changes locally.
+
+## Pull Request Required
+Pull request title must start up with
+- :sparkles: (`:sparkles:`), new feature
+- :warning: (`:warning:`), breaking feature
+- :bug: (`:bug:`), bug fix
+- :book: (`:book:`), document update
+- :recycle: (`:recycle:`), code refactor
+- :white_check_mark: (`:white_check_mark:`), test related
+- others, see https://gitmoji.dev/
