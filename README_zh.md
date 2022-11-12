@@ -179,6 +179,7 @@ make docker-run-ui
 ![article](./document/img/document.png)
 
 ### 文档
+- [Contributing](./CONTRIBUTING.md)，为此项目提交贡献
 - [Config](./config/app.yaml), 配置对应功能是否开启
 - [OAuth](./document/oauth.md)
 - [RBAC](./document/authentication.md)

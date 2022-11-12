@@ -186,6 +186,7 @@ More ui in [img](./document/img/)
 ![article](./document/img/document.png)
 
 ### Documents
+- [Contributing](./CONTRIBUTING.md), contributing details
 - [Config](./config/app.yaml), your can enable docker/kubernetes in config
 - [OAuth](./document/oauth.md)
 - [RBAC](./document/authentication.md)

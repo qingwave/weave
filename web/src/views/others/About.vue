@@ -18,7 +18,7 @@ The backend support multi-function, contains gin, postgres, redis, gorm, jwt and
 - Github: [${githubInfo.project}](${githubInfo.project})
 - Document: [${githubInfo.doc}](${githubInfo.doc})
 
-<img src="/src/assets/snowman.svg" width=300 />
+<img src="https://raw.githubusercontent.com/qingwave/weave/master/web/src/assets/snowman.svg" width=300 />
 
 `
 </script>

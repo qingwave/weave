@@ -1,11 +1,7 @@
 # Build weave frontend
 FROM node:lts-alpine AS builder
 WORKDIR /weave
-COPY package*.json ./
-COPY *.html ./
-COPY *.js ./
-COPY src src
-COPY public public
+COPY . .
 RUN npm install && \
     npm run build
 
