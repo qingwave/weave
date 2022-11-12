@@ -83,18 +83,18 @@ import { User, Lock, Github, Wechat } from '@icon-park/vue-next'
 import { ref, reactive } from 'vue'
 import request from '@/axios'
 import { useRouter } from 'vue-router'
-import { redirectUri, authInfo } from '@/config.js'
+import { authInfo } from '@/config.js'
 import { setAnonymous } from '@/utils'
 
 const router = useRouter();
 
 const loginFormRef = ref();
 const registerFormRef = ref();
+const redirectUri = window.location.origin + '/oauth'
 
 const showLogin = ref(true);
 
 const anonymousLogin = ref(false);
-
 const loginUser = reactive({
   name: "admin",
   password: "123456",

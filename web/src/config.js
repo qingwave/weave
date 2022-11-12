@@ -1,6 +1,3 @@
-
-const redirectUri = `http://127.0.0.1:8081/oauth`;
-
 const authInfo = {
     github: {
         scope: "user:email+read:user",
@@ -22,4 +19,4 @@ const githubInfo = {
     doc: 'https://github.com/qingwave/weave/blob/master/README.md#weave',
 }
 
-export { redirectUri, authInfo, githubInfo };
+export { authInfo, githubInfo };

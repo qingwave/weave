@@ -15,10 +15,10 @@ LDFLAGS = -X github.com/qingwave/weave/pkg/version.gitVersion=$(GIT_VERSION) \
 PKGS = $(shell go list ./...)
 GOFILES = $(shell find . -name "*.go" -type f -not -path "./vendor/*")
 
+base: clean test swagger fmt build
+
 help: ## display the help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-base: clean test swagger fmt build
 
 build: ## build server
 	go build -ldflags "$(LDFLAGS)" -mod vendor -o bin/weave main.go
