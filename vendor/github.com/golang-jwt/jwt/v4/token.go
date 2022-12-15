@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 // DecodePaddingAllowed will switch the codec used for decoding JWTs respectively. Note that the JWS RFC7515
 // states that the tokens will utilize a Base64url encoding with no padding. Unfortunately, some implementations
 // of JWT are producing non-standard tokens, and thus require support for decoding. Note that this is a global
@@ -74,22 +73,19 @@ func (t *Token) SignedString(key interface{}) (string, error) {
 // the SignedString.
 func (t *Token) SigningString() (string, error) {
 	var err error
-	parts := make([]string, 2)
-	for i := range parts {
-		var jsonValue []byte
-		if i == 0 {
-			if jsonValue, err = json.Marshal(t.Header); err != nil {
-				return "", err
-			}
-		} else {
-			if jsonValue, err = json.Marshal(t.Claims); err != nil {
-				return "", err
-			}
-		}
+	var jsonValue []byte
 
-		parts[i] = EncodeSegment(jsonValue)
+	if jsonValue, err = json.Marshal(t.Header); err != nil {
+		return "", err
 	}
-	return strings.Join(parts, "."), nil
+	header := EncodeSegment(jsonValue)
+
+	if jsonValue, err = json.Marshal(t.Claims); err != nil {
+		return "", err
+	}
+	claim := EncodeSegment(jsonValue)
+
+	return strings.Join([]string{header, claim}, "."), nil
 }
 
 // Parse parses, validates, verifies the signature and returns the parsed token.
@@ -103,6 +99,11 @@ func Parse(tokenString string, keyFunc Keyfunc, options ...ParserOption) (*Token
 	return NewParser(options...).Parse(tokenString, keyFunc)
 }
 
+// ParseWithClaims is a shortcut for NewParser().ParseWithClaims().
+//
+// Note: If you provide a custom claim implementation that embeds one of the standard claims (such as RegisteredClaims),
+// make sure that a) you either embed a non-pointer version of the claims or b) if you are using a pointer, allocate the
+// proper memory for it before passing in the overall claims, otherwise you might run into a panic.
 func ParseWithClaims(tokenString string, claims Claims, keyFunc Keyfunc, options ...ParserOption) (*Token, error) {
 	return NewParser(options...).ParseWithClaims(tokenString, claims, keyFunc)
 }
