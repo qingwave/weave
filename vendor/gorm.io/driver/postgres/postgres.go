@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/stdlib"
@@ -44,11 +45,13 @@ var timeZoneMatcher = regexp.MustCompile("(time_zone|TimeZone)=(.*?)($|&| )")
 
 func (dialector Dialector) Initialize(db *gorm.DB) (err error) {
 	// register callbacks
-	callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
-		CreateClauses: []string{"INSERT", "VALUES", "ON CONFLICT", "RETURNING"},
-		UpdateClauses: []string{"UPDATE", "SET", "WHERE", "RETURNING"},
-		DeleteClauses: []string{"DELETE", "FROM", "WHERE", "RETURNING"},
-	})
+	if !dialector.WithoutReturning {
+		callbacks.RegisterDefaultCallbacks(db, &callbacks.Config{
+			CreateClauses: []string{"INSERT", "VALUES", "ON CONFLICT", "RETURNING"},
+			UpdateClauses: []string{"UPDATE", "SET", "WHERE", "RETURNING"},
+			DeleteClauses: []string{"DELETE", "FROM", "WHERE", "RETURNING"},
+		})
+	}
 
 	if dialector.Conn != nil {
 		db.ConnPool = dialector.Conn
@@ -192,9 +195,30 @@ func (dialector Dialector) DataTypeOf(field *schema.Field) string {
 		return "timestamptz"
 	case schema.Bytes:
 		return "bytea"
+	default:
+		return dialector.getSchemaCustomType(field)
+	}
+}
+
+func (dialector Dialector) getSchemaCustomType(field *schema.Field) string {
+	sqlType := string(field.DataType)
+
+	if field.AutoIncrement && !strings.Contains(strings.ToLower(sqlType), "serial") {
+		size := field.Size
+		if field.GORMDataType == schema.Uint {
+			size++
+		}
+		switch {
+		case size <= 16:
+			sqlType = "smallserial"
+		case size <= 32:
+			sqlType = "serial"
+		default:
+			sqlType = "bigserial"
+		}
 	}
 
-	return string(field.DataType)
+	return sqlType
 }
 
 func (dialectopr Dialector) SavePoint(tx *gorm.DB, name string) error {
