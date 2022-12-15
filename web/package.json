@@ -24,12 +24,12 @@
     "vue": "^3.2.25",
     "vue-echarts": "^6.0.0",
     "vue-router": "^4.0.12",
-    "xterm": "^4.16.0",
-    "xterm-addon-attach": "^0.6.0",
-    "xterm-addon-fit": "^0.5.0",
-    "xterm-addon-serialize": "^0.7.0",
-    "xterm-addon-unicode11": "^0.3.0",
-    "xterm-addon-web-links": "^0.6.0",
+    "xterm": "^5.0.0",
+    "xterm-addon-attach": "^0.7.0",
+    "xterm-addon-fit": "^0.6.0",
+    "xterm-addon-serialize": "^0.8.0",
+    "xterm-addon-unicode11": "^0.4.0",
+    "xterm-addon-web-links": "^0.7.0",
     "yaml": "^2.1.1"
   },
   "devDependencies": {
