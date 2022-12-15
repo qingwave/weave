@@ -23,7 +23,7 @@
     "uslug": "^1.0.4",
     "vue": "^3.2.25",
     "vue-echarts": "^6.0.0",
-    "vue-router": "^4.0.12",
+    "vue-router": "^4.1.6",
     "xterm": "^5.0.0",
     "xterm-addon-attach": "^0.7.0",
     "xterm-addon-fit": "^0.6.0",
