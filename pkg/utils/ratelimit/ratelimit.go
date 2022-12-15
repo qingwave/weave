@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	lru "github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"golang.org/x/time/rate"
 )
 
@@ -40,8 +40,8 @@ func (c *LimitConfig) Validate() error {
 
 type RateLimiter struct {
 	limitType          LimitType
-	keyFunc            func(*gin.Context) interface{}
-	cache              *lru.Cache
+	keyFunc            func(*gin.Context) string
+	cache              *lru.Cache[string, *rate.Limiter]
 	rateLimiterFactory func() *rate.Limiter
 }
 
@@ -54,21 +54,21 @@ func NewRateLimiter(conf *LimitConfig) (*RateLimiter, error) {
 		return nil, err
 	}
 
-	var keyFunc func(*gin.Context) interface{}
+	var keyFunc func(*gin.Context) string
 	switch conf.LimitType {
 	case ServerLimitType:
-		keyFunc = func(c *gin.Context) interface{} {
+		keyFunc = func(c *gin.Context) string {
 			return ""
 		}
 	case IPLimitType:
-		keyFunc = func(c *gin.Context) interface{} {
+		keyFunc = func(c *gin.Context) string {
 			return c.ClientIP()
 		}
 	default:
 		return nil, fmt.Errorf("unknow limit type %s", conf.LimitType)
 	}
 
-	c, err := lru.New(conf.CacheSize)
+	c, err := lru.New[string, *rate.Limiter](conf.CacheSize)
 	if err != nil {
 		return nil, err
 	}
@@ -96,12 +96,12 @@ func (rl *RateLimiter) Accept(c *gin.Context) error {
 	return nil
 }
 
-func (rl *RateLimiter) get(key interface{}) *rate.Limiter {
+func (rl *RateLimiter) get(key string) *rate.Limiter {
 	value, found := rl.cache.Get(key)
 	if !found {
 		new := rl.rateLimiterFactory()
 		rl.cache.Add(key, new)
 		return new
 	}
-	return value.(*rate.Limiter)
+	return value
 }
