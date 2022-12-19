@@ -12,7 +12,7 @@
     "codemirror": "^5.65.5",
     "codemirror-editor-vue3": "^2.1.7",
     "echarts": "^5.2.2",
-    "element-plus": "^2.2.2",
+    "element-plus": "^2.2.27",
     "front-matter": "^4.0.2",
     "js-yaml": "^4.1.0",
     "markdown-it": "^13.0.1",
