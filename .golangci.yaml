@@ -1,0 +1,29 @@
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    # - bodyclose
+    - depguard
+    - dogsled
+    # - errcheck
+    - exportloopref
+    # - goconst
+    # - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - goprintffuncname
+    # - gosec
+    # - gosimple
+    - importas
+    - misspell
+    - nakedret
+    - nilerr
+    - nolintlint
+    # - staticcheck
+    # - stylecheck
+    - typecheck
+    - unconvert
+    # - unparam
+    # - unused
+    # - whitespace
