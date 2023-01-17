@@ -15,7 +15,7 @@ LDFLAGS = -X github.com/qingwave/weave/pkg/version.gitVersion=$(GIT_VERSION) \
 PKGS = $(shell go list ./...)
 GOFILES = $(shell find . -name "*.go" -type f -not -path "./vendor/*")
 
-base: clean test swagger fmt build
+base: clean test lint swagger fmt build
 
 help: ## display the help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
@@ -30,6 +30,9 @@ test: ## run unit test
 	go test -ldflags -s -v -coverprofile=cover.out $(PKGS)
 	go tool cover -func=cover.out -o coverage.txt
 
+lint: install-golangci-lint ## run golangci lint
+	golangci-lint run
+
 clean: ## clean bin and go mod
 	@rm -rf bin/
 	go mod tidy
@@ -41,12 +44,15 @@ fmt: ## golang format
 swagger: ## swagger init
 	swag init
 
-init: install-swagger postgres redis ## install all dependencies and init config
+init: install-swagger install-golangci-lint postgres redis ## install all dependencies and init config
 	git config core.hooksPath .githooks
 	echo "init all"
 
 install-swagger: ## install swagger from golang
 	go install github.com/swaggo/swag/cmd/swag@latest
+
+install-golangci-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
 
 postgres: ## init postgres db
 	@docker start mypostgres || docker run --name mypostgres -d -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres
