@@ -45,7 +45,7 @@ func TestParseToken(t *testing.T) {
 		name        string
 		user        *model.User
 		token       string
-		expiresAt   int64
+		expiresAt   time.Duration
 		expectedErr bool
 	}{
 		{
@@ -56,7 +56,7 @@ func TestParseToken(t *testing.T) {
 		{
 			name:        "token expiration",
 			user:        &model.User{ID: 1, Name: "someone"},
-			expiresAt:   int64(-24 * time.Hour),
+			expiresAt:   -24 * time.Hour,
 			expectedErr: true,
 		},
 		{
