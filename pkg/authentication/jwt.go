@@ -17,20 +17,20 @@ const (
 type CustomClaims struct {
 	ID   uint   `json:"id"`
 	Name string `json:"name"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type JWTService struct {
 	signKey        []byte
 	issuer         string
-	expireDuration int64
+	expireDuration time.Duration
 }
 
 func NewJWTService(secret string) *JWTService {
 	return &JWTService{
 		signKey:        []byte(secret),
 		issuer:         Issuer,
-		expireDuration: int64(7 * 24 * time.Hour.Seconds()),
+		expireDuration: 7 * 24 * time.Hour,
 	}
 }
 
@@ -38,15 +38,16 @@ func (s *JWTService) CreateToken(user *model.User) (string, error) {
 	if user == nil {
 		return "", fmt.Errorf("empty user")
 	}
+	now := time.Now()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		CustomClaims{
 			Name: user.Name,
 			ID:   user.ID,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: time.Now().Unix() + s.expireDuration,
-				NotBefore: time.Now().Unix() - 1000,
-				Id:        strconv.Itoa(int(user.ID)),
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(now.Add(s.expireDuration)),
+				NotBefore: jwt.NewNumericDate(now.Add(-1000 * time.Second)),
+				ID:        strconv.Itoa(int(user.ID)),
 				Issuer:    s.issuer,
 			},
 		},
