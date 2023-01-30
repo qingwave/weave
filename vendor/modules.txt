@@ -291,7 +291,7 @@ github.com/swaggo/files
 # github.com/swaggo/gin-swagger v1.5.3
 ## explicit; go 1.15
 github.com/swaggo/gin-swagger
-# github.com/swaggo/swag v1.8.8
+# github.com/swaggo/swag v1.8.10
 ## explicit; go 1.18
 github.com/swaggo/swag
 # github.com/ugorji/go/codec v1.2.7
