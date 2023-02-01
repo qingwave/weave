@@ -16,7 +16,7 @@
     "front-matter": "^4.0.2",
     "js-yaml": "^4.1.0",
     "markdown-it": "^13.0.1",
-    "markdown-it-anchor": "^8.6.4",
+    "markdown-it-anchor": "^8.6.6",
     "markdown-it-toc-done-right": "^4.2.0",
     "pinia": "^2.0.20",
     "prismjs": "^1.28.0",
