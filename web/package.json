@@ -9,7 +9,7 @@
   "dependencies": {
     "@icon-park/vue-next": "^1.4.0",
     "axios": "^0.27.2",
-    "codemirror": "^5.65.5",
+    "codemirror": "^6.0.1",
     "codemirror-editor-vue3": "^2.1.7",
     "echarts": "^5.2.2",
     "element-plus": "^2.2.2",
