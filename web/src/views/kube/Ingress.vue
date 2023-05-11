@@ -92,6 +92,7 @@ import { ElMessage } from "element-plus";
 import request from '@/axios';
 import { obj2yaml, yaml2obj } from '@/utils/yaml.js';
 import CodeEditor from '@/components/CodeEditor.vue';
+import { useKubeStore } from '@/store/kube';
 
 const showCreate = ref(false);
 const showUpdate = ref(false);
@@ -99,7 +100,8 @@ const showDelete = ref(-1);
 
 const updatedIngress = ref({});
 
-const currentNamespace = ref();
+const kubeStore = useKubeStore();
+const currentNamespace = ref(kubeStore.getNamespace());
 const namespaces = ref([]);
 
 const ingresses = ref([]);
@@ -137,6 +139,7 @@ watchEffect(() => {
     if (!currentNamespace.value) {
         return []
     }
+    kubeStore.setNamespace(currentNamespace.value)
     getIngresses(currentNamespace.value)
 });
 

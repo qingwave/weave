@@ -1,9 +1,11 @@
 <template>
   <el-header>
     <el-row class="flex h-full w-full" justify="center" align="middle">
-      <el-col :span="4" class="flex text-center items-center content-center">
+      <el-col :span="4">
+          <router-link to="/" class="flex text-center items-center content-center">
             <img class="w-[2.5rem] mx-[0.5rem]" src="@/assets/weave.png" />
             <span class="font-bold font-mono text-2xl pl-[0.5rem]">Weave</span>
+          </router-link>
       </el-col>
       <el-col :span="14" class="flex-col text-right content-center">
         <el-menu mode="horizontal" class="font-bold" active-text-color="#000000">

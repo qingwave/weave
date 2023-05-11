@@ -3,8 +3,8 @@
     <div class="prose break-words w-max-none h-full" v-html="parse()">
     </div>
 
-    <div v-if="props.toc" class="hidden w-48 lg:flex">
-      <div  class="fixed top-24 bottom-0 overflow-y-auto no-scrollbar">
+    <div v-if="props.toc" class="hidden lg:flex">
+      <div  class="fixed top-36 bottom-0 right-20 overflow-y-auto no-scrollbar">
       <nav class="no-scrollbar font-medium leading-loose border-solid border-l-4 pl-4 mr-8">
         <ul v-for="(item, i) in tocList.c">
           <li>

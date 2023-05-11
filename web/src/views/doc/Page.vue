@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col w-full">
     <article class="w-full px-16">
-      <div class="prose">
+      <div class="prose w-full">
         <h1 class="my-6"> {{ title }} </h1>
         <div v-if="date" class="mb-4"> {{ date }} </div>
       </div>
