@@ -28,8 +28,7 @@
 
             <el-button class="w-full" type="primary" size="large" @click="login(loginFormRef)">SIGN IN</el-button>
             <div class="w-full flex mt-[0.25rem]">
-              <el-checkbox class="w-1/2" v-model="anonymousLogin" label="Anonymous Login" size="large" />
-              <div class="w-1/2 text-right">
+              <div class="w-full text-right">
                 <el-button link @click="showLogin=false">SIGN UP</el-button>
               </div>
             </div>
@@ -84,7 +83,6 @@ import { ref, reactive } from 'vue'
 import request from '@/axios'
 import { useRouter } from 'vue-router'
 import { authInfo } from '@/config.js'
-import { setAnonymous } from '@/utils'
 
 const router = useRouter();
 
@@ -94,7 +92,6 @@ const redirectUri = window.location.origin + '/oauth'
 
 const showLogin = ref(true);
 
-const anonymousLogin = ref(false);
 const loginUser = reactive({
   name: "admin",
   password: "123456",
@@ -133,13 +130,6 @@ const login = async (form) => {
           duration: 1500,
         })
     router.push('/');
-  }
-
-  if (anonymousLogin.value) {
-    let user = setAnonymous();
-    name = user.name;
-    success();
-    return
   }
 
   await form.validate((valid, fields) => {

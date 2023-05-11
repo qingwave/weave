@@ -64,7 +64,7 @@
 
 <script setup>
 import { Info, SettingOne, Logout, SunOne, Search, GithubOne, Me } from '@icon-park/vue-next';
-import { getUser, delUser, isAnonymous } from '@/utils';
+import { getUser, delUser } from '@/utils';
 import request from '@/axios';
 import { ElMessage, ElNotification } from "element-plus";
 import { useRouter } from 'vue-router';
@@ -86,10 +86,6 @@ function logout() {
     router.push('/login');
   }
 
-  if (isAnonymous(user.name)) {
-    lg();
-    return
-  }
   request.delete("/api/v1/auth/token").then(() => {
     lg();
   }).catch((error) => {

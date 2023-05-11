@@ -255,6 +255,9 @@ onMounted(
                 let y = b.metadata.name;
                 return x.localeCompare(y);
             })
+            if (!currentNamespace.value && namespaces.value.length > 0 ) {
+                currentNamespace.value = namespaces.value[0].metadata.name
+            }
         })
     }
 );

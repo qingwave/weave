@@ -15,6 +15,7 @@ export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd(), envPrefix) };
 
   return defineConfig({
+    base: '/weave/',
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

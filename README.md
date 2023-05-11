@@ -40,6 +40,13 @@ Weave is a Go + Vue3 application starter, simple but functional, supported by gi
   </tr>
 </table>
 
+## Demo
+
+Run ui with docker(no server and databases)
+```bash
+docker run -d -p 8080:80 --name weave-frontend qingwave/weave-frontend:mock
+```
+
 ## Features
 Server support features:
 - Restful api, write by gin
