@@ -49,7 +49,7 @@ init: install-swagger install-golangci-lint postgres redis ## install all depend
 	echo "init all"
 
 install-swagger: ## install swagger from golang
-	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/swaggo/swag/cmd/swag@v1.8.12
 
 install-golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
