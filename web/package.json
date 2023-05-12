@@ -38,7 +38,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.9",
     "@types/prismjs": "^1.26.0",
-    "@vitejs/plugin-vue": "^3.0.3",
+    "@vitejs/plugin-vue": "^4.2.2",
     "autoprefixer": "^10.4.14",
     "mockjs": "^1.1.0",
     "postcss": "^8.4.23",
@@ -46,7 +46,7 @@
     "tailwindcss": "^3.3.2",
     "unplugin-auto-import": "^0.15.3",
     "unplugin-vue-components": "^0.24.1",
-    "vite": "^3.0.9",
+    "vite": "^4.3.5",
     "vite-plugin-prismjs": "^0.0.8"
   }
 }
