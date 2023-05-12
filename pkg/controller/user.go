@@ -114,7 +114,7 @@ func (u *UserController) Update(c *gin.Context) {
 		common.ResponseFailed(c, http.StatusBadRequest, err)
 		return
 	}
-	logrus.Infof("get update user: %#v, user: %#v", new, new.GetUser())
+	logrus.Infof("get update user: %#v", new.Name)
 
 	common.TraceStep(c, "start update user", trace.Field{"user", new.Name})
 	defer common.TraceStep(c, "update user done", trace.Field{"user", new.Name})
