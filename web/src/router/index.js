@@ -173,7 +173,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('/weave/'),
+  history: createWebHistory(import.meta.env.WEAVE_BASE),
   routes
 })
 

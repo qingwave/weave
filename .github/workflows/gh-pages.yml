@@ -4,8 +4,6 @@ on:
   push:
     branches: [master]
     paths: [ 'web/**' ]
-  pull_request:
-    branches: [ master ]
 
 defaults:
   run:
@@ -34,7 +32,7 @@ jobs:
           node-version: 16
       - name: Install dependencies and build
         run: |
-          npm install && npm run build-with-mock
+          npm install && npm run build-gh-page
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v1
         with:

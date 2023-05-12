@@ -6,6 +6,7 @@
     "mock": "WEAVE_MOCK=true vite",
     "build": "vite build",
     "build-with-mock": "WEAVE_MOCK=true vite build",
+    "build-gh-page": "WEAVE_MOCK=true WEAVE_BASE=/weave/ vite build",
     "preview": "vite preview"
   },
   "dependencies": {
