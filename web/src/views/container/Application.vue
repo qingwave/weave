@@ -58,6 +58,10 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="showLog" top="5vh" width="98%" title="View Log">
+      <CodeEditor height="60vh" :value="logs" mode="log" readOnly light></CodeEditor>
+    </el-dialog>
+
     <div class="flex flex-col w-full h-full px-[4rem] py-[2rem] space-y-[1rem]">
 
       <div class="flex overflow-hidden rounded-md shadow-md border">
@@ -109,9 +113,6 @@
               </el-popover>
               <el-dropdown class="ml-[0.5rem]" trigger="click">
                 <el-button size="small" circle :icon="More" />
-                <el-dialog v-model="showLog" top="5vh" width="98%" title="View Log">
-                  <CodeEditor height="60vh" :value="logs" mode="log" readOnly light></CodeEditor>
-                </el-dialog>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item :icon="Log" @click="logApp(scope.row)">Log</el-dropdown-item>

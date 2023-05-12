@@ -62,7 +62,6 @@ export default ({ mode }) => {
           target: process.env.WEAVE_SERVER,
           changeOrigin: true,
           ws: true,
-          rewrite: (path) => path.replace(/\/api/, '/api')
         }
       },
     }

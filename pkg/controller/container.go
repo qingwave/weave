@@ -17,6 +17,7 @@ import (
 	"github.com/qingwave/weave/pkg/utils/trace"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -139,11 +140,11 @@ func (con *ContainerController) Operate(c *gin.Context) {
 	case "start":
 		err = con.client.ContainerStart(ctx, id, types.ContainerStartOptions{})
 	case "restart":
-		err = con.client.ContainerRestart(ctx, id, nil)
+		err = con.client.ContainerRestart(ctx, id, container.StopOptions{})
 	case "stop":
-		err = con.client.ContainerStop(ctx, id, nil)
+		err = con.client.ContainerStop(ctx, id, container.StopOptions{})
 	default:
-		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("invaild verb：%s", verb))
+		common.ResponseFailed(c, http.StatusBadRequest, fmt.Errorf("invaild verb: %s", verb))
 		return
 	}
 

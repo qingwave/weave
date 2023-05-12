@@ -639,11 +639,6 @@ func (self *_Compiler) compileMapOp(p *_Program, sp int, vt reflect.Type, op _Op
     skip2 := p.pc()
     p.rtt(op, vt)
 
-    /* match the closing quote if needed */
-    if op != _OP_map_key_str && op != _OP_map_key_utext && op != _OP_map_key_utext_p {
-        p.chr(_OP_match_char, '"')
-    }
-
     /* match the value separator */
     p.add(_OP_lspace)
     p.chr(_OP_match_char, ':')
@@ -659,11 +654,6 @@ func (self *_Compiler) compileMapOp(p *_Program, sp int, vt reflect.Type, op _Op
     p.chr(_OP_match_char, '"')
     skip3 := p.pc()
     p.rtt(op, vt)
-
-    /* match the closing quote if needed */
-    if op != _OP_map_key_str && op != _OP_map_key_utext && op != _OP_map_key_utext_p {
-        p.chr(_OP_match_char, '"')
-    }
 
     /* match the value separator */
     p.add(_OP_lspace)
@@ -689,12 +679,37 @@ func (self *_Compiler) compilePtr(p *_Program, sp int, et reflect.Type) {
 
     /* dereference all the way down */
     for et.Kind() == reflect.Ptr {
+        if et.Implements(jsonUnmarshalerType) {
+            p.rtt(_OP_unmarshal_p, et)
+            return
+        }
+
+        if et.Implements(encodingTextUnmarshalerType) {
+            p.add(_OP_lspace)
+            self.compileUnmarshalTextPtr(p, et)
+            return
+        }
+
         et = et.Elem()
         p.rtt(_OP_deref, et)
     }
 
-    /* compile the element type */
-    self.compileOne(p, sp + 1, et)
+    /* check for recursive nesting */
+    ok := self.tab[et]
+    if ok {
+        p.rtt(_OP_recurse, et)
+    } else {
+        /* enter the recursion */
+        p.add(_OP_lspace)
+        self.tab[et] = true
+        
+        /* not inline the pointer type
+        * recursing the defined pointer type's elem will casue issue379.
+        */
+        self.compileOps(p, sp, et)
+    }
+    delete(self.tab, et)
+
     j := p.pc()
     p.add(_OP_goto)
     p.pin(i)
