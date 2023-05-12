@@ -28,7 +28,6 @@ import { Unicode11Addon } from "xterm-addon-unicode11";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted } from 'vue';
-import { Windows } from "@icon-park/vue-next";
 
 const props = defineProps({
     type: String,
@@ -46,6 +45,7 @@ const term = new Terminal({
   maximizeWin: true,
   screenReaderMode: true,
   fontSize: 14,
+  allowProposedApi: true,
 });
 
 const fitAddon = new FitAddon();
