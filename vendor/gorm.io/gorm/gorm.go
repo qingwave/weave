@@ -37,6 +37,8 @@ type Config struct {
 	DisableAutomaticPing bool
 	// DisableForeignKeyConstraintWhenMigrating
 	DisableForeignKeyConstraintWhenMigrating bool
+	// IgnoreRelationshipsWhenMigrating
+	IgnoreRelationshipsWhenMigrating bool
 	// DisableNestedTransaction disable nested transaction
 	DisableNestedTransaction bool
 	// AllowGlobalUpdate allow global update
@@ -45,6 +47,8 @@ type Config struct {
 	QueryFields bool
 	// CreateBatchSize default create batch size
 	CreateBatchSize int
+	// TranslateError enabling error translation
+	TranslateError bool
 
 	// ClauseBuilders clause builder
 	ClauseBuilders map[string]clause.ClauseBuilder
@@ -175,6 +179,12 @@ func Open(dialector Dialector, opts ...Option) (db *DB, err error) {
 
 	if config.Dialector != nil {
 		err = config.Dialector.Initialize(db)
+
+		if err != nil {
+			if db, err := db.DB(); err == nil {
+				_ = db.Close()
+			}
+		}
 	}
 
 	preparedStmt := &PreparedStmtDB{
@@ -345,10 +355,18 @@ func (db *DB) Callback() *callbacks {
 
 // AddError add error to db
 func (db *DB) AddError(err error) error {
-	if db.Error == nil {
-		db.Error = err
-	} else if err != nil {
-		db.Error = fmt.Errorf("%v; %w", db.Error, err)
+	if err != nil {
+		if db.Config.TranslateError {
+			if errTranslator, ok := db.Dialector.(ErrorTranslator); ok {
+				err = errTranslator.Translate(err)
+			}
+		}
+
+		if db.Error == nil {
+			db.Error = err
+		} else {
+			db.Error = fmt.Errorf("%v; %w", db.Error, err)
+		}
 	}
 	return db.Error
 }
@@ -464,12 +482,12 @@ func (db *DB) Use(plugin Plugin) error {
 
 // ToSQL for generate SQL string.
 //
-// db.ToSQL(func(tx *gorm.DB) *gorm.DB {
-// 		return tx.Model(&User{}).Where(&User{Name: "foo", Age: 20})
-// 			.Limit(10).Offset(5)
-//			.Order("name ASC")
-//			.First(&User{})
-// })
+//	db.ToSQL(func(tx *gorm.DB) *gorm.DB {
+//			return tx.Model(&User{}).Where(&User{Name: "foo", Age: 20})
+//				.Limit(10).Offset(5)
+//				.Order("name ASC")
+//				.First(&User{})
+//	})
 func (db *DB) ToSQL(queryFn func(tx *DB) *DB) string {
 	tx := queryFn(db.Session(&Session{DryRun: true, SkipDefaultTransaction: true}))
 	stmt := tx.Statement
