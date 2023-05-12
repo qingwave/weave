@@ -43,19 +43,6 @@ export function delUser() {
     setCookie('loginUser', '', -1)
 }
 
-const anonymousUser = "anonymous";
-export function setAnonymous() {
-    let user = {
-        name: anonymousUser,
-    }
-    setUser(user);
-    return user
-}
-
-export function isAnonymous(name) {
-    return name == anonymousUser
-}
-
 export function isAdmin() {
     let user = getUser();
     let roles = new Array();

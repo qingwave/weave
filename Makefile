@@ -49,7 +49,7 @@ init: install-swagger install-golangci-lint postgres redis ## install all depend
 	echo "init all"
 
 install-swagger: ## install swagger from golang
-	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/swaggo/swag/cmd/swag@v1.8.12
 
 install-golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
@@ -68,16 +68,20 @@ redis: ## init redis
 ui: ## run ui locally
 	cd web && npm i && npm run dev
 
-SERVER_IMG=weave-server
+SERVER_IMG=qingwave/weave-server
 docker-build-server: ## build server image
 	docker build -t $(SERVER_IMG) .
 
 docker-run-server: ## run server in docker
 	docker run --network host -v $(shell pwd)/config:/config -v /var/run/docker.sock:/var/run/docker.sock $(SERVER_IMG)
 
-FRONENT_IMG=weave-fronent
+FRONENT_IMG=qingwave/weave-frontend
 docker-build-ui: ## build frontend image
-	cd web && docker build -t $(FRONENT_IMG) .
+	cd web && docker build --build-arg BUILD_OPTS=build -t $(FRONENT_IMG) .
+
+MOCK_FRONENT_IMG=qingwave/weave-frontend:mock
+docker-build-ui-mock: ## build mock frontend image
+	cd web && docker build --build-arg BUILD_OPTS=build-with-mock -t $(MOCK_FRONENT_IMG) .
 
 docker-run-ui: ## run frontendx in docker
 	docker run --network host -v $(shell pwd)/web/nginx.conf:/etc/nginx/conf.d/nginx.conf $(FRONENT_IMG)

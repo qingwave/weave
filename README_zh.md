@@ -13,6 +13,8 @@
 
 Weave是一个基于Go + Vue3实现的Web应用模板，支持前后端，拥有完整的认证、存储、Restful API、应用管理（docker & kubernetes）功能，主要技术栈包括Go、Vue3、Gin、gorm、redis、postgres、ElementPlus、vite、websocket、kuberentes等。
 
+预览效果：[Demo](https://qingwave.github.io/weave/).
+
 <table>
   <tr>
      <td width="50%" align="center"><b>Login</b></td>
@@ -70,6 +72,15 @@ Weave是一个基于Go + Vue3实现的Web应用模板，支持前后端，拥有
 - MarkDown预览与编辑
 
 ## 快速开始
+
+### Demo
+
+预览效果: https://qingwave.github.io/weave/
+
+通过Docker快速运行前端服务(不包含服务器和数据库)
+```bash
+docker run -d -p 8080:80 --name weave-frontend qingwave/weave-frontend:mock
+```
 
 开始之前，确保安装了基础环境[golang](https://go.dev/), [docker](https://docs.docker.com/engine/install/) 与 [nodejs](https://nodejs.org/en/download/)。
 

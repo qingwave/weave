@@ -1179,7 +1179,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "type": "string"
+                                                "$ref": "#/definitions/model.Operation"
                                             }
                                         }
                                     }
@@ -2388,6 +2388,19 @@
                 }
             }
         },
+        "model.Operation": {
+            "type": "string",
+            "enum": [
+                "*",
+                "edit",
+                "view"
+            ],
+            "x-enum-varnames": [
+                "AllOperation",
+                "EditOperation",
+                "ViewOperation"
+            ]
+        },
         "model.Post": {
             "type": "object",
             "properties": {
@@ -2457,7 +2470,7 @@
                     "type": "string"
                 },
                 "scope": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.Scope"
                 }
             }
         },
@@ -2480,7 +2493,7 @@
                     }
                 },
                 "scope": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.Scope"
                 }
             }
         },
@@ -2488,12 +2501,23 @@
             "type": "object",
             "properties": {
                 "operation": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.Operation"
                 },
                 "resource": {
                     "type": "string"
                 }
             }
+        },
+        "model.Scope": {
+            "type": "string",
+            "enum": [
+                "cluster",
+                "namespace"
+            ],
+            "x-enum-varnames": [
+                "ClusterScope",
+                "NamespaceScope"
+            ]
         },
         "model.Tag": {
             "type": "object",

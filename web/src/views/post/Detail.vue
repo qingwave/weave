@@ -1,8 +1,8 @@
 <template>
   <div class="flex w-full h-full justify-center">
-    <div class="max-w-fit h-full">
+    <div class="w-full max-w-3xl mr-48 h-full">
       <Page :config="item" class="flex-1"> </Page>
-      <div class="pr-48 mx-16">
+      <div class="px-16">
         <div class="flex justify-center w-full space-x-4 h-auto">
           <div class="flex space-x-1">
             <button>

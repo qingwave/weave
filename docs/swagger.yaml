@@ -158,6 +158,16 @@ definitions:
       token:
         type: string
     type: object
+  model.Operation:
+    enum:
+    - '*'
+    - edit
+    - view
+    type: string
+    x-enum-varnames:
+    - AllOperation
+    - EditOperation
+    - ViewOperation
   model.Post:
     properties:
       categories:
@@ -204,7 +214,7 @@ definitions:
       name:
         type: string
       scope:
-        type: string
+        $ref: '#/definitions/model.Scope'
     type: object
   model.Role:
     properties:
@@ -219,15 +229,23 @@ definitions:
           $ref: '#/definitions/model.Rule'
         type: array
       scope:
-        type: string
+        $ref: '#/definitions/model.Scope'
     type: object
   model.Rule:
     properties:
       operation:
-        type: string
+        $ref: '#/definitions/model.Operation'
       resource:
         type: string
     type: object
+  model.Scope:
+    enum:
+    - cluster
+    - namespace
+    type: string
+    x-enum-varnames:
+    - ClusterScope
+    - NamespaceScope
   model.Tag:
     properties:
       id:
@@ -980,7 +998,7 @@ paths:
             - properties:
                 data:
                   items:
-                    type: string
+                    $ref: '#/definitions/model.Operation'
                   type: array
               type: object
       security:

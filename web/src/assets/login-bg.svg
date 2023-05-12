@@ -1,6 +1,6 @@
 <svg width="100%" height="100%" id="svg" viewBox="0 0 1440 500" xmlns="http://www.w3.org/2000/svg" class="transition duration-300 ease-in-out delay-150"><style>
           .path-0{
-            animation:pathAnim-0 4s;
+            animation:pathAnim-0 60s;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
           }
@@ -22,7 +22,7 @@
             }
           }</style><defs><linearGradient id="gradient" x1="0%" y1="50%" x2="100%" y2="50%"><stop offset="5%" stop-color="#7bdcb588"></stop><stop offset="95%" stop-color="#8ed1fc88"></stop></linearGradient></defs><path d="M 0,500 C 0,500 0,166 0,166 C 57.457918241154246,188.3716935760907 114.91583648230849,210.74338715218138 181,208 C 247.0841635176915,205.25661284781862 321.79457231192026,177.39814496736517 398,163 C 474.20542768807974,148.60185503263483 551.9058742700104,147.66403297835794 629,141 C 706.0941257299896,134.33596702164206 782.5819306080385,121.94572311920305 840,143 C 897.4180693919615,164.05427688079695 935.7664032978357,218.55307454482994 998,224 C 1060.2335967021643,229.44692545517006 1146.3524562006182,185.84197870147716 1224,168 C 1301.6475437993818,150.15802129852284 1370.8237718996909,158.07901064926142 1440,166 C 1440,166 1440,500 1440,500 Z" stroke="none" stroke-width="0" fill="url(#gradient)" class="transition-all duration-300 ease-in-out delay-150 path-0"></path><style>
           .path-1{
-            animation:pathAnim-1 4s;
+            animation:pathAnim-1 15s;
             animation-timing-function: linear;
             animation-iteration-count: infinite;
           }

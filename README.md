@@ -13,6 +13,8 @@
 
 Weave is a Go + Vue3 application starter, simple but functional, supported by gin, gorm, redis, postgres, vue, element-plus, websocket and much more.
 
+See [Demo](https://qingwave.github.io/weave/).
+
 <table>
   <tr>
      <td width="50%" align="center"><b>Login</b></td>
@@ -39,6 +41,15 @@ Weave is a Go + Vue3 application starter, simple but functional, supported by gi
      <td><img src="document/img/log.png"/></td>
   </tr>
 </table>
+
+## Demo
+
+Demo website: see https://qingwave.github.io/weave/
+
+Run ui with docker(no server and databases)
+```bash
+docker run -d -p 8080:80 --name weave-frontend qingwave/weave-frontend:mock
+```
 
 ## Features
 Server support features:
@@ -140,6 +151,12 @@ curl -X 'GET' 'http://localhost:8080/api/v1/users' -H "Authorization: Bearer $to
 
 ### Run UI
 Assume you have installed `Nodejs`, if not, install it by [nvm](https://github.com/nvm-sh/nvm#install--update-script)
+
+Run ui with mockjs
+```bash
+cd web
+npm run mock
+```
 
 If your frontend deploy in the remote, please change `server.host` and `server.https` in [vite.config.js](./web/vite.config.js).
 
