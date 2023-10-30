@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/docker/docker v23.0.6+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
