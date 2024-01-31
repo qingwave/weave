@@ -4,9 +4,11 @@
             <header class="py-16 sm:text-center">
                 <h1 class="mb-4 text-3xl sm:text-4xl tracking-tight text-slate-900 font-extrabold dark:text-slate-200">
                     Latest Updates</h1>
-                <p class="text-lg text-slate-700 dark:text-slate-400">All the latest blogs from <a target="__blank" href="https://qingwave.github.io">QingWave</a>.
-                  &nbsp;&nbsp;<el-button type="primary"><router-link to="/posts/editor" target="_blank">New Post</router-link></el-button>
-                  </p>
+                <div class="text-lg text-slate-700 dark:text-slate-400">
+                    All the latest blogs from <a class="text-emerald-400" target="__blank" href="https://qingwave.github.io">Qingwave</a>.
+                    &nbsp;&nbsp;<el-button type="primary"><router-link to="/posts/editor" target="_blank">New
+                            Post</router-link></el-button>
+                </div>
             </header>
             <div
                 class="relative sm:pb-12 sm:ml-[calc(2rem+1px)] md:ml-[calc(3.5rem+1px)] lg:ml-[max(calc(14.5rem+1px),calc(100%-48rem))]">
@@ -19,8 +21,8 @@
                             class="absolute -inset-y-2.5 -inset-x-4 md:-inset-y-4 md:-inset-x-6 sm:rounded-2xl group-hover:bg-slate-50/70 dark:group-hover:bg-slate-800/50">
                         </div><svg viewBox="0 0 9 9"
                             class="hidden absolute right-full mr-6 top-2 text-slate-200 dark:text-slate-600 md:mr-12 w-[calc(0.5rem+1px)] h-[calc(0.5rem+1px)] overflow-visible sm:block">
-                            <circle cx="4.5" cy="4.5" r="4.5" stroke="currentColor"
-                                class="fill-white dark:fill-slate-900" stroke-width="2"></circle>
+                            <circle cx="4.5" cy="4.5" r="4.5" stroke="currentColor" class="fill-white dark:fill-slate-900"
+                                stroke-width="2"></circle>
                         </svg>
                         <div class="relative">
                             <h3
@@ -40,9 +42,9 @@
                             :to="`/posts/${p.id}`"><span
                                 class="absolute -inset-y-2.5 -inset-x-4 md:-inset-y-4 md:-inset-x-6 sm:rounded-2xl"></span><span
                                 class="relative">Read more</span><svg
-                                class="relative mt-px overflow-visible ml-2.5 text-emerald-200 dark:text-sky-700"
-                                width="3" height="6" viewBox="0 0 3 6" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                class="relative mt-px overflow-visible ml-2.5 text-emerald-200 dark:text-sky-700" width="3"
+                                height="6" viewBox="0 0 3 6" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M0 0L3 3L0 6"></path>
                             </svg></router-link>
                     </article>

@@ -83,5 +83,5 @@ MOCK_FRONENT_IMG=qingwave/weave-frontend:mock
 docker-build-ui-mock: ## build mock frontend image
 	cd web && docker build --build-arg BUILD_OPTS=build-with-mock -t $(MOCK_FRONENT_IMG) .
 
-docker-run-ui: ## run frontendx in docker
-	docker run --network host -v $(shell pwd)/web/nginx.conf:/etc/nginx/conf.d/nginx.conf $(FRONENT_IMG)
+docker-run-ui-mock: ## run mock frontend in docker
+	docker run --network host -v $(shell pwd)/web/nginx.conf:/etc/nginx/conf.d/nginx.conf $(MOCK_FRONENT_IMG)

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
-    "mock": "WEAVE_MOCK=true vite",
+    "mock": "WEAVE_MOCK=true WEAVE_BASE=/weave/ vite",
     "build": "vite build",
     "build-with-mock": "WEAVE_MOCK=true vite build",
     "build-gh-page": "WEAVE_MOCK=true WEAVE_BASE=/weave/ vite build",
