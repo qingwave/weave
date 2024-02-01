@@ -319,6 +319,7 @@ var _OpFuncTab = [256]func(*_Assembler, *_Instr) {
     _OP_dismatch_err     : (*_Assembler)._asm_OP_dismatch_err,
     _OP_go_skip          : (*_Assembler)._asm_OP_go_skip,
     _OP_add              : (*_Assembler)._asm_OP_add,
+    _OP_check_empty      : (*_Assembler)._asm_OP_check_empty,
 }
 
 func (self *_Assembler) instr(v *_Instr) {
@@ -458,6 +459,7 @@ var (
 var (
     _V_stackOverflow              = jit.Imm(int64(uintptr(unsafe.Pointer(&stackOverflow))))
     _I_json_UnsupportedValueError = jit.Itab(_T_error, reflect.TypeOf(new(json.UnsupportedValueError)))
+    _I_json_MismatchTypeError     = jit.Itab(_T_error, reflect.TypeOf(new(MismatchTypeError)))
 )
 
 func (self *_Assembler) type_error() {
@@ -471,7 +473,12 @@ func (self *_Assembler) type_error() {
 
 
 func (self *_Assembler) mismatch_error() {
-    self.Link(_LB_mismatch_error)               // _type_error:
+    self.Link(_LB_mismatch_error)                     // _type_error:
+    self.Emit("MOVQ", _VAR_et, _ET)                   // MOVQ _VAR_et, ET
+    self.Emit("MOVQ", _VAR_ic, _EP)                   // MOVQ _VAR_ic, EP
+    self.Emit("MOVQ", _I_json_MismatchTypeError, _AX) // MOVQ _I_json_MismatchTypeError, AX
+    self.Emit("CMPQ", _ET, _AX)                       // CMPQ ET, AX
+    self.Sjmp("JE"  , _LB_error)                      // JE _LB_error
     self.Emit("MOVQ", _ARG_sp, _AX)
     self.Emit("MOVQ", _AX, jit.Ptr(_SP, 0))     // MOVQ    AX, (SP)
     self.Emit("MOVQ", _ARG_sl, _CX)
@@ -1128,9 +1135,16 @@ func (self *_Assembler) decode_dynamic(vt obj.Addr, vp obj.Addr) {
     self.call_go(_F_decodeTypedPointer)         // CALL_GO decodeTypedPointer
     self.Emit("MOVQ" , jit.Ptr(_SP, 64), _ET)   // MOVQ    64(SP), ET
     self.Emit("MOVQ" , jit.Ptr(_SP, 72), _EP)   // MOVQ    72(SP), EP
-    self.Emit("TESTQ", _ET, _ET)                // TESTQ   ET, ET
-    self.Sjmp("JNZ"  , _LB_error)               // JNZ     _error
     self.Emit("MOVQ" , jit.Ptr(_SP, 56), _IC)   // MOVQ    56(SP), IC
+    self.Emit("TESTQ", _ET, _ET)                // TESTQ   ET, ET
+    self.Sjmp("JE", "_decode_dynamic_end_{n}")  // JE, _decode_dynamic_end_{n}
+    self.Emit("MOVQ", _I_json_MismatchTypeError, _AX) // MOVQ _I_json_MismatchTypeError, AX
+    self.Emit("CMPQ",  _ET, _AX)                // CMPQ ET, AX
+    self.Sjmp("JNE" , _LB_error)                // JNE  LB_error
+    self.Emit("MOVQ", _EP, _VAR_ic)             // MOVQ EP, VAR_ic
+    self.Emit("MOVQ", _ET, _VAR_et)             // MOVQ ET, VAR_et
+    self.Link("_decode_dynamic_end_{n}")
+    
 }
 
 /** OpCode Assembler Functions **/
@@ -1161,6 +1175,8 @@ var (
 
 var (
     _F_FieldMap_GetCaseInsensitive obj.Addr
+    _Empty_Slice = make([]byte, 0)
+    _Zero_Base = int64(uintptr(((*rt.GoSlice)(unsafe.Pointer(&_Empty_Slice))).Ptr))
 )
 
 const (
@@ -1631,6 +1647,24 @@ func (self *_Assembler) _asm_OP_slice_init(p *_Instr) {
     self.Emit("MOVQ" , _AX, jit.Ptr(_VP, 8))        // MOVQ    AX, 8(VP)
 }
 
+func (self *_Assembler) _asm_OP_check_empty(p *_Instr) {
+    rbracket := p.vb()
+    if rbracket == ']' {
+        self.check_eof(1)
+        self.Emit("LEAQ", jit.Ptr(_IC, 1), _AX)                              // LEAQ    1(IC), AX
+        self.Emit("CMPB", jit.Sib(_IP, _IC, 1, 0), jit.Imm(int64(rbracket))) // CMPB    (IP)(IC), ']'
+        self.Sjmp("JNE" , "_not_empty_array_{n}")                            // JNE     _not_empty_array_{n}
+        self.Emit("MOVQ", _AX, _IC)                                          // MOVQ    AX, IC
+        self.StorePtr(_Zero_Base, jit.Ptr(_VP, 0), _AX)                      // MOVQ    $zerobase, (VP)
+        self.Emit("PXOR" , _X0, _X0)                                         // PXOR    X0, X0
+        self.Emit("MOVOU", _X0, jit.Ptr(_VP, 8))                             // MOVOU   X0, 8(VP)
+        self.Xjmp("JMP" , p.vi())                                            // JMP     {p.vi()}
+        self.Link("_not_empty_array_{n}")
+    } else {
+        panic("only implement check empty array here!")
+    }
+}
+
 func (self *_Assembler) _asm_OP_slice_append(p *_Instr) {
     self.Emit("MOVQ" , jit.Ptr(_VP, 8), _AX)            // MOVQ    8(VP), AX
     self.Emit("CMPQ" , _AX, jit.Ptr(_VP, 16))           // CMPQ    AX, 16(VP)
@@ -1650,12 +1684,34 @@ func (self *_Assembler) _asm_OP_slice_append(p *_Instr) {
     self.WriteRecNotAX(8, _DI, jit.Ptr(_VP, 0), true, true)// MOVQ    DI, (VP)
     self.Emit("MOVQ" , _AX, jit.Ptr(_VP, 8))            // MOVQ    AX, 8(VP)
     self.Emit("MOVQ" , _SI, jit.Ptr(_VP, 16))           // MOVQ    SI, 16(VP)
+
+    // because growslice not zero memory {oldcap, newlen} when append et not has ptrdata.
+    // but we should zero it, avoid decode it as random values.
+    if rt.UnpackType(p.vt()).PtrData == 0 {
+        self.Emit("SUBQ" , _AX, _SI)                        // MOVQ    AX, SI
+    
+        self.Emit("ADDQ" , jit.Imm(1), jit.Ptr(_VP, 8))     // ADDQ    $1, 8(VP)
+        self.Emit("MOVQ" , _DI, _VP)                        // MOVQ    DI, VP
+        self.Emit("MOVQ" , jit.Imm(int64(p.vlen())), _CX)   // MOVQ    ${p.vlen()}, CX
+        self.From("MULQ" , _CX)                             // MULQ    CX
+        self.Emit("ADDQ" , _AX, _VP)                        // ADDQ    AX, VP
+
+        self.Emit("MOVQ" , _SI, _AX)                        // MOVQ    SI, AX
+        self.From("MULQ" , _CX)                             // MULQ    CX
+        self.Emit("MOVQ" , _AX, jit.Ptr(_SP, 8))            // MOVQ    AX, 8(SP)
+
+        self.Emit("MOVQ" , _VP, jit.Ptr(_SP, 0))            // MOVQ    VP, (SP)
+        self.mem_clear_fn(true)                             // CALL_GO memclr{Has,NoHeap}
+        self.Sjmp("JMP", "_append_slice_end_{n}")           // JMP    _append_slice_end_{n}
+    }
+
     self.Link("_index_{n}")                             // _index_{n}:
     self.Emit("ADDQ" , jit.Imm(1), jit.Ptr(_VP, 8))     // ADDQ    $1, 8(VP)
     self.Emit("MOVQ" , jit.Ptr(_VP, 0), _VP)            // MOVQ    (VP), VP
     self.Emit("MOVQ" , jit.Imm(int64(p.vlen())), _CX)   // MOVQ    ${p.vlen()}, CX
     self.From("MULQ" , _CX)                             // MULQ    CX
     self.Emit("ADDQ" , _AX, _VP)                        // ADDQ    AX, VP
+    self.Link("_append_slice_end_{n}")
 }
 
 func (self *_Assembler) _asm_OP_object_skip(_ *_Instr) {
