@@ -1,0 +1,45 @@
+server:
+  env: "debug"
+  address: "127.0.0.1"
+  port: 8080
+  gracefulShutdownPeriod: 30
+  rateLimits:
+    - limitType: "server"
+      burst: 500
+      qps: 100
+      cacheSize: 1
+    - limitType: "ip"
+      burst: 50
+      qps: 10
+      cacheSize: 2048
+  jwtSecret: weaveserver
+
+docker:
+  enable: true # enable docker, start dockerd at first
+  host: unix:///var/run/docker.sock
+
+kubernetes:
+  enable: true # set `KUBECONFIG` env or flag --kubeconfig at first
+  watchResources:
+  - "Deployment.v1.apps"
+  - "Pod.v1."
+  - "Namespace.v1."
+
+db:
+  port: 5432 
+  host: "localhost"
+  name: "weave"
+  user: "postgres"
+  password: "123456"
+  migrate: true
+
+redis:
+  enable: true
+  port: 6379 
+  host: "localhost"
+  password: "123456"
+
+oauth:
+  github:
+    clientId: "85db232fde2c9320ece7" # set your client id
+    clientSecret: "" # set your client secret
