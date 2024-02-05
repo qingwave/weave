@@ -48,3 +48,7 @@ func Print() {
 func Get() *Version {
 	return version
 }
+
+func ConfigPathPrint() {
+	fmt.Println("setting application config path successfully!")
+}

@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	printVersion = flag.Bool("v", false, "print version")
-	appConfig    = flag.String("config", "config/app.yaml", "application config path")
+	defaultConfigPath = "config/dev_config.yaml"
+	printVersion      = flag.Bool("v", false, "print version")
+	appConfig         = flag.String("config", defaultConfigPath, "application config path")
 )
 
 // @title           Weave Server API
@@ -43,6 +44,10 @@ func main() {
 	conf, err := config.Parse(*appConfig)
 	if err != nil {
 		logger.Fatalf("Failed to parse config: %v", err)
+	}
+
+	if *appConfig != defaultConfigPath {
+		version.ConfigPathPrint()
 	}
 
 	s, err := server.New(conf, logger)

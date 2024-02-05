@@ -191,6 +191,6 @@ make docker-run-ui
 
 ### 文档
 - [Contributing](./CONTRIBUTING.md)，为此项目提交贡献
-- [Config](./config/app.yaml), 配置对应功能是否开启
+- [Config](config/dev_config.yaml), 配置对应功能是否开启
 - [OAuth](./document/oauth.md)
 - [RBAC](./document/authentication.md)
