@@ -149,12 +149,16 @@ type errorContext struct {
 }
 
 func (d *decoder) typeMismatchError(toml string, target reflect.Type) error {
+	return fmt.Errorf("toml: %s", d.typeMismatchString(toml, target))
+}
+
+func (d *decoder) typeMismatchString(toml string, target reflect.Type) string {
 	if d.errorContext != nil && d.errorContext.Struct != nil {
 		ctx := d.errorContext
 		f := ctx.Struct.FieldByIndex(ctx.Field)
-		return fmt.Errorf("toml: cannot decode TOML %s into struct field %s.%s of type %s", toml, ctx.Struct, f.Name, f.Type)
+		return fmt.Sprintf("cannot decode TOML %s into struct field %s.%s of type %s", toml, ctx.Struct, f.Name, f.Type)
 	}
-	return fmt.Errorf("toml: cannot decode TOML %s into a Go value of type %s", toml, target)
+	return fmt.Sprintf("cannot decode TOML %s into a Go value of type %s", toml, target)
 }
 
 func (d *decoder) expr() *unstable.Node {
@@ -417,7 +421,10 @@ func (d *decoder) handleKeyPart(key unstable.Iterator, v reflect.Value, nextFn h
 		vt := v.Type()
 
 		// Create the key for the map element. Convert to key type.
-		mk := reflect.ValueOf(string(key.Node().Data)).Convert(vt.Key())
+		mk, err := d.keyFromData(vt.Key(), key.Node().Data)
+		if err != nil {
+			return reflect.Value{}, err
+		}
 
 		// If the map does not exist, create it.
 		if v.IsNil() {
@@ -960,7 +967,7 @@ func (d *decoder) unmarshalInteger(value *unstable.Node, v reflect.Value) error 
 	case reflect.Interface:
 		r = reflect.ValueOf(i)
 	default:
-		return d.typeMismatchError("integer", v.Type())
+		return unstable.NewParserError(d.p.Raw(value.Raw), d.typeMismatchString("integer", v.Type()))
 	}
 
 	if !r.Type().AssignableTo(v.Type()) {
@@ -979,7 +986,7 @@ func (d *decoder) unmarshalString(value *unstable.Node, v reflect.Value) error {
 	case reflect.Interface:
 		v.Set(reflect.ValueOf(string(value.Data)))
 	default:
-		return unstable.NewParserError(d.p.Raw(value.Raw), "cannot store TOML string into a Go %s", v.Kind())
+		return unstable.NewParserError(d.p.Raw(value.Raw), d.typeMismatchString("string", v.Type()))
 	}
 
 	return nil
@@ -1009,6 +1016,31 @@ func (d *decoder) handleKeyValueInner(key unstable.Iterator, value *unstable.Nod
 	return reflect.Value{}, d.handleValue(value, v)
 }
 
+func (d *decoder) keyFromData(keyType reflect.Type, data []byte) (reflect.Value, error) {
+	switch {
+	case stringType.AssignableTo(keyType):
+		return reflect.ValueOf(string(data)), nil
+
+	case stringType.ConvertibleTo(keyType):
+		return reflect.ValueOf(string(data)).Convert(keyType), nil
+
+	case keyType.Implements(textUnmarshalerType):
+		mk := reflect.New(keyType.Elem())
+		if err := mk.Interface().(encoding.TextUnmarshaler).UnmarshalText(data); err != nil {
+			return reflect.Value{}, fmt.Errorf("toml: error unmarshalling key type %s from text: %w", stringType, err)
+		}
+		return mk, nil
+
+	case reflect.PtrTo(keyType).Implements(textUnmarshalerType):
+		mk := reflect.New(keyType)
+		if err := mk.Interface().(encoding.TextUnmarshaler).UnmarshalText(data); err != nil {
+			return reflect.Value{}, fmt.Errorf("toml: error unmarshalling key type %s from text: %w", stringType, err)
+		}
+		return mk.Elem(), nil
+	}
+	return reflect.Value{}, fmt.Errorf("toml: cannot convert map key of type %s to expected type %s", stringType, keyType)
+}
+
 func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node, v reflect.Value) (reflect.Value, error) {
 	// contains the replacement for v
 	var rv reflect.Value
@@ -1019,16 +1051,9 @@ func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node
 	case reflect.Map:
 		vt := v.Type()
 
-		mk := reflect.ValueOf(string(key.Node().Data))
-		mkt := stringType
-
-		keyType := vt.Key()
-		if !mkt.AssignableTo(keyType) {
-			if !mkt.ConvertibleTo(keyType) {
-				return reflect.Value{}, fmt.Errorf("toml: cannot convert map key of type %s to expected type %s", mkt, keyType)
-			}
-
-			mk = mk.Convert(keyType)
+		mk, err := d.keyFromData(vt.Key(), key.Node().Data)
+		if err != nil {
+			return reflect.Value{}, err
 		}
 
 		// If the map does not exist, create it.
@@ -1071,6 +1096,19 @@ func (d *decoder) handleKeyValuePart(key unstable.Iterator, value *unstable.Node
 		d.errorContext.Field = path
 
 		f := fieldByIndex(v, path)
+
+		if !f.CanAddr() {
+			// If the field is not addressable, need to take a slower path and
+			// make a copy of the struct itself to a new location.
+			nvp := reflect.New(v.Type())
+			nvp.Elem().Set(v)
+			v = nvp.Elem()
+			_, err := d.handleKeyValuePart(key, value, v)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			return nvp.Elem(), nil
+		}
 		x, err := d.handleKeyValueInner(key, value, f)
 		if err != nil {
 			return reflect.Value{}, err
@@ -1136,10 +1174,10 @@ func initAndDereferencePointer(v reflect.Value) reflect.Value {
 
 // Same as reflect.Value.FieldByIndex, but creates pointers if needed.
 func fieldByIndex(v reflect.Value, path []int) reflect.Value {
-	for i, x := range path {
+	for _, x := range path {
 		v = v.Field(x)
 
-		if i < len(path)-1 && v.Kind() == reflect.Ptr {
+		if v.Kind() == reflect.Ptr {
 			if v.IsNil() {
 				v.Set(reflect.New(v.Type().Elem()))
 			}
