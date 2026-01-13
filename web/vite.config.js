@@ -5,6 +5,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import prismjs from "vite-plugin-prismjs";
+import vueJsx from '@vitejs/plugin-vue-jsx';
 import fs from 'fs'
 
 // env must start with this prefix. in .env config
@@ -27,11 +28,12 @@ export default ({ mode }) => {
       preprocessorOptions: {
         scss: {
           additionalData: `@use "@/styles/element.scss" as *;`,
+          silenceDeprecations: ["legacy-js-api"],
         },
       },
     },
     plugins: [
-      vue(),
+      vue(), vueJsx(),
       prismjs({
         languages: ["json", "js", "go", "bash", "yaml", "markup"],
         plugins: ["line-numbers"],
