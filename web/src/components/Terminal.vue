@@ -19,13 +19,13 @@ div::-webkit-scrollbar {
 </style>
 
 <script setup>
-import "xterm/css/xterm.css";
-import { Terminal } from "xterm";
-import { AttachAddon } from "xterm-addon-attach";
-import { FitAddon } from "xterm-addon-fit";
-import { SerializeAddon } from "xterm-addon-serialize";
-import { Unicode11Addon } from "xterm-addon-unicode11";
-import { WebLinksAddon } from "xterm-addon-web-links";
+import "@xterm/xterm/css/xterm.css";
+import { Terminal } from "@xterm/xterm";
+import { AttachAddon } from "@xterm/addon-attach";
+import { FitAddon } from "@xterm/addon-fit";
+import { SerializeAddon } from "@xterm/addon-serialize";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted } from 'vue';
 
