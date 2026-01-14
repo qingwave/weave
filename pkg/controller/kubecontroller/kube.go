@@ -418,7 +418,7 @@ func (kc *KubeController) PodExec(c *gin.Context) {
 	session := &session{conn, 10 * time.Second}
 
 	tty := c.Query("tty") == "true"
-	err = kc.client.Exec(namespace, name, c.Query("container"),
+	err = kc.client.Exec(c.Request.Context(), namespace, name, c.Query("container"),
 		c.QueryArray("command"),
 		tty,
 		remotecommand.StreamOptions{

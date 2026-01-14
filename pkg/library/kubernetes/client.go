@@ -50,16 +50,51 @@ func NewClient(kubeconfig *weaveconfig.KubeConfig) (*KubeClient, error) {
 		return nil, err
 	}
 
-	podClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{Version: "v1", Kind: "Pod"}, false, config, codec)
+	podClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{Version: "v1", Kind: "Pod"}, false, false, config, codec, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	cache, err := cache.New(config, cache.Options{
-		Scheme:          scheme,
-		Resync:          &neverResync,
-		DefaultSelector: cache.ObjectSelector{},
-	})
+	// Build selective cache configuration - only cache configured resources
+	byObjectConfig := map[client.Object]cache.ByObject{}
+
+	for _, resource := range kubeconfig.WatchResources {
+		gvk, _ := schema.ParseKindArg(resource)
+		if gvk == nil {
+			logrus.Warnf("invalid kubernetes gvk [%s]", resource)
+			continue
+		}
+
+		obj, err := scheme.New(*gvk)
+		if err != nil {
+			logrus.Warnf("invalid kubernetes gvk [%s]: %v", gvk, err)
+			continue
+		}
+
+		// Add to cache configuration
+		byObjectConfig[obj.(client.Object)] = cache.ByObject{
+			// Cache all namespaces for this resource
+		}
+
+		logrus.Infof("configured cache for resource: %s", gvk.String())
+	}
+
+	// Create cache with selective configuration
+	cacheOpts := cache.Options{
+		Scheme:     scheme,
+		SyncPeriod: &neverResync,
+	}
+
+	// Only cache configured resources
+	if len(byObjectConfig) > 0 {
+		cacheOpts.ByObject = byObjectConfig
+		cacheOpts.DefaultNamespaces = map[string]cache.Config{} // Empty = don't cache other resources
+		logrus.Infof("cache configured for %d resource types", len(byObjectConfig))
+	} else {
+		logrus.Info("no resources configured for caching")
+	}
+
+	cache, err := cache.New(config, cacheOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -75,24 +110,6 @@ func NewClient(kubeconfig *weaveconfig.KubeConfig) (*KubeClient, error) {
 		cache:      cache,
 		config:     config,
 		kubeconfig: kubeconfig,
-	}
-
-	for _, resource := range kubeconfig.WatchResources {
-		gvk, _ := schema.ParseKindArg(resource)
-		if gvk == nil {
-			logrus.Warnf("invaild kubernetes gvk [%s]", resource)
-			continue
-		}
-
-		obj, err := scheme.New(*gvk)
-		if err != nil {
-			logrus.Warnf("invaild kubernetes gvk [%s]: %v", gvk, err)
-			continue
-		}
-
-		if err := c.Watch(obj.(client.Object)); err != nil {
-			logrus.Warnf("watch kind error: %v", err)
-		}
 	}
 
 	return c, nil
@@ -140,7 +157,7 @@ func (c *KubeClient) Log(ctx context.Context, namespace, pod, container string, 
 	return req.Stream(ctx)
 }
 
-func (c *KubeClient) Exec(namespace, pod, container string, cmd []string, tty bool, options remotecommand.StreamOptions) error {
+func (c *KubeClient) Exec(ctx context.Context, namespace, pod, container string, cmd []string, tty bool, options remotecommand.StreamOptions) error {
 	req := c.podClient.Post().
 		Resource("pods").
 		Namespace(namespace).
@@ -161,19 +178,14 @@ func (c *KubeClient) Exec(namespace, pod, container string, cmd []string, tty bo
 		return err
 	}
 
-	return exec.Stream(options)
+	return exec.StreamWithContext(ctx, options)
 }
 
 func newRuntimeClient(cache cache.Cache, config *rest.Config) (client.Client, error) {
-	c, err := client.New(config, client.Options{
+	return client.New(config, client.Options{
 		Scheme: scheme,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader: cache,
-		Client:      c,
+		Cache: &client.CacheOptions{
+			Reader: cache,
+		},
 	})
 }

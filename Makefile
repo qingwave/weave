@@ -21,10 +21,10 @@ help: ## display the help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 build: ## build server
-	go build -ldflags "$(LDFLAGS)" -mod vendor -o bin/weave main.go
+	go build -ldflags "$(LDFLAGS)" -o bin/weave main.go
 
 run: ## run server
-	go run -mod vendor main.go
+	go run main.go
 
 test: ## run unit test
 	GOTOOLCHAIN=go1.25.0+auto go test -ldflags -s -v -coverprofile=cover.out $(PKGS)
@@ -33,7 +33,6 @@ test: ## run unit test
 clean: ## clean bin and go mod
 	@rm -rf bin/
 	go mod tidy
-	go mod vendor
 
 fmt: ## golang format
 	gofmt -s -w $(GOFILES)
