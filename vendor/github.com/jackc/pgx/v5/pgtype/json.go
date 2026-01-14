@@ -8,28 +8,48 @@ import (
 	"reflect"
 )
 
-type JSONCodec struct{}
+type JSONCodec struct {
+	Marshal   func(v any) ([]byte, error)
+	Unmarshal func(data []byte, v any) error
+}
 
-func (JSONCodec) FormatSupported(format int16) bool {
+func (*JSONCodec) FormatSupported(format int16) bool {
 	return format == TextFormatCode || format == BinaryFormatCode
 }
 
-func (JSONCodec) PreferredFormat() int16 {
+func (*JSONCodec) PreferredFormat() int16 {
 	return TextFormatCode
 }
 
-func (c JSONCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
+func (c *JSONCodec) PlanEncode(m *Map, oid uint32, format int16, value any) EncodePlan {
 	switch value.(type) {
 	case string:
 		return encodePlanJSONCodecEitherFormatString{}
 	case []byte:
 		return encodePlanJSONCodecEitherFormatByteSlice{}
 
+	// Handle json.RawMessage specifically because if it is run through json.Marshal it may be mutated.
+	// e.g. `{"foo": "bar"}` -> `{"foo":"bar"}`.
+	case json.RawMessage:
+		return encodePlanJSONCodecEitherFormatJSONRawMessage{}
+
 	// Cannot rely on driver.Valuer being handled later because anything can be marshalled.
 	//
 	// https://github.com/jackc/pgx/issues/1430
+	//
+	// Check for driver.Valuer must come before json.Marshaler so that it is guaranteed to beused
+	// when both are implemented https://github.com/jackc/pgx/issues/1805
 	case driver.Valuer:
 		return &encodePlanDriverValuer{m: m, oid: oid, formatCode: format}
+
+	// Must come before trying wrap encode plans because a pointer to a struct may be unwrapped to a struct that can be
+	// marshalled.
+	//
+	// https://github.com/jackc/pgx/issues/1681
+	case json.Marshaler:
+		return &encodePlanJSONCodecEitherFormatMarshal{
+			marshal: c.Marshal,
+		}
 	}
 
 	// Because anything can be marshalled the normal wrapping in Map.PlanScan doesn't get a chance to run. So try the
@@ -46,7 +66,9 @@ func (c JSONCodec) PlanEncode(m *Map, oid uint32, format int16, value any) Encod
 		}
 	}
 
-	return encodePlanJSONCodecEitherFormatMarshal{}
+	return &encodePlanJSONCodecEitherFormatMarshal{
+		marshal: c.Marshal,
+	}
 }
 
 type encodePlanJSONCodecEitherFormatString struct{}
@@ -69,10 +91,24 @@ func (encodePlanJSONCodecEitherFormatByteSlice) Encode(value any, buf []byte) (n
 	return buf, nil
 }
 
-type encodePlanJSONCodecEitherFormatMarshal struct{}
+type encodePlanJSONCodecEitherFormatJSONRawMessage struct{}
 
-func (encodePlanJSONCodecEitherFormatMarshal) Encode(value any, buf []byte) (newBuf []byte, err error) {
-	jsonBytes, err := json.Marshal(value)
+func (encodePlanJSONCodecEitherFormatJSONRawMessage) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	jsonBytes := value.(json.RawMessage)
+	if jsonBytes == nil {
+		return nil, nil
+	}
+
+	buf = append(buf, jsonBytes...)
+	return buf, nil
+}
+
+type encodePlanJSONCodecEitherFormatMarshal struct {
+	marshal func(v any) ([]byte, error)
+}
+
+func (e *encodePlanJSONCodecEitherFormatMarshal) Encode(value any, buf []byte) (newBuf []byte, err error) {
+	jsonBytes, err := e.marshal(value)
 	if err != nil {
 		return nil, err
 	}
@@ -81,10 +117,27 @@ func (encodePlanJSONCodecEitherFormatMarshal) Encode(value any, buf []byte) (new
 	return buf, nil
 }
 
-func (JSONCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan {
+func (c *JSONCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan {
 	switch target.(type) {
 	case *string:
 		return scanPlanAnyToString{}
+
+	case **string:
+		// This is to fix **string scanning. It seems wrong to special case **string, but it's not clear what a better
+		// solution would be.
+		//
+		// https://github.com/jackc/pgx/issues/1470 -- **string
+		// https://github.com/jackc/pgx/issues/1691 -- ** anything else
+
+		if wrapperPlan, nextDst, ok := TryPointerPointerScanPlan(target); ok {
+			if nextPlan := m.planScan(oid, format, nextDst); nextPlan != nil {
+				if _, failed := nextPlan.(*scanPlanFail); !failed {
+					wrapperPlan.SetNext(nextPlan)
+					return wrapperPlan
+				}
+			}
+		}
+
 	case *[]byte:
 		return scanPlanJSONToByteSlice{}
 	case BytesScanner:
@@ -97,20 +150,9 @@ func (JSONCodec) PlanScan(m *Map, oid uint32, format int16, target any) ScanPlan
 		return &scanPlanSQLScanner{formatCode: format}
 	}
 
-	// This is to fix **string scanning. It seems wrong to special case sql.Scanner and pointer to pointer, but it's not
-	// clear what a better solution would be.
-	//
-	// https://github.com/jackc/pgx/issues/1470
-	if wrapperPlan, nextDst, ok := TryPointerPointerScanPlan(target); ok {
-		if nextPlan := m.planScan(oid, format, nextDst); nextPlan != nil {
-			if _, failed := nextPlan.(*scanPlanFail); !failed {
-				wrapperPlan.SetNext(nextPlan)
-				return wrapperPlan
-			}
-		}
+	return &scanPlanJSONToJSONUnmarshal{
+		unmarshal: c.Unmarshal,
 	}
-
-	return scanPlanJSONToJSONUnmarshal{}
 }
 
 type scanPlanAnyToString struct{}
@@ -142,15 +184,17 @@ func (scanPlanJSONToBytesScanner) Scan(src []byte, dst any) error {
 	return scanner.ScanBytes(src)
 }
 
-type scanPlanJSONToJSONUnmarshal struct{}
+type scanPlanJSONToJSONUnmarshal struct {
+	unmarshal func(data []byte, v any) error
+}
 
-func (scanPlanJSONToJSONUnmarshal) Scan(src []byte, dst any) error {
+func (s *scanPlanJSONToJSONUnmarshal) Scan(src []byte, dst any) error {
 	if src == nil {
 		dstValue := reflect.ValueOf(dst)
 		if dstValue.Kind() == reflect.Ptr {
 			el := dstValue.Elem()
 			switch el.Kind() {
-			case reflect.Ptr, reflect.Slice, reflect.Map:
+			case reflect.Ptr, reflect.Slice, reflect.Map, reflect.Interface:
 				el.Set(reflect.Zero(el.Type()))
 				return nil
 			}
@@ -162,10 +206,10 @@ func (scanPlanJSONToJSONUnmarshal) Scan(src []byte, dst any) error {
 	elem := reflect.ValueOf(dst).Elem()
 	elem.Set(reflect.Zero(elem.Type()))
 
-	return json.Unmarshal(src, dst)
+	return s.unmarshal(src, dst)
 }
 
-func (c JSONCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
+func (c *JSONCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src []byte) (driver.Value, error) {
 	if src == nil {
 		return nil, nil
 	}
@@ -175,12 +219,12 @@ func (c JSONCodec) DecodeDatabaseSQLValue(m *Map, oid uint32, format int16, src 
 	return dstBuf, nil
 }
 
-func (c JSONCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (any, error) {
+func (c *JSONCodec) DecodeValue(m *Map, oid uint32, format int16, src []byte) (any, error) {
 	if src == nil {
 		return nil, nil
 	}
 
 	var dst any
-	err := json.Unmarshal(src, &dst)
+	err := c.Unmarshal(src, &dst)
 	return dst, err
 }

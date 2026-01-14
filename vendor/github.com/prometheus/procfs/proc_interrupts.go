@@ -1,4 +1,4 @@
-// Copyright 2022 The Prometheus Authors
+// Copyright The Prometheus Authors
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -66,7 +66,7 @@ func parseInterrupts(r io.Reader) (Interrupts, error) {
 			continue
 		}
 		if len(parts) < 2 {
-			return nil, fmt.Errorf("not enough fields in interrupts (expected at least 2 fields but got %d): %s", len(parts), parts)
+			return nil, fmt.Errorf("%w: Not enough fields in interrupts (expected 2+ fields but got %d): %s", ErrFileParse, len(parts), parts)
 		}
 		intName := parts[0][:len(parts[0])-1] // remove trailing :
 

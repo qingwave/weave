@@ -30,20 +30,39 @@ func sourceDir(file string) string {
 	return filepath.ToSlash(s) + "/"
 }
 
+// CallerFrame retrieves the first relevant stack frame outside of GORM's internal implementation files.
+// It skips:
+//   - GORM's core source files (identified by gormSourceDir prefix)
+//   - Exclude test files (*_test.go)
+//   - go-gorm/gen's Generated files (*.gen.go)
+func CallerFrame() runtime.Frame {
+	pcs := [13]uintptr{}
+	// the third caller usually from gorm internal
+	len := runtime.Callers(3, pcs[:])
+	frames := runtime.CallersFrames(pcs[:len])
+	for i := 0; i < len; i++ {
+		// second return value is "more", not "ok"
+		frame, _ := frames.Next()
+		if (!strings.HasPrefix(frame.File, gormSourceDir) ||
+			strings.HasSuffix(frame.File, "_test.go")) && !strings.HasSuffix(frame.File, ".gen.go") {
+			return frame
+		}
+	}
+
+	return runtime.Frame{}
+}
+
 // FileWithLineNum return the file name and line number of the current file
 func FileWithLineNum() string {
-	// the second caller usually from gorm internal, so set i start from 2
-	for i := 2; i < 15; i++ {
-		_, file, line, ok := runtime.Caller(i)
-		if ok && (!strings.HasPrefix(file, gormSourceDir) || strings.HasSuffix(file, "_test.go")) {
-			return file + ":" + strconv.FormatInt(int64(line), 10)
-		}
+	frame := CallerFrame()
+	if frame.PC != 0 {
+		return string(strconv.AppendInt(append([]byte(frame.File), ':'), int64(frame.Line), 10))
 	}
 
 	return ""
 }
 
-func IsValidDBNameChar(c rune) bool {
+func IsInvalidDBNameChar(c rune) bool {
 	return !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '.' && c != '*' && c != '_' && c != '$' && c != '@'
 }
 
@@ -73,7 +92,11 @@ func ToStringKey(values ...interface{}) string {
 		case uint:
 			results[idx] = strconv.FormatUint(uint64(v), 10)
 		default:
-			results[idx] = fmt.Sprint(reflect.Indirect(reflect.ValueOf(v)).Interface())
+			results[idx] = "nil"
+			vv := reflect.ValueOf(v)
+			if vv.IsValid() && !vv.IsZero() {
+				results[idx] = fmt.Sprint(reflect.Indirect(vv).Interface())
+			}
 		}
 	}
 
@@ -89,19 +112,28 @@ func Contains(elems []string, elem string) bool {
 	return false
 }
 
-func AssertEqual(src, dst interface{}) bool {
-	if !reflect.DeepEqual(src, dst) {
-		if valuer, ok := src.(driver.Valuer); ok {
-			src, _ = valuer.Value()
-		}
-
-		if valuer, ok := dst.(driver.Valuer); ok {
-			dst, _ = valuer.Value()
-		}
-
-		return reflect.DeepEqual(src, dst)
+func AssertEqual(x, y interface{}) bool {
+	if reflect.DeepEqual(x, y) {
+		return true
 	}
-	return true
+	if x == nil || y == nil {
+		return false
+	}
+
+	xval := reflect.ValueOf(x)
+	yval := reflect.ValueOf(y)
+	if xval.Kind() == reflect.Ptr && xval.IsNil() ||
+		yval.Kind() == reflect.Ptr && yval.IsNil() {
+		return false
+	}
+
+	if valuer, ok := x.(driver.Valuer); ok {
+		x, _ = valuer.Value()
+	}
+	if valuer, ok := y.(driver.Valuer); ok {
+		y, _ = valuer.Value()
+	}
+	return reflect.DeepEqual(x, y)
 }
 
 func ToString(value interface{}) string {
@@ -147,4 +179,15 @@ func SplitNestedRelationName(name string) []string {
 // JoinNestedRelationNames nested relationships like `Manager__Company`
 func JoinNestedRelationNames(relationNames []string) string {
 	return strings.Join(relationNames, nestedRelationSplit)
+}
+
+// RTrimSlice Right trims the given slice by given length
+func RTrimSlice[T any](v []T, trimLen int) []T {
+	if trimLen >= len(v) { // trimLen greater than slice len means fully sliced
+		return v[:0]
+	}
+	if trimLen < 0 { // negative trimLen is ignored
+		return v[:]
+	}
+	return v[:len(v)-trimLen]
 }

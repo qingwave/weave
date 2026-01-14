@@ -89,8 +89,14 @@ func (p *processor) Execute(db *DB) *DB {
 		resetBuildClauses = true
 	}
 
-	if optimizer, ok := db.Statement.Dest.(StatementModifier); ok {
+	if optimizer, ok := stmt.Dest.(StatementModifier); ok {
 		optimizer.ModifyStatement(stmt)
+	}
+
+	if db.DefaultContextTimeout > 0 {
+		if _, ok := stmt.Context.Deadline(); !ok {
+			stmt.Context, _ = context.WithTimeout(stmt.Context, db.DefaultContextTimeout)
+		}
 	}
 
 	// assign model values
@@ -187,10 +193,18 @@ func (p *processor) Replace(name string, fn func(*DB)) error {
 
 func (p *processor) compile() (err error) {
 	var callbacks []*callback
+	removedMap := map[string]bool{}
 	for _, callback := range p.callbacks {
 		if callback.match == nil || callback.match(p.db) {
 			callbacks = append(callbacks, callback)
 		}
+		if callback.remove {
+			removedMap[callback.name] = true
+		}
+	}
+
+	if len(removedMap) > 0 {
+		callbacks = removeCallbacks(callbacks, removedMap)
 	}
 	p.callbacks = callbacks
 
@@ -338,4 +352,15 @@ func sortCallbacks(cs []*callback) (fns []func(*DB), err error) {
 	}
 
 	return
+}
+
+func removeCallbacks(cs []*callback, nameMap map[string]bool) []*callback {
+	callbacks := make([]*callback, 0, len(cs))
+	for _, callback := range cs {
+		if nameMap[callback.name] {
+			continue
+		}
+		callbacks = append(callbacks, callback)
+	}
+	return callbacks
 }

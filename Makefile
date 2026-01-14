@@ -27,11 +27,11 @@ run: ## run server
 	go run -mod vendor main.go
 
 test: ## run unit test
-	go test -ldflags -s -v -coverprofile=cover.out $(PKGS)
+	GOTOOLCHAIN=go1.25.0+auto go test -ldflags -s -v -coverprofile=cover.out $(PKGS) 2>&1 | grep -v "no such tool"
 	go tool cover -func=cover.out -o coverage.txt
 
 lint: install-golangci-lint ## run golangci lint
-	golangci-lint run
+	GOTOOLCHAIN=go1.25.0+auto golangci-lint run
 
 clean: ## clean bin and go mod
 	@rm -rf bin/
@@ -52,7 +52,7 @@ install-swagger: ## install swagger from golang
 	go install github.com/swaggo/swag/cmd/swag@v1.8.12
 
 install-golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.1
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
 
 postgres: ## init postgres db
 	@docker start mypostgres || docker run --name mypostgres -d -p 5432:5432 -e POSTGRES_PASSWORD=123456 postgres

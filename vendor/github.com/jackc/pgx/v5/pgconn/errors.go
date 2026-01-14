@@ -12,13 +12,14 @@ import (
 
 // SafeToRetry checks if the err is guaranteed to have occurred before sending any data to the server.
 func SafeToRetry(err error) bool {
-	if e, ok := err.(interface{ SafeToRetry() bool }); ok {
-		return e.SafeToRetry()
+	var retryableErr interface{ SafeToRetry() bool }
+	if errors.As(err, &retryableErr) {
+		return retryableErr.SafeToRetry()
 	}
 	return false
 }
 
-// Timeout checks if err was was caused by a timeout. To be specific, it is true if err was caused within pgconn by a
+// Timeout checks if err was caused by a timeout. To be specific, it is true if err was caused within pgconn by a
 // context.DeadlineExceeded or an implementer of net.Error where Timeout() is true.
 func Timeout(err error) bool {
 	var timeoutErr *errTimeout
@@ -29,23 +30,24 @@ func Timeout(err error) bool {
 // http://www.postgresql.org/docs/11/static/protocol-error-fields.html for
 // detailed field description.
 type PgError struct {
-	Severity         string
-	Code             string
-	Message          string
-	Detail           string
-	Hint             string
-	Position         int32
-	InternalPosition int32
-	InternalQuery    string
-	Where            string
-	SchemaName       string
-	TableName        string
-	ColumnName       string
-	DataTypeName     string
-	ConstraintName   string
-	File             string
-	Line             int32
-	Routine          string
+	Severity            string
+	SeverityUnlocalized string
+	Code                string
+	Message             string
+	Detail              string
+	Hint                string
+	Position            int32
+	InternalPosition    int32
+	InternalQuery       string
+	Where               string
+	SchemaName          string
+	TableName           string
+	ColumnName          string
+	DataTypeName        string
+	ConstraintName      string
+	File                string
+	Line                int32
+	Routine             string
 }
 
 func (pe *PgError) Error() string {
@@ -57,22 +59,37 @@ func (pe *PgError) SQLState() string {
 	return pe.Code
 }
 
-type connectError struct {
-	config *Config
-	msg    string
+// ConnectError is the error returned when a connection attempt fails.
+type ConnectError struct {
+	Config *Config // The configuration that was used in the connection attempt.
 	err    error
 }
 
-func (e *connectError) Error() string {
-	sb := &strings.Builder{}
-	fmt.Fprintf(sb, "failed to connect to `host=%s user=%s database=%s`: %s", e.config.Host, e.config.User, e.config.Database, e.msg)
-	if e.err != nil {
-		fmt.Fprintf(sb, " (%s)", e.err.Error())
+func (e *ConnectError) Error() string {
+	prefix := fmt.Sprintf("failed to connect to `user=%s database=%s`:", e.Config.User, e.Config.Database)
+	details := e.err.Error()
+	if strings.Contains(details, "\n") {
+		return prefix + "\n\t" + strings.ReplaceAll(details, "\n", "\n\t")
+	} else {
+		return prefix + " " + details
 	}
-	return sb.String()
 }
 
-func (e *connectError) Unwrap() error {
+func (e *ConnectError) Unwrap() error {
+	return e.err
+}
+
+type perDialConnectError struct {
+	address          string
+	originalHostname string
+	err              error
+}
+
+func (e *perDialConnectError) Error() string {
+	return fmt.Sprintf("%s (%s): %s", e.address, e.originalHostname, e.err.Error())
+}
+
+func (e *perDialConnectError) Unwrap() error {
 	return e.err
 }
 
@@ -88,33 +105,38 @@ func (e *connLockError) Error() string {
 	return e.status
 }
 
-type parseConfigError struct {
-	connString string
+// ParseConfigError is the error returned when a connection string cannot be parsed.
+type ParseConfigError struct {
+	ConnString string // The connection string that could not be parsed.
 	msg        string
 	err        error
 }
 
-func (e *parseConfigError) Error() string {
-	connString := redactPW(e.connString)
+func (e *ParseConfigError) Error() string {
+	// Now that ParseConfigError is public and ConnString is available to the developer, perhaps it would be better only
+	// return a static string. That would ensure that the error message cannot leak a password. The ConnString field would
+	// allow access to the original string if desired and Unwrap would allow access to the underlying error.
+	connString := redactPW(e.ConnString)
 	if e.err == nil {
 		return fmt.Sprintf("cannot parse `%s`: %s", connString, e.msg)
 	}
 	return fmt.Sprintf("cannot parse `%s`: %s (%s)", connString, e.msg, e.err.Error())
 }
 
-func (e *parseConfigError) Unwrap() error {
+func (e *ParseConfigError) Unwrap() error {
 	return e.err
 }
 
 func normalizeTimeoutError(ctx context.Context, err error) error {
-	if err, ok := err.(net.Error); ok && err.Timeout() {
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
 		if ctx.Err() == context.Canceled {
 			// Since the timeout was caused by a context cancellation, the actual error is context.Canceled not the timeout error.
 			return context.Canceled
 		} else if ctx.Err() == context.DeadlineExceeded {
 			return &errTimeout{err: ctx.Err()}
 		} else {
-			return &errTimeout{err: err}
+			return &errTimeout{err: netErr}
 		}
 	}
 	return err
@@ -189,10 +211,10 @@ func redactPW(connString string) string {
 			return redactURL(u)
 		}
 	}
-	quotedDSN := regexp.MustCompile(`password='[^']*'`)
-	connString = quotedDSN.ReplaceAllLiteralString(connString, "password=xxxxx")
-	plainDSN := regexp.MustCompile(`password=[^ ]*`)
-	connString = plainDSN.ReplaceAllLiteralString(connString, "password=xxxxx")
+	quotedKV := regexp.MustCompile(`password='[^']*'`)
+	connString = quotedKV.ReplaceAllLiteralString(connString, "password=xxxxx")
+	plainKV := regexp.MustCompile(`password=[^ ]*`)
+	connString = plainKV.ReplaceAllLiteralString(connString, "password=xxxxx")
 	brokenURL := regexp.MustCompile(`:[^:@]+?@`)
 	connString = brokenURL.ReplaceAllLiteralString(connString, ":xxxxxx@")
 	return connString

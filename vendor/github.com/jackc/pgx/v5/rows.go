@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/jackc/pgx/v5/internal/stmtcache"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -17,7 +17,8 @@ import (
 // the *Conn can be used again. Rows are closed by explicitly calling Close(),
 // calling Next() until it returns false, or when a fatal error occurs.
 //
-// Once a Rows is closed the only methods that may be called are Close(), Err(), and CommandTag().
+// Once a Rows is closed the only methods that may be called are Close(), Err(),
+// and CommandTag().
 //
 // Rows is an interface instead of a struct to allow tests to mock Query. However,
 // adding a method to an interface is technically a breaking change. Because of this
@@ -28,17 +29,28 @@ type Rows interface {
 	// to call Close after rows is already closed.
 	Close()
 
-	// Err returns any error that occurred while reading.
+	// Err returns any error that occurred while reading. Err must only be called after the Rows is closed (either by
+	// calling Close or by Next returning false). If it is called early it may return nil even if there was an error
+	// executing the query.
 	Err() error
 
 	// CommandTag returns the command tag from this query. It is only available after Rows is closed.
 	CommandTag() pgconn.CommandTag
 
+	// FieldDescriptions returns the field descriptions of the columns. It may return nil. In particular this can occur
+	// when there was an error executing the query.
 	FieldDescriptions() []pgconn.FieldDescription
 
 	// Next prepares the next row for reading. It returns true if there is another
-	// row and false if no more rows are available. It automatically closes rows
-	// when all rows are read.
+	// row and false if no more rows are available or a fatal error has occurred.
+	// It automatically closes rows when all rows are read.
+	//
+	// Callers should check rows.Err() after rows.Next() returns false to detect
+	// whether result-set reading ended prematurely due to an error. See
+	// Conn.Query for details.
+	//
+	// For simpler error handling, consider using the higher-level pgx v5
+	// CollectRows() and ForEachRow() helpers instead.
 	Next() bool
 
 	// Scan reads the values from the current row into dest values positionally.
@@ -162,14 +174,12 @@ func (rows *baseRows) Close() {
 	}
 
 	if rows.err != nil && rows.conn != nil && rows.sql != "" {
-		if stmtcache.IsStatementInvalid(rows.err) {
-			if sc := rows.conn.statementCache; sc != nil {
-				sc.Invalidate(rows.sql)
-			}
+		if sc := rows.conn.statementCache; sc != nil {
+			sc.Invalidate(rows.sql)
+		}
 
-			if sc := rows.conn.descriptionCache; sc != nil {
-				sc.Invalidate(rows.sql)
-			}
+		if sc := rows.conn.descriptionCache; sc != nil {
+			sc.Invalidate(rows.sql)
 		}
 	}
 
@@ -227,7 +237,11 @@ func (rows *baseRows) Scan(dest ...any) error {
 
 	if len(dest) == 1 {
 		if rc, ok := dest[0].(RowScanner); ok {
-			return rc.ScanRow(rows)
+			err := rc.ScanRow(rows)
+			if err != nil {
+				rows.fatal(err)
+			}
+			return err
 		}
 	}
 
@@ -298,7 +312,7 @@ func (rows *baseRows) Values() ([]any, error) {
 				copy(newBuf, buf)
 				values = append(values, newBuf)
 			default:
-				rows.fatal(errors.New("Unknown format code"))
+				rows.fatal(errors.New("unknown format code"))
 			}
 		}
 
@@ -404,11 +418,11 @@ type CollectableRow interface {
 // RowToFunc is a function that scans or otherwise converts row to a T.
 type RowToFunc[T any] func(row CollectableRow) (T, error)
 
-// CollectRows iterates through rows, calling fn for each row, and collecting the results into a slice of T.
-func CollectRows[T any](rows Rows, fn RowToFunc[T]) ([]T, error) {
+// AppendRows iterates through rows, calling fn for each row, and appending the results into a slice of T.
+//
+// This function closes the rows automatically on return.
+func AppendRows[T any, S ~[]T](slice S, rows Rows, fn RowToFunc[T]) (S, error) {
 	defer rows.Close()
-
-	slice := []T{}
 
 	for rows.Next() {
 		value, err := fn(rows)
@@ -425,8 +439,17 @@ func CollectRows[T any](rows Rows, fn RowToFunc[T]) ([]T, error) {
 	return slice, nil
 }
 
+// CollectRows iterates through rows, calling fn for each row, and collecting the results into a slice of T.
+//
+// This function closes the rows automatically on return.
+func CollectRows[T any](rows Rows, fn RowToFunc[T]) ([]T, error) {
+	return AppendRows([]T{}, rows, fn)
+}
+
 // CollectOneRow calls fn for the first row in rows and returns the result. If no rows are found returns an error where errors.Is(ErrNoRows) is true.
 // CollectOneRow is to CollectRows as QueryRow is to Query.
+//
+// This function closes the rows automatically on return.
 func CollectOneRow[T any](rows Rows, fn RowToFunc[T]) (T, error) {
 	defer rows.Close()
 
@@ -446,6 +469,41 @@ func CollectOneRow[T any](rows Rows, fn RowToFunc[T]) (T, error) {
 	}
 
 	rows.Close()
+	return value, rows.Err()
+}
+
+// CollectExactlyOneRow calls fn for the first row in rows and returns the result.
+//   - If no rows are found returns an error where errors.Is(ErrNoRows) is true.
+//   - If more than 1 row is found returns an error where errors.Is(ErrTooManyRows) is true.
+//
+// This function closes the rows automatically on return.
+func CollectExactlyOneRow[T any](rows Rows, fn RowToFunc[T]) (T, error) {
+	defer rows.Close()
+
+	var (
+		err   error
+		value T
+	)
+
+	if !rows.Next() {
+		if err = rows.Err(); err != nil {
+			return value, err
+		}
+
+		return value, ErrNoRows
+	}
+
+	value, err = fn(rows)
+	if err != nil {
+		return value, err
+	}
+
+	if rows.Next() {
+		var zero T
+
+		return zero, ErrTooManyRows
+	}
+
 	return value, rows.Err()
 }
 
@@ -488,18 +546,20 @@ func (rs *mapRowScanner) ScanRow(rows Rows) error {
 }
 
 // RowToStructByPos returns a T scanned from row. T must be a struct. T must have the same number a public fields as row
-// has fields. The row and T fields will by matched by position.
+// has fields. The row and T fields will be matched by position. If the "db" struct tag is "-" then the field will be
+// ignored.
 func RowToStructByPos[T any](row CollectableRow) (T, error) {
 	var value T
-	err := row.Scan(&positionalStructRowScanner{ptrToStruct: &value})
+	err := (&positionalStructRowScanner{ptrToStruct: &value}).ScanRow(row)
 	return value, err
 }
 
 // RowToAddrOfStructByPos returns the address of a T scanned from row. T must be a struct. T must have the same number a
-// public fields as row has fields. The row and T fields will by matched by position.
+// public fields as row has fields. The row and T fields will be matched by position. If the "db" struct tag is "-" then
+// the field will be ignored.
 func RowToAddrOfStructByPos[T any](row CollectableRow) (*T, error) {
 	var value T
-	err := row.Scan(&positionalStructRowScanner{ptrToStruct: &value})
+	err := (&positionalStructRowScanner{ptrToStruct: &value}).ScanRow(row)
 	return &value, err
 }
 
@@ -507,127 +567,227 @@ type positionalStructRowScanner struct {
 	ptrToStruct any
 }
 
-func (rs *positionalStructRowScanner) ScanRow(rows Rows) error {
-	dst := rs.ptrToStruct
-	dstValue := reflect.ValueOf(dst)
-	if dstValue.Kind() != reflect.Ptr {
-		return fmt.Errorf("dst not a pointer")
+func (rs *positionalStructRowScanner) ScanRow(rows CollectableRow) error {
+	typ := reflect.TypeOf(rs.ptrToStruct).Elem()
+	fields := lookupStructFields(typ)
+	if len(rows.RawValues()) > len(fields) {
+		return fmt.Errorf(
+			"got %d values, but dst struct has only %d fields",
+			len(rows.RawValues()),
+			len(fields),
+		)
 	}
-
-	dstElemValue := dstValue.Elem()
-	scanTargets := rs.appendScanTargets(dstElemValue, nil)
-
-	if len(rows.RawValues()) > len(scanTargets) {
-		return fmt.Errorf("got %d values, but dst struct has only %d fields", len(rows.RawValues()), len(scanTargets))
-	}
-
+	scanTargets := setupStructScanTargets(rs.ptrToStruct, fields)
 	return rows.Scan(scanTargets...)
 }
 
-func (rs *positionalStructRowScanner) appendScanTargets(dstElemValue reflect.Value, scanTargets []any) []any {
-	dstElemType := dstElemValue.Type()
+// Map from reflect.Type -> []structRowField
+var positionalStructFieldMap sync.Map
 
-	if scanTargets == nil {
-		scanTargets = make([]any, 0, dstElemType.NumField())
+func lookupStructFields(t reflect.Type) []structRowField {
+	if cached, ok := positionalStructFieldMap.Load(t); ok {
+		return cached.([]structRowField)
 	}
 
-	for i := 0; i < dstElemType.NumField(); i++ {
-		sf := dstElemType.Field(i)
-		if sf.PkgPath == "" {
-			// Handle anonymous struct embedding, but do not try to handle embedded pointers.
-			if sf.Anonymous && sf.Type.Kind() == reflect.Struct {
-				scanTargets = rs.appendScanTargets(dstElemValue.Field(i), scanTargets)
-			} else {
-				scanTargets = append(scanTargets, dstElemValue.Field(i).Addr().Interface())
+	fieldStack := make([]int, 0, 1)
+	fields := computeStructFields(t, make([]structRowField, 0, t.NumField()), &fieldStack)
+	fieldsIface, _ := positionalStructFieldMap.LoadOrStore(t, fields)
+	return fieldsIface.([]structRowField)
+}
+
+func computeStructFields(
+	t reflect.Type,
+	fields []structRowField,
+	fieldStack *[]int,
+) []structRowField {
+	tail := len(*fieldStack)
+	*fieldStack = append(*fieldStack, 0)
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		(*fieldStack)[tail] = i
+		// Handle anonymous struct embedding, but do not try to handle embedded pointers.
+		if sf.Anonymous && sf.Type.Kind() == reflect.Struct {
+			fields = computeStructFields(sf.Type, fields, fieldStack)
+		} else if sf.PkgPath == "" {
+			dbTag, _ := sf.Tag.Lookup(structTagKey)
+			if dbTag == "-" {
+				// Field is ignored, skip it.
+				continue
 			}
+			fields = append(fields, structRowField{
+				path: append([]int(nil), *fieldStack...),
+			})
 		}
 	}
-
-	return scanTargets
+	*fieldStack = (*fieldStack)[:tail]
+	return fields
 }
 
 // RowToStructByName returns a T scanned from row. T must be a struct. T must have the same number of named public
-// fields as row has fields. The row and T fields will by matched by name. The match is case-insensitive. The database
+// fields as row has fields. The row and T fields will be matched by name. The match is case-insensitive. The database
 // column name can be overridden with a "db" struct tag. If the "db" struct tag is "-" then the field will be ignored.
 func RowToStructByName[T any](row CollectableRow) (T, error) {
 	var value T
-	err := row.Scan(&namedStructRowScanner{ptrToStruct: &value})
+	err := (&namedStructRowScanner{ptrToStruct: &value}).ScanRow(row)
 	return value, err
 }
 
 // RowToAddrOfStructByName returns the address of a T scanned from row. T must be a struct. T must have the same number
-// of named public fields as row has fields. The row and T fields will by matched by name. The match is
+// of named public fields as row has fields. The row and T fields will be matched by name. The match is
 // case-insensitive. The database column name can be overridden with a "db" struct tag. If the "db" struct tag is "-"
 // then the field will be ignored.
 func RowToAddrOfStructByName[T any](row CollectableRow) (*T, error) {
 	var value T
-	err := row.Scan(&namedStructRowScanner{ptrToStruct: &value})
+	err := (&namedStructRowScanner{ptrToStruct: &value}).ScanRow(row)
+	return &value, err
+}
+
+// RowToStructByNameLax returns a T scanned from row. T must be a struct. T must have greater than or equal number of named public
+// fields as row has fields. The row and T fields will be matched by name. The match is case-insensitive. The database
+// column name can be overridden with a "db" struct tag. If the "db" struct tag is "-" then the field will be ignored.
+func RowToStructByNameLax[T any](row CollectableRow) (T, error) {
+	var value T
+	err := (&namedStructRowScanner{ptrToStruct: &value, lax: true}).ScanRow(row)
+	return value, err
+}
+
+// RowToAddrOfStructByNameLax returns the address of a T scanned from row. T must be a struct. T must have greater than or
+// equal number of named public fields as row has fields. The row and T fields will be matched by name. The match is
+// case-insensitive. The database column name can be overridden with a "db" struct tag. If the "db" struct tag is "-"
+// then the field will be ignored.
+func RowToAddrOfStructByNameLax[T any](row CollectableRow) (*T, error) {
+	var value T
+	err := (&namedStructRowScanner{ptrToStruct: &value, lax: true}).ScanRow(row)
 	return &value, err
 }
 
 type namedStructRowScanner struct {
 	ptrToStruct any
+	lax         bool
 }
 
-func (rs *namedStructRowScanner) ScanRow(rows Rows) error {
-	dst := rs.ptrToStruct
-	dstValue := reflect.ValueOf(dst)
-	if dstValue.Kind() != reflect.Ptr {
-		return fmt.Errorf("dst not a pointer")
-	}
-
-	dstElemValue := dstValue.Elem()
-	scanTargets, err := rs.appendScanTargets(dstElemValue, nil, rows.FieldDescriptions())
-
+func (rs *namedStructRowScanner) ScanRow(rows CollectableRow) error {
+	typ := reflect.TypeOf(rs.ptrToStruct).Elem()
+	fldDescs := rows.FieldDescriptions()
+	namedStructFields, err := lookupNamedStructFields(typ, fldDescs)
 	if err != nil {
 		return err
 	}
-
-	for i, t := range scanTargets {
-		if t == nil {
-			return fmt.Errorf("struct doesn't have corresponding row field %s", rows.FieldDescriptions()[i].Name)
-		}
+	if !rs.lax && namedStructFields.missingField != "" {
+		return fmt.Errorf("cannot find field %s in returned row", namedStructFields.missingField)
 	}
-
+	fields := namedStructFields.fields
+	scanTargets := setupStructScanTargets(rs.ptrToStruct, fields)
 	return rows.Scan(scanTargets...)
 }
 
-const structTagKey = "db"
+// Map from namedStructFieldMap -> *namedStructFields
+var namedStructFieldMap sync.Map
 
-func fieldPosByName(fldDescs []pgconn.FieldDescription, field string) (i int) {
-	i = -1
-	for i, desc := range fldDescs {
-		if strings.EqualFold(desc.Name, field) {
-			return i
-		}
-	}
-	return
+type namedStructFieldsKey struct {
+	t        reflect.Type
+	colNames string
 }
 
-func (rs *namedStructRowScanner) appendScanTargets(dstElemValue reflect.Value, scanTargets []any, fldDescs []pgconn.FieldDescription) ([]any, error) {
-	var err error
-	dstElemType := dstElemValue.Type()
+type namedStructFields struct {
+	fields []structRowField
+	// missingField is the first field from the struct without a corresponding row field.
+	// This is used to construct the correct error message for non-lax queries.
+	missingField string
+}
 
-	if scanTargets == nil {
-		scanTargets = make([]any, len(fldDescs))
+func lookupNamedStructFields(
+	t reflect.Type,
+	fldDescs []pgconn.FieldDescription,
+) (*namedStructFields, error) {
+	key := namedStructFieldsKey{
+		t:        t,
+		colNames: joinFieldNames(fldDescs),
+	}
+	if cached, ok := namedStructFieldMap.Load(key); ok {
+		return cached.(*namedStructFields), nil
 	}
 
-	for i := 0; i < dstElemType.NumField(); i++ {
-		sf := dstElemType.Field(i)
+	// We could probably do two-levels of caching, where we compute the key -> fields mapping
+	// for a type only once, cache it by type, then use that to compute the column -> fields
+	// mapping for a given set of columns.
+	fieldStack := make([]int, 0, 1)
+	fields, missingField := computeNamedStructFields(
+		fldDescs,
+		t,
+		make([]structRowField, len(fldDescs)),
+		&fieldStack,
+	)
+	for i, f := range fields {
+		if f.path == nil {
+			return nil, fmt.Errorf(
+				"struct doesn't have corresponding row field %s",
+				fldDescs[i].Name,
+			)
+		}
+	}
+
+	fieldsIface, _ := namedStructFieldMap.LoadOrStore(
+		key,
+		&namedStructFields{fields: fields, missingField: missingField},
+	)
+	return fieldsIface.(*namedStructFields), nil
+}
+
+func joinFieldNames(fldDescs []pgconn.FieldDescription) string {
+	switch len(fldDescs) {
+	case 0:
+		return ""
+	case 1:
+		return fldDescs[0].Name
+	}
+
+	totalSize := len(fldDescs) - 1 // Space for separator bytes.
+	for _, d := range fldDescs {
+		totalSize += len(d.Name)
+	}
+	var b strings.Builder
+	b.Grow(totalSize)
+	b.WriteString(fldDescs[0].Name)
+	for _, d := range fldDescs[1:] {
+		b.WriteByte(0) // Join with NUL byte as it's (presumably) not a valid column character.
+		b.WriteString(d.Name)
+	}
+	return b.String()
+}
+
+func computeNamedStructFields(
+	fldDescs []pgconn.FieldDescription,
+	t reflect.Type,
+	fields []structRowField,
+	fieldStack *[]int,
+) ([]structRowField, string) {
+	var missingField string
+	tail := len(*fieldStack)
+	*fieldStack = append(*fieldStack, 0)
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+		(*fieldStack)[tail] = i
 		if sf.PkgPath != "" && !sf.Anonymous {
 			// Field is unexported, skip it.
 			continue
 		}
-		// Handle anoymous struct embedding, but do not try to handle embedded pointers.
+		// Handle anonymous struct embedding, but do not try to handle embedded pointers.
 		if sf.Anonymous && sf.Type.Kind() == reflect.Struct {
-			scanTargets, err = rs.appendScanTargets(dstElemValue.Field(i), scanTargets, fldDescs)
-			if err != nil {
-				return nil, err
+			var missingSubField string
+			fields, missingSubField = computeNamedStructFields(
+				fldDescs,
+				sf.Type,
+				fields,
+				fieldStack,
+			)
+			if missingField == "" {
+				missingField = missingSubField
 			}
 		} else {
 			dbTag, dbTagPresent := sf.Tag.Lookup(structTagKey)
 			if dbTagPresent {
-				dbTag = strings.Split(dbTag, ",")[0]
+				dbTag, _, _ = strings.Cut(dbTag, ",")
 			}
 			if dbTag == "-" {
 				// Field is ignored, skip it.
@@ -638,12 +798,54 @@ func (rs *namedStructRowScanner) appendScanTargets(dstElemValue reflect.Value, s
 				colName = sf.Name
 			}
 			fpos := fieldPosByName(fldDescs, colName)
-			if fpos == -1 || fpos >= len(scanTargets) {
-				return nil, fmt.Errorf("cannot find field %s in returned row", colName)
+			if fpos == -1 {
+				if missingField == "" {
+					missingField = colName
+				}
+				continue
 			}
-			scanTargets[fpos] = dstElemValue.Field(i).Addr().Interface()
+			fields[fpos] = structRowField{
+				path: append([]int(nil), *fieldStack...),
+			}
 		}
 	}
+	*fieldStack = (*fieldStack)[:tail]
 
-	return scanTargets, err
+	return fields, missingField
+}
+
+const structTagKey = "db"
+
+func fieldPosByName(fldDescs []pgconn.FieldDescription, field string) (i int) {
+	i = -1
+	for i, desc := range fldDescs {
+
+		// Snake case support.
+		field = strings.ReplaceAll(field, "_", "")
+		descName := strings.ReplaceAll(desc.Name, "_", "")
+
+		if strings.EqualFold(descName, field) {
+			return i
+		}
+	}
+	return
+}
+
+// structRowField describes a field of a struct.
+//
+// TODO: It would be a bit more efficient to track the path using the pointer
+// offset within the (outermost) struct and use unsafe.Pointer arithmetic to
+// construct references when scanning rows. However, it's not clear it's worth
+// using unsafe for this.
+type structRowField struct {
+	path []int
+}
+
+func setupStructScanTargets(receiver any, fields []structRowField) []any {
+	scanTargets := make([]any, len(fields))
+	v := reflect.ValueOf(receiver).Elem()
+	for i, f := range fields {
+		scanTargets[i] = v.FieldByIndex(f.path).Addr().Interface()
+	}
+	return scanTargets
 }

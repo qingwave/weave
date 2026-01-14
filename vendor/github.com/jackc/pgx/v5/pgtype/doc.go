@@ -67,7 +67,7 @@ See example_custom_type_test.go for an example of a custom type for the PostgreS
 
 Sometimes pgx supports a PostgreSQL type such as numeric but the Go type is in an external package that does not have
 pgx support such as github.com/shopspring/decimal. These types can be registered with pgtype with custom conversion
-logic. See https://github.com/jackc/pgx-shopspring-decimal and https://github.com/jackc/pgx-gofrs-uuid for a example
+logic. See https://github.com/jackc/pgx-shopspring-decimal and https://github.com/jackc/pgx-gofrs-uuid for example
 integrations.
 
 New PostgreSQL Type Support
@@ -139,6 +139,16 @@ Compatibility with database/sql
 pgtype also includes support for custom types implementing the database/sql.Scanner and database/sql/driver.Valuer
 interfaces.
 
+Encoding Typed Nils
+
+pgtype encodes untyped and typed nils (e.g. nil and []byte(nil)) to the SQL NULL value without going through the Codec
+system. This means that Codecs and other encoding logic do not have to handle nil or *T(nil).
+
+However, database/sql compatibility requires Value to be called on T(nil) when T implements driver.Valuer. Therefore,
+driver.Valuer values are only considered NULL when *T(nil) where driver.Valuer is implemented on T not on *T. See
+https://github.com/golang/go/issues/8415 and
+https://github.com/golang/go/commit/0ce1d79a6a771f7449ec493b993ed2a720917870.
+
 Child Records
 
 pgtype's support for arrays and composite records can be used to load records and their children in a single query.  See
@@ -149,7 +159,7 @@ Overview of Scanning Implementation
 The first step is to use the OID to lookup the correct Codec. If the OID is unavailable, Map will try to find the OID
 from previous calls of Map.RegisterDefaultPgType. The Map will call the Codec's PlanScan method to get a plan for
 scanning into the Go value. A Codec will support scanning into one or more Go types. Oftentime these Go types are
-interfaces rather than explicit types. For example, PointCodec can use any Go type that implments the PointScanner and
+interfaces rather than explicit types. For example, PointCodec can use any Go type that implements the PointScanner and
 PointValuer interfaces.
 
 If a Go value is not supported directly by a Codec then Map will try wrapping it with additional logic and try again.

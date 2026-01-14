@@ -16,9 +16,9 @@ import (
 	"github.com/qingwave/weave/pkg/model"
 	"github.com/qingwave/weave/pkg/utils/trace"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -95,7 +95,7 @@ func (con *ContainerController) Get(c *gin.Context) {
 // @Router /api/v1/containers [get]
 func (con *ContainerController) List(c *gin.Context) {
 	common.TraceStep(c, "start list container")
-	items, err := con.client.ContainerList(c.Request.Context(), types.ContainerListOptions{
+	items, err := con.client.ContainerList(c.Request.Context(), container.ListOptions{
 		All:     true,
 		Filters: filters.NewArgs(filters.Arg("label", model.AppPateformLabel)),
 	})
@@ -138,7 +138,7 @@ func (con *ContainerController) Operate(c *gin.Context) {
 	var err error
 	switch verb {
 	case "start":
-		err = con.client.ContainerStart(ctx, id, types.ContainerStartOptions{})
+		err = con.client.ContainerStart(ctx, id, container.StartOptions{})
 	case "restart":
 		err = con.client.ContainerRestart(ctx, id, container.StopOptions{})
 	case "stop":
@@ -174,7 +174,7 @@ func (con *ContainerController) Update(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	con.client.ContainerRemove(ctx, id, types.ContainerRemoveOptions{
+	con.client.ContainerRemove(ctx, id, container.RemoveOptions{
 		Force: true,
 	})
 
@@ -208,7 +208,7 @@ func (con *ContainerController) Delete(c *gin.Context) {
 		return
 	}
 
-	err := con.client.ContainerRemove(c.Request.Context(), id, types.ContainerRemoveOptions{
+	err := con.client.ContainerRemove(c.Request.Context(), id, container.RemoveOptions{
 		Force: true,
 	})
 	if err != nil {
@@ -236,7 +236,7 @@ func (con *ContainerController) Log(c *gin.Context) {
 		return
 	}
 
-	reader, err := con.client.ContainerLogs(c.Request.Context(), id, types.ContainerLogsOptions{
+	reader, err := con.client.ContainerLogs(c.Request.Context(), id, container.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Timestamps: true,
@@ -328,7 +328,7 @@ func (con *ContainerController) Exec(c *gin.Context) {
 	}
 
 	ctx := c.Request.Context()
-	idResp, err := con.client.ContainerExecCreate(ctx, id, types.ExecConfig{
+	idResp, err := con.client.ContainerExecCreate(ctx, id, container.ExecOptions{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
@@ -340,7 +340,7 @@ func (con *ContainerController) Exec(c *gin.Context) {
 		return
 	}
 
-	hijack, err := con.client.ContainerExecAttach(ctx, idResp.ID, types.ExecStartCheck{
+	hijack, err := con.client.ContainerExecAttach(ctx, idResp.ID, container.ExecStartOptions{
 		Detach: false,
 		Tty:    true,
 	})
@@ -390,7 +390,7 @@ func (con *ContainerController) runContainer(ctx context.Context, ccon *model.Cr
 		return "", errors.New("image cannot be empty")
 	}
 
-	reader, err := con.client.ImagePull(ctx, ccon.Image, types.ImagePullOptions{})
+	reader, err := con.client.ImagePull(ctx, ccon.Image, image.PullOptions{})
 	if reader != nil {
 		defer reader.Close()
 	}
@@ -409,7 +409,7 @@ func (con *ContainerController) runContainer(ctx context.Context, ccon *model.Cr
 	}
 
 	if err := con.client.ContainerStart(ctx, resp.ID,
-		types.ContainerStartOptions{}); err != nil {
+		container.StartOptions{}); err != nil {
 		return resp.ID, err
 	}
 

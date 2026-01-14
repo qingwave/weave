@@ -44,10 +44,17 @@ type LoggerConfig struct {
 	// Optional. Default value is gin.DefaultWriter.
 	Output io.Writer
 
-	// SkipPaths is an url path array which logs are not written.
+	// SkipPaths is a URL path array which logs are not written.
 	// Optional.
 	SkipPaths []string
+
+	// Skip is a Skipper that indicates which logs should not be written.
+	// Optional.
+	Skip Skipper
 }
+
+// Skipper is a function to skip logs based on provided Context
+type Skipper func(c *Context) bool
 
 // LogFormatter gives the signature of the formatter function passed to LoggerWithFormatter
 type LogFormatter func(params LogFormatterParams) string
@@ -75,7 +82,7 @@ type LogFormatterParams struct {
 	// BodySize is the size of the Response Body
 	BodySize int
 	// Keys are the keys set on the request's context.
-	Keys map[string]any
+	Keys map[any]any
 }
 
 // StatusCodeColor is the ANSI color for appropriately logging http status code to a terminal.
@@ -83,6 +90,8 @@ func (p *LogFormatterParams) StatusCodeColor() string {
 	code := p.StatusCode
 
 	switch {
+	case code >= http.StatusContinue && code < http.StatusOK:
+		return white
 	case code >= http.StatusOK && code < http.StatusMultipleChoices:
 		return green
 	case code >= http.StatusMultipleChoices && code < http.StatusBadRequest:
@@ -239,32 +248,34 @@ func LoggerWithConfig(conf LoggerConfig) HandlerFunc {
 		// Process request
 		c.Next()
 
-		// Log only when path is not being skipped
-		if _, ok := skip[path]; !ok {
-			param := LogFormatterParams{
-				Request: c.Request,
-				isTerm:  isTerm,
-				Keys:    c.Keys,
-			}
-
-			// Stop timer
-			param.TimeStamp = time.Now()
-			param.Latency = param.TimeStamp.Sub(start)
-
-			param.ClientIP = c.ClientIP()
-			param.Method = c.Request.Method
-			param.StatusCode = c.Writer.Status()
-			param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
-
-			param.BodySize = c.Writer.Size()
-
-			if raw != "" {
-				path = path + "?" + raw
-			}
-
-			param.Path = path
-
-			fmt.Fprint(out, formatter(param))
+		// Log only when it is not being skipped
+		if _, ok := skip[path]; ok || (conf.Skip != nil && conf.Skip(c)) {
+			return
 		}
+
+		param := LogFormatterParams{
+			Request: c.Request,
+			isTerm:  isTerm,
+			Keys:    c.Keys,
+		}
+
+		// Stop timer
+		param.TimeStamp = time.Now()
+		param.Latency = param.TimeStamp.Sub(start)
+
+		param.ClientIP = c.ClientIP()
+		param.Method = c.Request.Method
+		param.StatusCode = c.Writer.Status()
+		param.ErrorMessage = c.Errors.ByType(ErrorTypePrivate).String()
+
+		param.BodySize = c.Writer.Size()
+
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		param.Path = path
+
+		fmt.Fprint(out, formatter(param))
 	}
 }

@@ -3,6 +3,7 @@ package callbacks
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"gorm.io/gorm"
@@ -74,7 +75,7 @@ func embeddedValues(embeddedRelations *schema.Relationships) []string {
 	names := make([]string, 0, len(embeddedRelations.Relations)+len(embeddedRelations.EmbeddedRelations))
 	for _, relation := range embeddedRelations.Relations {
 		// skip first struct name
-		names = append(names, strings.Join(relation.Field.BindNames[1:], "."))
+		names = append(names, strings.Join(relation.Field.EmbeddedBindNames[1:], "."))
 	}
 	for _, relations := range embeddedRelations.EmbeddedRelations {
 		names = append(names, embeddedValues(relations)...)
@@ -82,25 +83,103 @@ func embeddedValues(embeddedRelations *schema.Relationships) []string {
 	return names
 }
 
-func preloadEmbedded(tx *gorm.DB, relationships *schema.Relationships, s *schema.Schema, preloads map[string][]interface{}, as []interface{}) error {
-	if relationships == nil {
-		return nil
+// preloadEntryPoint enters layer by layer. It will call real preload if it finds the right entry point.
+// If the current relationship is embedded or joined, current query will be ignored.
+//
+//nolint:cyclop
+func preloadEntryPoint(db *gorm.DB, joins []string, relationships *schema.Relationships, preloads map[string][]interface{}, associationsConds []interface{}) error {
+	preloadMap := parsePreloadMap(db.Statement.Schema, preloads)
+
+	// avoid random traversal of the map
+	preloadNames := make([]string, 0, len(preloadMap))
+	for key := range preloadMap {
+		preloadNames = append(preloadNames, key)
 	}
-	preloadMap := parsePreloadMap(s, preloads)
-	for name := range preloadMap {
-		if embeddedRelations := relationships.EmbeddedRelations[name]; embeddedRelations != nil {
-			if err := preloadEmbedded(tx, embeddedRelations, s, preloadMap[name], as); err != nil {
+	sort.Strings(preloadNames)
+
+	isJoined := func(name string) (joined bool, nestedJoins []string) {
+		for _, join := range joins {
+			if _, ok := relationships.Relations[join]; ok && name == join {
+				joined = true
+				continue
+			}
+			join0, join1, cut := strings.Cut(join, ".")
+			if cut {
+				if _, ok := relationships.Relations[join0]; ok && name == join0 {
+					joined = true
+					nestedJoins = append(nestedJoins, join1)
+				}
+			}
+		}
+		return joined, nestedJoins
+	}
+
+	for _, name := range preloadNames {
+		if relations := relationships.EmbeddedRelations[name]; relations != nil {
+			if err := preloadEntryPoint(db, joins, relations, preloadMap[name], associationsConds); err != nil {
 				return err
 			}
 		} else if rel := relationships.Relations[name]; rel != nil {
-			if err := preload(tx, rel, append(preloads[name], as), preloadMap[name]); err != nil {
-				return err
+			if joined, nestedJoins := isJoined(name); joined {
+				switch rv := db.Statement.ReflectValue; rv.Kind() {
+				case reflect.Slice, reflect.Array:
+					if rv.Len() > 0 {
+						reflectValue := rel.FieldSchema.MakeSlice().Elem()
+						for i := 0; i < rv.Len(); i++ {
+							frv := rel.Field.ReflectValueOf(db.Statement.Context, rv.Index(i))
+							if frv.Kind() != reflect.Ptr {
+								reflectValue = reflect.Append(reflectValue, frv.Addr())
+							} else {
+								if frv.IsNil() {
+									continue
+								}
+								reflectValue = reflect.Append(reflectValue, frv)
+							}
+						}
+
+						tx := preloadDB(db, reflectValue, reflectValue.Interface())
+						if err := preloadEntryPoint(tx, nestedJoins, &tx.Statement.Schema.Relationships, preloadMap[name], associationsConds); err != nil {
+							return err
+						}
+					}
+				case reflect.Struct, reflect.Pointer:
+					reflectValue := rel.Field.ReflectValueOf(db.Statement.Context, rv)
+					tx := preloadDB(db, reflectValue, reflectValue.Interface())
+					if err := preloadEntryPoint(tx, nestedJoins, &tx.Statement.Schema.Relationships, preloadMap[name], associationsConds); err != nil {
+						return err
+					}
+				default:
+					return gorm.ErrInvalidData
+				}
+			} else {
+				tx := db.Table("").Session(&gorm.Session{Context: db.Statement.Context, SkipHooks: db.Statement.SkipHooks})
+				tx.Statement.ReflectValue = db.Statement.ReflectValue
+				tx.Statement.Unscoped = db.Statement.Unscoped
+				if err := preload(tx, rel, append(preloads[name], associationsConds...), preloadMap[name]); err != nil {
+					return err
+				}
 			}
 		} else {
-			return fmt.Errorf("%s: %w (embedded) for schema %s", name, gorm.ErrUnsupportedRelation, s.Name)
+			return fmt.Errorf("%s: %w for schema %s", name, gorm.ErrUnsupportedRelation, db.Statement.Schema.Name)
 		}
 	}
 	return nil
+}
+
+func preloadDB(db *gorm.DB, reflectValue reflect.Value, dest interface{}) *gorm.DB {
+	tx := db.Session(&gorm.Session{Context: db.Statement.Context, NewDB: true, SkipHooks: db.Statement.SkipHooks, Initialized: true})
+	db.Statement.Settings.Range(func(k, v interface{}) bool {
+		tx.Statement.Settings.Store(k, v)
+		return true
+	})
+
+	if err := tx.Statement.Parse(dest); err != nil {
+		tx.AddError(err)
+		return tx
+	}
+	tx.Statement.ReflectValue = reflectValue
+	tx.Statement.Unscoped = db.Statement.Unscoped
+	return tx
 }
 
 func preload(tx *gorm.DB, rel *schema.Relationship, conds []interface{}, preloads map[string][]interface{}) error {
@@ -196,6 +275,8 @@ func preload(tx *gorm.DB, rel *schema.Relationship, conds []interface{}, preload
 	column, values := schema.ToQueryValues(clause.CurrentTable, relForeignKeys, foreignValues)
 
 	if len(values) != 0 {
+		tx = tx.Model(reflectResults.Addr().Interface()).Where(clause.IN{Column: column, Values: values})
+
 		for _, cond := range conds {
 			if fc, ok := cond.(func(*gorm.DB) *gorm.DB); ok {
 				tx = fc(tx)
@@ -204,7 +285,11 @@ func preload(tx *gorm.DB, rel *schema.Relationship, conds []interface{}, preload
 			}
 		}
 
-		if err := tx.Where(clause.IN{Column: column, Values: values}).Find(reflectResults.Addr().Interface(), inlineConds...).Error; err != nil {
+		if len(inlineConds) > 0 {
+			tx = tx.Where(inlineConds[0], inlineConds[1:]...)
+		}
+
+		if err := tx.Find(reflectResults.Addr().Interface()).Error; err != nil {
 			return err
 		}
 	}
