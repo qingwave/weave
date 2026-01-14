@@ -11,20 +11,20 @@ require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-logr/logr v1.4.3
-	github.com/go-redis/redis/v8 v8.11.5
-	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/websocket v1.5.3
-	github.com/hashicorp/golang-lru/v2 v2.0.2
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
+	github.com/redis/go-redis/v9 v9.17.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/files v1.0.1
-	github.com/swaggo/gin-swagger v1.6.0
-	github.com/swaggo/swag v1.16.1
+	github.com/swaggo/gin-swagger v1.6.1
+	github.com/swaggo/swag v1.16.6
 	golang.org/x/crypto v0.47.0
 	golang.org/x/oauth2 v0.34.0
-	golang.org/x/time v0.3.0
+	golang.org/x/time v0.14.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1

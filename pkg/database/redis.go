@@ -7,7 +7,7 @@ import (
 
 	"github.com/qingwave/weave/pkg/config"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
