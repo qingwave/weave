@@ -50,7 +50,13 @@ func NewClient(kubeconfig *weaveconfig.KubeConfig) (*KubeClient, error) {
 		return nil, err
 	}
 
-	podClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{Version: "v1", Kind: "Pod"}, false, false, config, codec, nil)
+	// Create HTTP client for the REST client
+	httpClient, err := rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, err
+	}
+
+	podClient, err := apiutil.RESTClientForGVK(schema.GroupVersionKind{Version: "v1", Kind: "Pod"}, false, false, config, codec, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -158,6 +164,8 @@ func (c *KubeClient) Log(ctx context.Context, namespace, pod, container string, 
 }
 
 func (c *KubeClient) Exec(ctx context.Context, namespace, pod, container string, cmd []string, tty bool, options remotecommand.StreamOptions) error {
+	logrus.Infof("executing command in pod %s/%s, container: %s, tty: %v, cmd: %v", namespace, pod, container, tty, cmd)
+
 	req := c.podClient.Post().
 		Resource("pods").
 		Namespace(namespace).
@@ -174,11 +182,17 @@ func (c *KubeClient) Exec(ctx context.Context, namespace, pod, container string,
 
 	exec, err := remotecommand.NewSPDYExecutor(c.config, "POST", req.URL())
 	if err != nil {
-		logrus.Warnf("failed to create executor: %v", err)
+		logrus.Errorf("failed to create SPDY executor for pod %s/%s: %v", namespace, pod, err)
 		return err
 	}
 
-	return exec.StreamWithContext(ctx, options)
+	err = exec.StreamWithContext(ctx, options)
+	if err != nil {
+		logrus.Errorf("exec stream failed for pod %s/%s: %v", namespace, pod, err)
+		return err
+	}
+
+	return nil
 }
 
 func newRuntimeClient(cache cache.Cache, config *rest.Config) (client.Client, error) {
