@@ -109,7 +109,11 @@ function notImplement(name) {
 
 <style scoped>
 .el-header {
-  border-bottom: 1px solid #d1d5db;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .el-menu {

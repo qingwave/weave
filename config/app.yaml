@@ -22,7 +22,6 @@ kubernetes:
   enable: true # set `KUBECONFIG` env or flag --kubeconfig at first
   watchResources:
   - "Deployment.v1.apps"
-  - "Pod.v1."
   - "Namespace.v1."
 
 db:

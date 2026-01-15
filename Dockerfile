@@ -4,8 +4,7 @@ COPY ["main.go", "go.mod", "go.sum", "./"]
 COPY docs/ docs/
 COPY pkg/ pkg/
 COPY static/ static/
-COPY vendor/ vendor/
-RUN go build -mod=vendor
+RUN go build
 
 FROM alpine
 COPY --from=builder /weave/weave /

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -415,10 +416,45 @@ func (kc *KubeController) PodExec(c *gin.Context) {
 		return
 	}
 
-	session := &session{conn, 10 * time.Second}
+	// Set pong handler to detect connection liveness
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
+
+	session := &session{
+		conn:      conn,
+		writeWait: 60 * time.Second,
+		readBuf:   nil,
+	}
+
+	// Use background context without hard timeout - follow kubectl's design
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Start ping/pong heartbeat to detect disconnection (fixes concurrent read issue)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				// Send ping to detect if connection is still alive
+				if err := conn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(10*time.Second)); err != nil {
+					cancel()
+					return
+				}
+			}
+		}
+	}()
 
 	tty := c.Query("tty") == "true"
-	err = kc.client.Exec(namespace, name, c.Query("container"),
+	err = kc.client.Exec(ctx, namespace, name, c.Query("container"),
 		c.QueryArray("command"),
 		tty,
 		remotecommand.StreamOptions{
@@ -427,6 +463,11 @@ func (kc *KubeController) PodExec(c *gin.Context) {
 			Stderr: session,
 			Tty:    tty,
 		})
+
+	// Ensure goroutine cleanup
+	cancel()
+	<-done
+
 	if err != nil {
 		session.Close(websocket.CloseAbnormalClosure, err.Error())
 		return
@@ -471,9 +512,18 @@ func wrap(res *KubeResource, h gin.HandlerFunc) gin.HandlerFunc {
 type session struct {
 	conn      *websocket.Conn
 	writeWait time.Duration
+	readBuf   []byte // Buffer for unread data from large messages
 }
 
 func (s *session) Read(p []byte) (int, error) {
+	// First, read from buffer if there's unread data
+	if len(s.readBuf) > 0 {
+		n := copy(p, s.readBuf)
+		s.readBuf = s.readBuf[n:]
+		return n, nil
+	}
+
+	// Buffer is empty, read new message from WebSocket
 	messageType, data, err := s.conn.ReadMessage()
 	if err != nil {
 		return 0, err
@@ -481,9 +531,14 @@ func (s *session) Read(p []byte) (int, error) {
 
 	switch messageType {
 	case websocket.TextMessage, websocket.BinaryMessage:
-		return copy(p, data), nil
+		n := copy(p, data)
+		// If message is larger than buffer, save remaining data
+		if n < len(data) {
+			s.readBuf = data[n:]
+		}
+		return n, nil
 	case websocket.CloseMessage:
-		return 0, nil
+		return 0, io.EOF
 	}
 	return 0, fmt.Errorf("unknown message type %d", messageType)
 }

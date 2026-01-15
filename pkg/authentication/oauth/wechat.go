@@ -73,7 +73,7 @@ func (auth *WeChatAuth) GetToken(code string) (*oauth2.Token, error) {
 
 	// {"errcode":40163,"errmsg":"code been used, rid: 6206378a-793424c0-2e4091cc"}
 	if strings.Contains(buf.String(), "errcode") {
-		return nil, fmt.Errorf(buf.String())
+		return nil, fmt.Errorf("%s", buf.String())
 	}
 
 	var wechatAccessToken WechatAccessToken
